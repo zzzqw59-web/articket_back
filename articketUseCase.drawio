@@ -1072,6 +1072,42 @@
             <mxPoint x="422" y="208" as="targetPoint" />
           </mxGeometry>
         </mxCell>
+        <mxCell id="L2fmqmV1BE3nkGo2vlc6-39" connectable="0" parent="1" style="group" value="" vertex="1">
+          <mxGeometry height="320" width="350" x="718" y="2401" as="geometry" />
+        </mxCell>
+        <mxCell id="L2fmqmV1BE3nkGo2vlc6-40" parent="L2fmqmV1BE3nkGo2vlc6-39" style="html=1;whiteSpace=wrap;" value="&lt;span style=&quot;font-size: 24px;&quot;&gt;위시리스트 관리 시스템&lt;/span&gt;&lt;div&gt;&lt;div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="320" width="283.12" x="66.88" as="geometry" />
+        </mxCell>
+        <mxCell id="L2fmqmV1BE3nkGo2vlc6-41" parent="L2fmqmV1BE3nkGo2vlc6-39" style="ellipse;whiteSpace=wrap;html=1;" value="위시리스트를&lt;div&gt;조회한다&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="140" x="134" y="61" as="geometry" />
+        </mxCell>
+        <mxCell id="L2fmqmV1BE3nkGo2vlc6-42" parent="L2fmqmV1BE3nkGo2vlc6-39" style="ellipse;whiteSpace=wrap;html=1;" value="위시리스트를&lt;div&gt;등록한다&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="140" x="134" y="143" as="geometry" />
+        </mxCell>
+        <mxCell id="L2fmqmV1BE3nkGo2vlc6-43" parent="L2fmqmV1BE3nkGo2vlc6-39" style="ellipse;whiteSpace=wrap;html=1;" value="위시리스트를&lt;div&gt;삭제한다&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="140" x="134" y="223" as="geometry" />
+        </mxCell>
+        <mxCell id="L2fmqmV1BE3nkGo2vlc6-44" parent="L2fmqmV1BE3nkGo2vlc6-39" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="회원" vertex="1">
+          <mxGeometry height="60" width="30" y="156" as="geometry" />
+        </mxCell>
+        <mxCell id="L2fmqmV1BE3nkGo2vlc6-45" edge="1" parent="L2fmqmV1BE3nkGo2vlc6-39" source="L2fmqmV1BE3nkGo2vlc6-41" style="endArrow=none;html=1;rounded=0;entryX=1;entryY=0.3333333333333333;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" target="L2fmqmV1BE3nkGo2vlc6-44" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="194" y="208" as="sourcePoint" />
+            <mxPoint x="354" y="208" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="L2fmqmV1BE3nkGo2vlc6-46" edge="1" parent="L2fmqmV1BE3nkGo2vlc6-39" source="L2fmqmV1BE3nkGo2vlc6-42" style="endArrow=none;html=1;rounded=0;entryX=1;entryY=0.3333333333333333;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" target="L2fmqmV1BE3nkGo2vlc6-44" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="359" y="154" as="sourcePoint" />
+            <mxPoint x="270" y="231" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="L2fmqmV1BE3nkGo2vlc6-47" edge="1" parent="L2fmqmV1BE3nkGo2vlc6-39" source="L2fmqmV1BE3nkGo2vlc6-43" style="endArrow=none;html=1;rounded=0;entryX=1;entryY=0.3333333333333333;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" target="L2fmqmV1BE3nkGo2vlc6-44" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="294" y="187" as="sourcePoint" />
+            <mxPoint x="205" y="182" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
