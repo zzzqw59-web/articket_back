@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36" pages="3">
   <diagram id="03018318-947c-dd8e-b7a3-06fadd420f32" name="페이지-1">
-    <mxGraphModel dx="3477" dy="2587" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" background="none" math="0" shadow="0">
+    <mxGraphModel dx="2100" dy="1109" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" background="none" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -25,7 +25,7 @@
         <mxCell id="Bip0nfh8w2AHEL2clQJB-7" parent="Bip0nfh8w2AHEL2clQJB-1" style="ellipse;whiteSpace=wrap;html=1;" value="관람료를&lt;div&gt;환불받는다&lt;/div&gt;" vertex="1">
           <mxGeometry height="70" width="140" x="308.25" y="184" as="geometry" />
         </mxCell>
-        <mxCell id="Bip0nfh8w2AHEL2clQJB-8" parent="Bip0nfh8w2AHEL2clQJB-1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="일반 회원" vertex="1">
+        <mxCell id="Bip0nfh8w2AHEL2clQJB-8" parent="Bip0nfh8w2AHEL2clQJB-1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="회원" vertex="1">
           <mxGeometry height="60" width="30" y="198" as="geometry" />
         </mxCell>
         <mxCell id="Bip0nfh8w2AHEL2clQJB-9" parent="Bip0nfh8w2AHEL2clQJB-1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="관리자/&lt;div&gt;전시 관계자&lt;/div&gt;" vertex="1">
@@ -223,7 +223,7 @@
         <mxCell id="Bip0nfh8w2AHEL2clQJB-111" parent="Bip0nfh8w2AHEL2clQJB-109" style="ellipse;whiteSpace=wrap;html=1;" value="전시 정보를&lt;div&gt;조회한다&lt;/div&gt;" vertex="1">
           <mxGeometry height="70" width="140" x="85" y="110" as="geometry" />
         </mxCell>
-        <mxCell id="Bip0nfh8w2AHEL2clQJB-112" parent="Bip0nfh8w2AHEL2clQJB-109" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="일반 회원/&lt;div&gt;전시 관계자/&lt;br&gt;&lt;div&gt;비회원&lt;/div&gt;&lt;/div&gt;" vertex="1">
+        <mxCell id="Bip0nfh8w2AHEL2clQJB-112" parent="Bip0nfh8w2AHEL2clQJB-109" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="사용자" vertex="1">
           <mxGeometry height="60" width="30" y="288" as="geometry" />
         </mxCell>
         <mxCell id="Bip0nfh8w2AHEL2clQJB-113" parent="Bip0nfh8w2AHEL2clQJB-109" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="관리자" vertex="1">
@@ -322,7 +322,7 @@
         <mxCell id="Bip0nfh8w2AHEL2clQJB-17" parent="ZtZBZZ10us3fkzL758X6-19" style="html=1;whiteSpace=wrap;" value="&lt;font style=&quot;font-size: 24px;&quot;&gt;리뷰 게시판&lt;/font&gt;&lt;div&gt;&lt;span style=&quot;font-size: 24px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 24px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;font-size: 24px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 24px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 24px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 24px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="730" width="401" x="233" as="geometry" />
         </mxCell>
-        <mxCell id="Bip0nfh8w2AHEL2clQJB-42" parent="ZtZBZZ10us3fkzL758X6-19" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="비회원" vertex="1">
+        <mxCell id="Bip0nfh8w2AHEL2clQJB-42" parent="ZtZBZZ10us3fkzL758X6-19" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="사용자" vertex="1">
           <mxGeometry height="60" width="30" y="347" as="geometry" />
         </mxCell>
         <mxCell id="Bip0nfh8w2AHEL2clQJB-43" edge="1" parent="ZtZBZZ10us3fkzL758X6-19" source="Bip0nfh8w2AHEL2clQJB-42" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.3333333333333333;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="Bip0nfh8w2AHEL2clQJB-21" value="">
@@ -337,7 +337,7 @@
             <mxPoint x="30" y="367.00000000000045" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="Bip0nfh8w2AHEL2clQJB-18" parent="ZtZBZZ10us3fkzL758X6-19" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="일반 회원" vertex="1">
+        <mxCell id="Bip0nfh8w2AHEL2clQJB-18" parent="ZtZBZZ10us3fkzL758X6-19" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="회원" vertex="1">
           <mxGeometry height="60" width="30" x="114" y="335" as="geometry" />
         </mxCell>
         <mxCell id="Bip0nfh8w2AHEL2clQJB-19" parent="ZtZBZZ10us3fkzL758X6-19" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="관리자/&lt;div&gt;전시 관계자&lt;/div&gt;" vertex="1">
@@ -658,7 +658,7 @@
         <mxCell id="RrfCOBF-AOvNqHI-XEkZ-30" parent="RrfCOBF-AOvNqHI-XEkZ-27" style="ellipse;whiteSpace=wrap;html=1;" value="위시리스트를&lt;div&gt;삭제한다&lt;/div&gt;" vertex="1">
           <mxGeometry height="70" width="140" x="30" y="140" as="geometry" />
         </mxCell>
-        <mxCell id="RrfCOBF-AOvNqHI-XEkZ-31" parent="RrfCOBF-AOvNqHI-XEkZ-1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="일반 회원" vertex="1">
+        <mxCell id="RrfCOBF-AOvNqHI-XEkZ-31" parent="RrfCOBF-AOvNqHI-XEkZ-1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="회원" vertex="1">
           <mxGeometry height="60" width="30" y="580" as="geometry" />
         </mxCell>
         <mxCell id="RrfCOBF-AOvNqHI-XEkZ-32" edge="1" parent="RrfCOBF-AOvNqHI-XEkZ-1" source="RrfCOBF-AOvNqHI-XEkZ-10" style="endArrow=none;html=1;rounded=0;entryX=1;entryY=0.3333333333333333;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" target="RrfCOBF-AOvNqHI-XEkZ-31" value="">
@@ -811,7 +811,7 @@
         <mxCell id="L2fmqmV1BE3nkGo2vlc6-3" parent="L2fmqmV1BE3nkGo2vlc6-2" style="html=1;whiteSpace=wrap;" value="&lt;font style=&quot;font-size: 24px;&quot;&gt;문의 게시판&lt;/font&gt;&lt;div&gt;&lt;span style=&quot;font-size: 24px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 24px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 24px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 24px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;font-size: 24px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;font-size: 24px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 24px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 24px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 24px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="820" width="441.5" x="180.5" as="geometry" />
         </mxCell>
-        <mxCell id="L2fmqmV1BE3nkGo2vlc6-4" parent="L2fmqmV1BE3nkGo2vlc6-2" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="일반 회원" vertex="1">
+        <mxCell id="L2fmqmV1BE3nkGo2vlc6-4" parent="L2fmqmV1BE3nkGo2vlc6-2" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="회원" vertex="1">
           <mxGeometry height="60" width="30" x="60" y="176" as="geometry" />
         </mxCell>
         <mxCell id="L2fmqmV1BE3nkGo2vlc6-5" parent="L2fmqmV1BE3nkGo2vlc6-2" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="관리자/&lt;div&gt;전시 관계자&lt;/div&gt;" vertex="1">
@@ -958,7 +958,7 @@
             <mxPoint x="670" y="257" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="L2fmqmV1BE3nkGo2vlc6-35" parent="L2fmqmV1BE3nkGo2vlc6-1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="비회원" vertex="1">
+        <mxCell id="L2fmqmV1BE3nkGo2vlc6-35" parent="L2fmqmV1BE3nkGo2vlc6-1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="사용자" vertex="1">
           <mxGeometry height="60" width="30" y="67" as="geometry" />
         </mxCell>
         <mxCell id="L2fmqmV1BE3nkGo2vlc6-36" edge="1" parent="L2fmqmV1BE3nkGo2vlc6-1" source="L2fmqmV1BE3nkGo2vlc6-35" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.3333333333333333;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="L2fmqmV1BE3nkGo2vlc6-7" value="">
