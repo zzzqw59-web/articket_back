@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net">
   <diagram name="페이지-1" id="lkSP2fJ90wtVC9-0g-od">
-    <mxGraphModel dx="1935" dy="1274" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2350" dy="1461" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -1252,7 +1252,7 @@
         <mxCell id="CeFBaAJWNTveQvABFvMn-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;align=center;" value="전시지역" vertex="1">
           <mxGeometry height="40" width="100" x="1176" y="1572" as="geometry" />
         </mxCell>
-        <mxCell id="CeFBaAJWNTveQvABFvMn-2" parent="1" style="ellipse;whiteSpace=wrap;html=1;align=center;" value="무료/유료판단 컬럼" vertex="1">
+        <mxCell id="CeFBaAJWNTveQvABFvMn-2" parent="1" style="ellipse;whiteSpace=wrap;html=1;align=center;" value="전시 상태" vertex="1">
           <mxGeometry height="40" width="100" x="1176" y="1698" as="geometry" />
         </mxCell>
         <mxCell id="CeFBaAJWNTveQvABFvMn-3" edge="1" parent="1" source="09OPEAq-YsfSaO322nG7-63" style="endArrow=none;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="CeFBaAJWNTveQvABFvMn-1" value="">
