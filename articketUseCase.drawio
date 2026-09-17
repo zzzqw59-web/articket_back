@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36" pages="3">
   <diagram id="03018318-947c-dd8e-b7a3-06fadd420f32" name="페이지-1">
-    <mxGraphModel dx="3120" dy="1960" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" background="none" math="0" shadow="0">
+    <mxGraphModel dx="3842" dy="2088" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" background="none" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -807,6 +807,24 @@
         </mxCell>
         <mxCell id="IJVE5mnNvCPfikEFnqxj-24" edge="1" parent="IJVE5mnNvCPfikEFnqxj-1" source="IJVE5mnNvCPfikEFnqxj-23" style="dashed=1;endArrow=open;html=1;" target="IJVE5mnNvCPfikEFnqxj-21" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;">
           <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nhs-qLlEpLACjUT1JEWE-1" parent="IJVE5mnNvCPfikEFnqxj-1" style="ellipse;whiteSpace=wrap;html=1;" value="전화번호, 비밀번호 수정" vertex="1">
+          <mxGeometry height="70" width="140" x="505" y="459" as="geometry" />
+        </mxCell>
+        <mxCell id="nhs-qLlEpLACjUT1JEWE-2" edge="1" parent="IJVE5mnNvCPfikEFnqxj-1" source="nhs-qLlEpLACjUT1JEWE-1" style="endArrow=none;html=1;" target="IJVE5mnNvCPfikEFnqxj-12" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="633" y="379" as="sourcePoint" />
+            <mxPoint x="475" y="373" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nhs-qLlEpLACjUT1JEWE-3" parent="IJVE5mnNvCPfikEFnqxj-1" style="ellipse;whiteSpace=wrap;html=1;" value="전화번호를 인증한다" vertex="1">
+          <mxGeometry height="70" width="140" x="505" y="336" as="geometry" />
+        </mxCell>
+        <mxCell id="nhs-qLlEpLACjUT1JEWE-4" edge="1" parent="IJVE5mnNvCPfikEFnqxj-1" source="nhs-qLlEpLACjUT1JEWE-1" style="dashed=1;endArrow=open;html=1;" target="nhs-qLlEpLACjUT1JEWE-3" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="544" y="430" as="sourcePoint" />
+            <mxPoint x="644" y="446" as="targetPoint" />
+          </mxGeometry>
         </mxCell>
         <mxCell id="IJVE5mnNvCPfikEFnqxj-25" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="비회원" vertex="1">
           <mxGeometry height="60" width="30" x="-470" y="-340" as="geometry" />
