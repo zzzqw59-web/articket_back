@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36" pages="3">
   <diagram id="03018318-947c-dd8e-b7a3-06fadd420f32" name="페이지-1">
-    <mxGraphModel dx="3842" dy="2088" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" background="none" math="0" shadow="0">
+    <mxGraphModel dx="2944" dy="2334" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" background="none" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -778,18 +778,6 @@
         <mxCell id="IJVE5mnNvCPfikEFnqxj-14" parent="IJVE5mnNvCPfikEFnqxj-1" style="ellipse;whiteSpace=wrap;html=1;" value="회원탈퇴를 취소한다" vertex="1">
           <mxGeometry height="70" width="140" x="78" y="675" as="geometry" />
         </mxCell>
-        <mxCell id="IJVE5mnNvCPfikEFnqxj-15" parent="IJVE5mnNvCPfikEFnqxj-1" style="ellipse;whiteSpace=wrap;html=1;" value="전시 관계자 인증을 신청한다" vertex="1">
-          <mxGeometry height="70" width="140" x="522.6" y="621" as="geometry" />
-        </mxCell>
-        <mxCell id="IJVE5mnNvCPfikEFnqxj-16" parent="IJVE5mnNvCPfikEFnqxj-1" style="ellipse;whiteSpace=wrap;html=1;" value="관계자 정보를 입력한다" vertex="1">
-          <mxGeometry height="70" width="140" x="312" y="549" as="geometry" />
-        </mxCell>
-        <mxCell id="IJVE5mnNvCPfikEFnqxj-17" parent="IJVE5mnNvCPfikEFnqxj-1" style="ellipse;whiteSpace=wrap;html=1;" value="증빙자료를 첨부한다" vertex="1">
-          <mxGeometry height="70" width="140" x="312" y="630" as="geometry" />
-        </mxCell>
-        <mxCell id="IJVE5mnNvCPfikEFnqxj-18" parent="IJVE5mnNvCPfikEFnqxj-1" style="ellipse;whiteSpace=wrap;html=1;" value="최초 담당 전시를 선택한다" vertex="1">
-          <mxGeometry height="70" width="140" x="312" y="711" as="geometry" />
-        </mxCell>
         <mxCell id="IJVE5mnNvCPfikEFnqxj-19" parent="IJVE5mnNvCPfikEFnqxj-1" style="ellipse;whiteSpace=wrap;html=1;" value="회원정보를 조회한다" vertex="1">
           <mxGeometry height="70" width="140" x="522.6" y="781" as="geometry" />
         </mxCell>
@@ -832,9 +820,6 @@
         <mxCell id="IJVE5mnNvCPfikEFnqxj-26" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="회원" vertex="1">
           <mxGeometry height="60" width="30" x="-470" y="55" as="geometry" />
         </mxCell>
-        <mxCell id="IJVE5mnNvCPfikEFnqxj-27" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="일반회원" vertex="1">
-          <mxGeometry height="60" width="30" x="440" y="210" as="geometry" />
-        </mxCell>
         <mxCell id="IJVE5mnNvCPfikEFnqxj-28" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="관리자" vertex="1">
           <mxGeometry height="60" width="30" x="440" y="439" as="geometry" />
         </mxCell>
@@ -860,9 +845,6 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="IJVE5mnNvCPfikEFnqxj-36" edge="1" parent="1" source="IJVE5mnNvCPfikEFnqxj-26" style="endArrow=none;html=1;" target="IJVE5mnNvCPfikEFnqxj-14" value="">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="IJVE5mnNvCPfikEFnqxj-37" edge="1" parent="1" source="IJVE5mnNvCPfikEFnqxj-27" style="endArrow=none;html=1;" target="IJVE5mnNvCPfikEFnqxj-15" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="IJVE5mnNvCPfikEFnqxj-38" edge="1" parent="1" source="IJVE5mnNvCPfikEFnqxj-28" style="endArrow=none;html=1;" target="IJVE5mnNvCPfikEFnqxj-19" value="">
@@ -893,15 +875,6 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="IJVE5mnNvCPfikEFnqxj-47" edge="1" parent="1" source="IJVE5mnNvCPfikEFnqxj-11" style="dashed=1;endArrow=open;html=1;" target="IJVE5mnNvCPfikEFnqxj-12" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="IJVE5mnNvCPfikEFnqxj-48" edge="1" parent="1" source="IJVE5mnNvCPfikEFnqxj-15" style="dashed=1;endArrow=open;html=1;" target="IJVE5mnNvCPfikEFnqxj-16" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="IJVE5mnNvCPfikEFnqxj-49" edge="1" parent="1" source="IJVE5mnNvCPfikEFnqxj-15" style="dashed=1;endArrow=open;html=1;" target="IJVE5mnNvCPfikEFnqxj-17" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="IJVE5mnNvCPfikEFnqxj-50" edge="1" parent="1" source="IJVE5mnNvCPfikEFnqxj-15" style="dashed=1;endArrow=open;html=1;" target="IJVE5mnNvCPfikEFnqxj-18" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="IJVE5mnNvCPfikEFnqxj-51" edge="1" parent="1" source="IJVE5mnNvCPfikEFnqxj-22" style="dashed=1;endArrow=open;html=1;" target="IJVE5mnNvCPfikEFnqxj-21" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;">
