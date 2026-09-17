@@ -1,13 +1,13 @@
 <mxfile host="app.diagrams.net" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36" pages="3">
   <diagram id="03018318-947c-dd8e-b7a3-06fadd420f32" name="페이지-1">
-    <mxGraphModel dx="2944" dy="2334" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" background="none" math="0" shadow="0">
+    <mxGraphModel dx="3035" dy="1724" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" background="none" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="WmJ2usPVCdQc6EACcCMo-1" parent="1" style="html=1;whiteSpace=wrap;" value="&lt;span style=&quot;font-size: 24px;&quot;&gt;관리자 페이지&lt;/span&gt;&lt;div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 18px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="696" width="404.12" x="710.88" y="1631" as="geometry" />
+          <mxGeometry height="741" width="404.12" x="710.88" y="1631" as="geometry" />
         </mxCell>
-        <mxCell id="WmJ2usPVCdQc6EACcCMo-2" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="전시 권한 요청을&amp;nbsp;&lt;br&gt;승인/거절한다" vertex="1">
+        <mxCell id="WmJ2usPVCdQc6EACcCMo-2" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="전시 권한 요청을&amp;nbsp;&lt;br&gt;처리한다" vertex="1">
           <mxGeometry height="70" width="140" x="745.26" y="1692" as="geometry" />
         </mxCell>
         <mxCell id="WmJ2usPVCdQc6EACcCMo-3" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="새로 등록된&lt;div&gt;문의글을&amp;nbsp;&lt;div&gt;조회한다&lt;/div&gt;&lt;/div&gt;" vertex="1">
@@ -784,7 +784,7 @@
         <mxCell id="IJVE5mnNvCPfikEFnqxj-20" parent="IJVE5mnNvCPfikEFnqxj-1" style="ellipse;whiteSpace=wrap;html=1;" value="회원상태를 변경한다" vertex="1">
           <mxGeometry height="70" width="140" x="522.6" y="859" as="geometry" />
         </mxCell>
-        <mxCell id="IJVE5mnNvCPfikEFnqxj-21" parent="IJVE5mnNvCPfikEFnqxj-1" style="ellipse;whiteSpace=wrap;html=1;" value="전시 관계자 인증 요청을 처리한다" vertex="1">
+        <mxCell id="IJVE5mnNvCPfikEFnqxj-21" parent="IJVE5mnNvCPfikEFnqxj-1" style="ellipse;whiteSpace=wrap;html=1;" value="전시 권한 인증 요청을 처리한다" vertex="1">
           <mxGeometry height="70" width="140" x="522.6" y="937" as="geometry" />
         </mxCell>
         <mxCell id="IJVE5mnNvCPfikEFnqxj-22" parent="IJVE5mnNvCPfikEFnqxj-1" style="ellipse;whiteSpace=wrap;html=1;" value="인증을 거절한다" vertex="1">
@@ -1172,6 +1172,36 @@
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="698.47" y="1124" as="sourcePoint" />
             <mxPoint x="565.47" y="1119" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xIwS9OQLlZDvl32b2OuZ-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="승인한다" vertex="1">
+          <mxGeometry height="70" width="140" x="937" y="1692" as="geometry" />
+        </mxCell>
+        <mxCell id="xIwS9OQLlZDvl32b2OuZ-2" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="거절한다" vertex="1">
+          <mxGeometry height="70" width="140" x="937" y="1771" as="geometry" />
+        </mxCell>
+        <mxCell id="xIwS9OQLlZDvl32b2OuZ-8" edge="1" parent="1" source="WmJ2usPVCdQc6EACcCMo-2" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;dashed=1;" target="xIwS9OQLlZDvl32b2OuZ-2" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;">
+          <mxGeometry relative="1" width="80" as="geometry">
+            <mxPoint x="1236" y="1829" as="sourcePoint" />
+            <mxPoint x="1296" y="1869" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xIwS9OQLlZDvl32b2OuZ-9" edge="1" parent="1" source="WmJ2usPVCdQc6EACcCMo-2" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;dashed=1;" target="xIwS9OQLlZDvl32b2OuZ-1" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;">
+          <mxGeometry relative="1" width="80" as="geometry">
+            <mxPoint x="1202" y="1839" as="sourcePoint" />
+            <mxPoint x="1262" y="1879" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xIwS9OQLlZDvl32b2OuZ-10" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="전시 관계자 계정을 생성한다" vertex="1">
+          <mxGeometry height="70" width="140" x="745.26" y="2284" as="geometry" />
+        </mxCell>
+        <mxCell id="xIwS9OQLlZDvl32b2OuZ-11" edge="1" parent="1" source="xIwS9OQLlZDvl32b2OuZ-10" style="endArrow=none;html=1;rounded=0;entryX=1;entryY=0.3333333333333333;entryDx=0;entryDy=0;entryPerimeter=0;" target="WmJ2usPVCdQc6EACcCMo-15" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="662.33" y="2208.5" />
+            </Array>
+            <mxPoint x="731" y="2431" as="sourcePoint" />
+            <mxPoint x="607" y="2140" as="targetPoint" />
           </mxGeometry>
         </mxCell>
       </root>
