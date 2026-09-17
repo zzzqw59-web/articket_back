@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net">
   <diagram name="페이지-1" id="lkSP2fJ90wtVC9-0g-od">
-    <mxGraphModel dx="2350" dy="1461" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="3290" dy="1886" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -1394,6 +1394,72 @@
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="874" y="22" as="sourcePoint" />
             <mxPoint x="1280" y="5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GUW_K9Ud9IGpLgwVb4DO-1" parent="1" style="whiteSpace=wrap;html=1;" value="전화번호 인증" vertex="1">
+          <mxGeometry height="60" width="120" x="1390" y="-30" as="geometry" />
+        </mxCell>
+        <mxCell id="GUW_K9Ud9IGpLgwVb4DO-2" parent="1" style="ellipse;whiteSpace=wrap;html=1;align=center;" value="요청 일시" vertex="1">
+          <mxGeometry height="40" width="100" x="1276" y="-169" as="geometry" />
+        </mxCell>
+        <mxCell id="GUW_K9Ud9IGpLgwVb4DO-3" parent="1" style="ellipse;whiteSpace=wrap;html=1;align=center;" value="만료 일시" vertex="1">
+          <mxGeometry height="40" width="100" x="1385" y="-169" as="geometry" />
+        </mxCell>
+        <mxCell id="GUW_K9Ud9IGpLgwVb4DO-4" parent="1" style="ellipse;whiteSpace=wrap;html=1;align=center;" value="인증 목적" vertex="1">
+          <mxGeometry height="40" width="100" x="1617" y="-167" as="geometry" />
+        </mxCell>
+        <mxCell id="GUW_K9Ud9IGpLgwVb4DO-5" parent="1" style="ellipse;whiteSpace=wrap;html=1;align=center;" value="인증 번호" vertex="1">
+          <mxGeometry height="40" width="100" x="1617" y="-106" as="geometry" />
+        </mxCell>
+        <mxCell id="GUW_K9Ud9IGpLgwVb4DO-6" parent="1" style="ellipse;whiteSpace=wrap;html=1;align=center;" value="전화번호" vertex="1">
+          <mxGeometry height="40" width="100" x="1617" y="-45" as="geometry" />
+        </mxCell>
+        <mxCell id="GUW_K9Ud9IGpLgwVb4DO-7" parent="1" style="ellipse;whiteSpace=wrap;html=1;align=center;" value="인증 완료 일시" vertex="1">
+          <mxGeometry height="40" width="100" x="1496" y="-169" as="geometry" />
+        </mxCell>
+        <mxCell id="GUW_K9Ud9IGpLgwVb4DO-8" parent="1" style="ellipse;whiteSpace=wrap;html=1;align=center;" value="고유 번호" vertex="1">
+          <mxGeometry height="40" width="100" x="1617" y="16" as="geometry" />
+        </mxCell>
+        <mxCell id="GUW_K9Ud9IGpLgwVb4DO-9" edge="1" parent="1" source="GUW_K9Ud9IGpLgwVb4DO-4" style="endArrow=none;html=1;rounded=0;" target="GUW_K9Ud9IGpLgwVb4DO-1" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1297" y="-115" as="sourcePoint" />
+            <mxPoint x="1478" y="-100" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GUW_K9Ud9IGpLgwVb4DO-10" edge="1" parent="1" source="GUW_K9Ud9IGpLgwVb4DO-2" style="endArrow=none;html=1;rounded=0;" target="GUW_K9Ud9IGpLgwVb4DO-1" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1095" y="-153" as="sourcePoint" />
+            <mxPoint x="1276" y="-138" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GUW_K9Ud9IGpLgwVb4DO-11" edge="1" parent="1" source="GUW_K9Ud9IGpLgwVb4DO-3" style="endArrow=none;html=1;rounded=0;" target="GUW_K9Ud9IGpLgwVb4DO-1" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1233" y="-141" as="sourcePoint" />
+            <mxPoint x="1414" y="-126" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GUW_K9Ud9IGpLgwVb4DO-12" edge="1" parent="1" source="GUW_K9Ud9IGpLgwVb4DO-7" style="endArrow=none;html=1;rounded=0;" target="GUW_K9Ud9IGpLgwVb4DO-1" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1164" y="-80" as="sourcePoint" />
+            <mxPoint x="1345" y="-65" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GUW_K9Ud9IGpLgwVb4DO-13" edge="1" parent="1" source="GUW_K9Ud9IGpLgwVb4DO-5" style="endArrow=none;html=1;rounded=0;" target="GUW_K9Ud9IGpLgwVb4DO-1" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1118" y="-109" as="sourcePoint" />
+            <mxPoint x="1299" y="-94" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GUW_K9Ud9IGpLgwVb4DO-14" edge="1" parent="1" source="GUW_K9Ud9IGpLgwVb4DO-6" style="endArrow=none;html=1;rounded=0;" target="GUW_K9Ud9IGpLgwVb4DO-1" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1245" y="-73" as="sourcePoint" />
+            <mxPoint x="1455" y="-83" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GUW_K9Ud9IGpLgwVb4DO-15" edge="1" parent="1" source="GUW_K9Ud9IGpLgwVb4DO-8" style="endArrow=none;html=1;rounded=0;" target="GUW_K9Ud9IGpLgwVb4DO-1" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1127" y="-85" as="sourcePoint" />
+            <mxPoint x="1308" y="-70" as="targetPoint" />
           </mxGeometry>
         </mxCell>
       </root>
