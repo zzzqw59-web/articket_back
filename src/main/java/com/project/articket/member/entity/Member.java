@@ -13,6 +13,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member {
 
+    public static final int STATUS_INACTIVE = 0;
+    public static final int STATUS_ACTIVE = 1;
+
     @Id
     @GeneratedValue(
             strategy = GenerationType.SEQUENCE,
@@ -47,6 +50,21 @@ public class Member {
     @Column(name = "MEMBER_STATUS", nullable = false)
     private Integer memberStatus;
 
-    @Column(name = "MEMBER_JOIN_CREATED_AT", nullable = false)
+    @Column(
+            name = "MEMBER_JOIN_CREATED_AT",
+            nullable = false,
+            columnDefinition = "DATE"
+    )
     private LocalDateTime memberJoinCreatedAt;
+
+    @PrePersist
+    public void prePersist() {
+        this.memberJoinCreatedAt = LocalDateTime.now()
+                .withSecond(0)
+                .withNano(0);
+
+        if (this.memberStatus == null) {
+            this.memberStatus = STATUS_ACTIVE;
+        }
+    }
 }
