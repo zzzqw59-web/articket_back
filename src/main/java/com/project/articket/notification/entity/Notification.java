@@ -4,6 +4,8 @@ import com.project.articket.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 
@@ -13,8 +15,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-
 public class Notification {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "NOTIFICATION_ID")
@@ -22,6 +24,7 @@ public class Notification {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MEMBER_ID", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE) // 회원 삭제 시 연관 알림 일괄 삭제
     private Member memberId;
 
     @Column(name = "NOTIFICATION_TYPE", nullable = false)
