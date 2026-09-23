@@ -35,6 +35,4 @@ public class VenueController {
     public WeatherDTO getVenueWeather(@PathVariable Long venueId) {
         return weatherService.getCurrentWeatherByVenue(venueId);
     }
-
-
 }

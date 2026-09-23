@@ -1,6 +1,6 @@
 package com.project.articket.venue.dto;
 
-public enum VenueCatagoryEndpoint {
+public enum VenueCategoryEndpoint {
     MUSEUM("/museum"),
     HALL("/hall"),
     LIBRARY("/library"),
@@ -8,7 +8,7 @@ public enum VenueCatagoryEndpoint {
     ART_GALLERY("/artgallery");
 
     public final String path;
-    VenueCatagoryEndpoint(String path) {
+    VenueCategoryEndpoint(String path) {
         this.path = path;
     }
 }

@@ -39,10 +39,10 @@ public class WeatherService {
         WeatherApiResponse response = webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .scheme("https").host("apis.data.go.kr")
-                        .path("1360000/VilageFcstInfoService_2.0/getUltraSrtNcst")
+                        .path("/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst")
                         .queryParam("serviceKey", serviceKey)
                         .queryParam("dataType", "JSON")
-                        .queryParam("base_data", baseTime.date())
+                        .queryParam("base_date", baseTime.date())
                         .queryParam("base_time", baseTime.time())
                         .queryParam("nx", grid.nx())
                         .queryParam("ny", grid.ny())

@@ -1,6 +1,7 @@
 package com.project.articket.exhibition.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,10 +14,10 @@ public class ExhibitionUpdateRequest {
     @NotBlank(message = "제목은 필수입니다.")
     private String title;
 
-    @NotBlank(message = "전시 시작일은 필수 입니다.")
+    @NotNull(message = "전시 시작일은 필수 입니다.")
     private LocalDate startDate;
 
-    @NotBlank(message = "전시 종료일은 필수 입니다.")
+    @NotNull(message = "전시 종료일은 필수 입니다.")
     private LocalDate endDate;
 
     private String url;

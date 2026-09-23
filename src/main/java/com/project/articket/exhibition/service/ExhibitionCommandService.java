@@ -57,14 +57,14 @@ public class ExhibitionCommandService {
 
             exhibition.setExhibitionImgUrl(newImage);
 
-            if(oldImage != null && !oldImage.isBlank()) {
+            if(oldImage != null && !oldImage.isBlank() && !oldImage.startsWith("http")) {
                 customFileUtil.deleteFile(oldImage);
             }
         }
         return toDetailDto(exhibition);
     }
 
-    public void delate(Long exhibitionId) {
+    public void delete(Long exhibitionId) {
         exhibitionRepository.deleteById(exhibitionId);
     }
 

@@ -69,7 +69,7 @@ public class VenueQueryService {
                 .latitude(venue.getVenueLatitude())
                 .longitude(venue.getVenueLongitude())
                 .tel(venue.getVenueTel())
-                .honePageUrl(venue.getVenueUrl())
+                .homePageUrl(venue.getVenueUrl())
                 .exhibitions(exhibitions)
                 .build();
     }

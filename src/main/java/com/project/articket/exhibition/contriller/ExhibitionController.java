@@ -8,7 +8,6 @@ import com.project.articket.exhibition.service.ExhibitionCommandService;
 import com.project.articket.exhibition.service.ExhibitionQueryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/exibitions")
+@RequestMapping("/api/exhibitions")
 @RequiredArgsConstructor
 public class ExhibitionController {
 
@@ -39,7 +38,7 @@ public class ExhibitionController {
     }
 
     @PutMapping(value = "/{exhibitionId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'EXHIBITION_STAFF')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'EXHIBITION_STAFF')")
     public ExhibitionDetailResponseDTO update(
             @PathVariable Long exhibitionId,
             @Valid @RequestPart("data")ExhibitionUpdateRequest request,
@@ -48,8 +47,8 @@ public class ExhibitionController {
     }
 
     @DeleteMapping("/{exhibitionId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     public void delete(@PathVariable Long exhibitionId) {
-        exhibitionCommandService.delate(exhibitionId);
+        exhibitionCommandService.delete(exhibitionId);
     }
 }

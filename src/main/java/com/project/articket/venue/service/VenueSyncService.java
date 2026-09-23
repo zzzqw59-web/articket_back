@@ -1,7 +1,6 @@
 package com.project.articket.venue.service;
 
 
-import ch.qos.logback.classic.html.UrlCssBuilder;
 import com.project.articket.venue.dto.*;
 import com.project.articket.venue.entity.Venue;
 import com.project.articket.venue.repository.VenueRepository;
@@ -26,7 +25,7 @@ public class VenueSyncService {
 
     public void syncVenues() {
         List<VenueApiListItem> basicItems = new ArrayList<>();
-        for(VenueCatagoryEndpoint category : VenueCatagoryEndpoint.values()) {
+        for(VenueCategoryEndpoint category : VenueCategoryEndpoint.values()) {
             basicItems.addAll(fetchAllPages(category));
         }
         for(VenueApiListItem basic : basicItems) {
@@ -35,7 +34,7 @@ public class VenueSyncService {
         }
     }
 
-    private List<VenueApiListItem> fetchAllPages(VenueCatagoryEndpoint category) {
+    private List<VenueApiListItem> fetchAllPages(VenueCategoryEndpoint category) {
         List<VenueApiListItem> result = new ArrayList<>();
         int page = 1;
         int totalCount = Integer.MAX_VALUE;
@@ -45,7 +44,7 @@ public class VenueSyncService {
             VenueApiListResponse response = webClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .scheme("https").host("apis.data.go.kr")
-                            .path("B553457/nopenapi/rest/cultureartspaces" + category.path)
+                            .path("/B553457/nopenapi/rest/cultureartspaces" + category.path)
                             .queryParam("serviceKey", serviceKey)
                             .queryParam("numOfrows", 100)
                             .queryParam("pageNo", currentPage)
@@ -63,8 +62,8 @@ public class VenueSyncService {
     private VenueApiDetailItem fetchDetail(Long seq) {
         VenueDetailResponse response = webClient.get()
                 .uri(uriBuilder -> uriBuilder
-                        .scheme("https").host("apis.data.go,kr")
-                        .path("B553457/nopenapi/rest/cultureartspaces/detail")
+                        .scheme("https").host("apis.data.go.kr")
+                        .path("/B553457/nopenapi/rest/cultureartspaces/detail")
                         .queryParam("serviceKey", serviceKey)
                         .queryParam("seq", seq)
                         .build())

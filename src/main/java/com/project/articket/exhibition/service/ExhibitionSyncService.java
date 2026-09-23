@@ -59,11 +59,11 @@ public class ExhibitionSyncService {
             ExhibitionApiListResponse response = webClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .scheme("https").host("apis.data.go.kr")
-                            .path("B553457/cultureinfo/realm2")
+                            .path("/B553457/cultureinfo/realm2")
                             .queryParam("serviceKey", serviceKey)
                             .queryParam("realmCode", "D000")
                             .queryParam("serviceTp", "A")
-                            .queryParam("numofrows", 100)
+                            .queryParam("numOfrows", 100)
                             .queryParam("pageNo", currentPage)
                             .build())
                     .retrieve()

@@ -2,7 +2,7 @@ package com.project.articket.exhibition.dto;
 
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import io.jsonwebtoken.Header;
+import com.project.articket.common.dto.ApiHeader;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,8 +10,8 @@ import lombok.Setter;
 @Setter
 @JacksonXmlRootElement(localName = "response")
 public class ExhibitionApiDetailResponse {
-    private Header header;
-    private Body Body;
+    private ApiHeader header;
+    private Body body;
 
     @Getter @Setter
     public static class Body {

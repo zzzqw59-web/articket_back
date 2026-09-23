@@ -20,7 +20,8 @@ public interface VenueRepository extends JpaRepository<Venue, Long> {
                                 )AS ongoingCount,
                                 (SELECT MAX(e3.startDate) FROM Exhibition e3 WHERE e3.venue = v) AS latestExhibitionDate
                 FROM Venue v
-                WHERE (:keyword IS NULL OR v.venueTitle Like CONCAT('%', :keyword, '%'))                
+                WHERE (:keyword IS NULL OR v.venueTitle Like CONCAT('%', :keyword, '%'))
+                AND EXISTS (SELECT 1 FROM Exhibition e4 WHERE e4.venue = v)                        
         """)
     Page<VenueOngoingCountProjection> findVenueListWithOngoingCount(
             @Param("today")LocalDate today,

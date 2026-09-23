@@ -15,6 +15,6 @@ public class VenueDetailResponseDTO {
     private Double latitude;
     private Double longitude;
     private String tel;
-    private String honePageUrl;
+    private String homePageUrl;
     private List<VenueExhibitionItemDTO> exhibitions;
 }
