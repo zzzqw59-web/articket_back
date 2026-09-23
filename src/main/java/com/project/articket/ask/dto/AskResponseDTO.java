@@ -9,19 +9,21 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.project.articket.common.util.DateTimeUtils.toDateTimeSecondString;
+
 @Getter
 @Builder
 public class AskResponseDTO {
 
-    private String memberNickname;      // 회원 이름 대신 닉네임 노출
-    private String exhibitionTitle;     // 전시 식별자 ID 대신 전시명만 노출
+    private String memberNickname;
+    private String exhibitionTitle;
     private String askTitle;
     private String askBody;
     private Integer askType;
     private Integer askSecret;
     private Long askHits;
-    private LocalDateTime askCreatedAt;
-    private LocalDateTime askModifiedAt;
+    private String askCreatedAt;
+    private String askModifiedAt;
 
     private List<AskImageDTO> images;   // 이미지 목록
     private List<AskReplyDTO> replies;  // 댓글/답변 목록
@@ -61,21 +63,33 @@ public class AskResponseDTO {
     public static class AskReplyDTO {
         private String memberNickname;      // 댓글 작성자 닉네임
         private String askReplyBody;        // 댓글 내용
-        private LocalDateTime askReplyCreatedAt;
-        private LocalDateTime askReplyModifiedAt;
+        private String askReplyCreatedAt;
+        private String askReplyModifiedAt;
 
         public static AskReplyDTO from(AskReply reply) {
+            LocalDateTime createdAt = reply.getAskReplyCreatedAt();
+            LocalDateTime modifiedAt = reply.getAskReplyModifiedAt();
+
+            // 등록 시간과 수정 시간이 같으면(수정된 적 없으면) null 처리
+            boolean isModified = modifiedAt != null && !modifiedAt.equals(createdAt);
+
             return AskReplyDTO.builder()
-                    .memberNickname(reply.getMemberId() != null ? reply.getMemberId().getMemberNickname() : "관리자")
+                    .memberNickname(reply.getMemberId().getMemberNickname())
                     .askReplyBody(reply.getAskReplyBody()) // Entity 필드명에 맞게 조정 가능
-                    .askReplyCreatedAt(reply.getAskReplyCreatedAt())
-                    .askReplyModifiedAt(reply.getAskReplyModifiedAt())
+                    .askReplyCreatedAt(toDateTimeSecondString(reply.getAskReplyCreatedAt()))
+                    .askReplyModifiedAt(isModified ? toDateTimeSecondString(reply.getAskReplyModifiedAt()): null)
                     .build();
         }
     }
 
     // --- 정적 팩토리 메서드 ---
     public static AskResponseDTO from(Ask ask, List<AskImage> images, List<AskReply> replies) {
+        LocalDateTime createdAt = ask.getAskCreatedAt();
+        LocalDateTime modifiedAt = ask.getAskModifiedAt();
+
+        // 등록 시간과 수정 시간이 같으면(수정된 적 없으면) null 처리
+        boolean isModified = modifiedAt != null && !modifiedAt.equals(createdAt);
+
         return AskResponseDTO.builder()
                 .memberNickname(ask.getMemberId().getMemberNickname())
                 .exhibitionTitle(ask.getExhibitionId() != null ? ask.getExhibitionId().getExhibitionTitle() : null)
@@ -84,8 +98,8 @@ public class AskResponseDTO {
                 .askType(ask.getAskType())
                 .askSecret(ask.getAskSecret())
                 .askHits(ask.getAskHits())
-                .askCreatedAt(ask.getAskCreatedAt())
-                .askModifiedAt(ask.getAskModifiedAt())
+                .askCreatedAt(toDateTimeSecondString(ask.getAskCreatedAt()))
+                .askModifiedAt(isModified ? toDateTimeSecondString(ask.getAskModifiedAt()) : null)
                 .images(images != null ? images.stream().map(AskImageDTO::from).toList() : List.of())
                 .replies(replies != null ? replies.stream().map(AskReplyDTO::from).toList() : List.of())
                 .build();

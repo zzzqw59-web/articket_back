@@ -1,5 +1,6 @@
 package com.project.articket.exhibition.entity;
 
+import com.project.articket.venue.entity.Venue;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -58,7 +59,7 @@ public class Exhibition {
     @CreationTimestamp
     private LocalDateTime exhibitionCreatedAt;
 
-//    @ManyToOne
-//    @JoinColumn(name = "venue_id")
-//    private Venue venue;
+    @ManyToOne
+    @JoinColumn(name = "venue_id")
+    private Venue venueId;
 }
