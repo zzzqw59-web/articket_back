@@ -74,4 +74,12 @@ public class Ask {
         }
         this.askHits++;
     }
+
+    public void updateAsk(String askTitle, String askBody, Integer askType, Integer askSecret, Exhibition exhibition) {
+        this.askTitle = askTitle;
+        this.askBody = askBody;
+        this.askType = askType;
+        this.askSecret = askSecret != null ? askSecret : 0;
+        this.exhibitionId = exhibition;
+    }
 }

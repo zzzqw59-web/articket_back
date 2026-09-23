@@ -42,4 +42,9 @@ public class AskReply {
     @UpdateTimestamp
     @Column(name = "ASK_REPLY_MODIFIED_AT", nullable = false)
     private LocalDateTime askReplyModifiedAt;
+
+    // AskReply 엔티티 내부에 추가
+    public void updateReplyBody(String newBody) {
+        this.askReplyBody = newBody;
+    }
 }
