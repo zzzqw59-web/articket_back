@@ -6,7 +6,10 @@ import com.project.articket.exhibition.dto.ExhibitionUpdateRequest;
 import com.project.articket.exhibition.entity.Exhibition;
 import com.project.articket.exhibition.repository.ExhibitionRepository;
 import com.project.articket.exhibition.util.ExhibitionPriceUtil;
+import com.project.articket.venue.dto.VenueSummaryDTO;
+import com.project.articket.venue.entity.Venue;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -62,11 +65,33 @@ public class ExhibitionCommandService {
     }
 
     public void delate(Long exhibitionId) {
-        Exhibition exhibition = exhibitionRepository.findById(exhibitionId)
-                .orElseThrow(() -> new NoSuchElementException("전시를 찾을 수 없습니다."));
+        exhibitionRepository.deleteById(exhibitionId);
+    }
 
-        String imageFileName = exhibition.getExhibitionImgUrl();
-
-        exhibitionRepository.de
+    private ExhibitionDetailResponseDTO toDetailDto(Exhibition e) {
+        VenueSummaryDTO venueDto = null;
+        if(e.getVenue() != null) {
+            Venue v = e.getVenue();
+            venueDto = VenueSummaryDTO.builder()
+                    .id(v.getVenueId())
+                    .name(v.getVenueTitle())
+                    .photoUrl(v.getVenueImgUrl())
+                    .tel(v.getVenueTel())
+                    .build();
+        }
+        return ExhibitionDetailResponseDTO.builder()
+                .id(e.getExhibitionId())
+                .title(e.getExhibitionTitle())
+                .description(e.getExhibitionDescription())
+                .url(e.getExhibitionUrl())
+                .imgUrl(e.getExhibitionImgUrl())
+                .startDate(e.getStartDate())
+                .endDate(e.getEndDate())
+                .area(e.getExhibitionArea())
+                .price(e.getExhibitionPrice())
+                .ticketPrice(e.getExhibitionTicketPrice())
+                .free(e.getIsFree())
+                .venue(venueDto)
+                .build();
     }
 }
