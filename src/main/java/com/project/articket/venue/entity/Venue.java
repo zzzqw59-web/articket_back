@@ -50,7 +50,4 @@ public class Venue {
     @Column(name = "VENUE_CREATED_AT", nullable = false)
     @CreationTimestamp
     private LocalDateTime venueCreatedAt;
-
-    @OneToMany(mappedBy = "venue")
-    private List<Exhibition> exhibitionList = new ArrayList<>();
 }
