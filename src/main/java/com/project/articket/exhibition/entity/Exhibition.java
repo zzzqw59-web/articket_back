@@ -1,9 +1,8 @@
 package com.project.articket.exhibition.entity;
 
+import com.project.articket.venue.entity.Venue;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
@@ -13,7 +12,9 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "EXHIBITION")
+@Builder
 public class Exhibition {
 
     @Id
@@ -58,7 +59,7 @@ public class Exhibition {
     @CreationTimestamp
     private LocalDateTime exhibitionCreatedAt;
 
-//    @ManyToOne
-//    @JoinColumn(name = "venue_id")
-//    private Venue venue;
+    @ManyToOne
+    @JoinColumn(name = "venue_id")
+    private Venue venueId;
 }
