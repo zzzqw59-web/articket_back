@@ -1,5 +1,6 @@
 package com.project.articket.common.util;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -18,9 +19,13 @@ public class DateTimeUtils {
         if (dateTime == null) return null;
         return dateTime.format(YYYY_MM_DD);
     }
+    // 일자까지, LocalDate타입 오버로드 메서드
+    public static String toDateString(LocalDate date) {
+        if (date == null) return null;
+        return date.format(YYYY_MM_DD);
+    }
 
     // 시/분까지 출력 (예: 2026-09-22 17:59)
-
     public static String toDateTimeMinuteString(LocalDateTime dateTime) {
         if (dateTime == null) return null;
         return dateTime.format(YYYY_MM_DD_HH_MM);
