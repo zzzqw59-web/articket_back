@@ -1,0 +1,89 @@
+package com.project.articket.verification.service;
+
+import com.project.articket.verification.entity.Verification;
+import com.project.articket.verification.repository.VerificationRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+
+@Service
+@RequiredArgsConstructor
+public class VerificationService {
+
+    private final VerificationRepository verificationRepository;
+    private final SolapiService solapiService;
+
+    private final SecureRandom secureRandom = new SecureRandom();
+
+    public void sendVerificationCode(
+            String phoneNumber,
+            String verificationType
+    ) {
+
+        String verificationCode =
+                String.format("%06d", secureRandom.nextInt(1000000));
+
+        LocalDateTime createdAt = LocalDateTime.now()
+                .withSecond(0)
+                .withNano(0);
+
+        LocalDateTime expiresAt = createdAt.plusMinutes(5);
+
+        Verification verification = Verification.builder()
+                .phoneNumber(phoneNumber)
+                .verificationCode(verificationCode)
+                .verificationType(verificationType)
+                .verificationCreatedAt(createdAt)
+                .verificationExpiresAt(expiresAt)
+                .build();
+
+        verificationRepository.save(verification);
+
+        solapiService.sendVerificationCode(
+                phoneNumber,
+                verificationCode
+        );
+    }
+
+    @Transactional
+    public void verifyVerificationCode(
+            String phoneNumber,
+            String verificationCode,
+            String verificationType
+    ) {
+
+        Verification verification = verificationRepository
+                .findTopByPhoneNumberAndVerificationTypeOrderByVerificationCreatedAtDesc(
+                        phoneNumber,
+                        verificationType
+                )
+                .orElseThrow(() ->
+                        new RuntimeException("인증 요청 정보를 찾을 수 없습니다.")
+                );
+
+        if (verification.getVerificationUsedAt() != null) {
+            throw new RuntimeException("이미 사용된 인증입니다.");
+        }
+
+        if (verification.getVerificationVerifiedAt() != null) {
+            throw new RuntimeException("이미 인증이 완료되었습니다.");
+        }
+
+        LocalDateTime now = LocalDateTime.now()
+                .withSecond(0)
+                .withNano(0);
+
+        if (now.isAfter(verification.getVerificationExpiresAt())) {
+            throw new RuntimeException("인증번호가 만료되었습니다.");
+        }
+
+        if (!verification.getVerificationCode().equals(verificationCode)) {
+            throw new RuntimeException("인증번호가 일치하지 않습니다.");
+        }
+
+        verification.verify(now);
+    }
+}
