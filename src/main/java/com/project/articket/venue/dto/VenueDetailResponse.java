@@ -1,7 +1,7 @@
 package com.project.articket.venue.dto;
 
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import com.project.articket.common.dto.ApiHeader;
 import lombok.Getter;

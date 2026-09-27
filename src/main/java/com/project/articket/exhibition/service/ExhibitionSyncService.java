@@ -10,16 +10,18 @@ import com.project.articket.exhibition.util.ExhibitionPriceUtil;
 import com.project.articket.venue.repository.VenueRepository;
 import lombok.RequiredArgsConstructor;
 
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.PrimitiveIterator;
 
 @Service
 @RequiredArgsConstructor
@@ -35,8 +37,8 @@ public class ExhibitionSyncService {
     public void syncExhibitions() {
         List<ExhibitionApiListItem> basicItems = fetchAllPages();
 
-        for(ExhibitionApiListItem basic : basicItems) {
-            if(!"전시".equals(basic.getRealmName())) {
+        for (ExhibitionApiListItem basic : basicItems) {
+            if (!"전시".equals(basic.getRealmName())) {
                 continue;
             }
             if (exhibitionRepository.existsByExhibitionSeq(basic.getSeq())) {
@@ -45,6 +47,14 @@ public class ExhibitionSyncService {
 
             ExhibitionApiDetailItem detail = fetchDetail(basic.getSeq());
             insert(basic, detail);
+
+            //api호출시간간격 확보(이유는 많은 공공기반 api데이터를 딜레이없이 받아오면 429에러가뜨기때문)
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
         }
     }
 
@@ -54,21 +64,12 @@ public class ExhibitionSyncService {
         int totalCount = Integer.MAX_VALUE;
 
         while ((page - 1) * 100 < totalCount) {
-            final int currentPage = page;
-
             ExhibitionApiListResponse response = webClient.get()
-                    .uri(uriBuilder -> uriBuilder
-                            .scheme("https").host("apis.data.go.kr")
-                            .path("/B553457/cultureinfo/realm2")
-                            .queryParam("serviceKey", serviceKey)
-                            .queryParam("realmCode", "D000")
-                            .queryParam("serviceTp", "A")
-                            .queryParam("numOfrows", 100)
-                            .queryParam("pageNo", currentPage)
-                            .build())
+                    .uri(buildListUri(page))
                     .retrieve()
                     .bodyToMono(ExhibitionApiListResponse.class)
                     .block();
+
             totalCount = response.getBody().getTotalCount();
             result.addAll(response.getBody().getItems().getItem());
             page++;
@@ -76,17 +77,36 @@ public class ExhibitionSyncService {
         return result;
     }
 
+    private URI buildListUri(int page) {
+        String encodedServiceKey = URLEncoder.encode(serviceKey, StandardCharsets.UTF_8);
+
+        return UriComponentsBuilder
+                .fromUriString("https://apis.data.go.kr/B553457/cultureinfo/realm2")
+                .queryParam("serviceKey", encodedServiceKey)
+                .queryParam("realmCode", "D000")
+                .queryParam("serviceTp", "A")
+                .queryParam("numOfrows", 100)
+                .queryParam("pageNo", page)
+                .build(true)   // 이미 인코딩된 값이니 재인코딩 금지
+                .toUri();
+    }
+
     private ExhibitionApiDetailItem fetchDetail(Long seq) {
+        String encodedServiceKey = URLEncoder.encode(serviceKey, StandardCharsets.UTF_8);
+
+        URI uri = UriComponentsBuilder
+                .fromUriString("https://apis.data.go.kr/B553457/cultureinfo/detail2")
+                .queryParam("serviceKey", encodedServiceKey)
+                .queryParam("seq", seq)
+                .build(true)
+                .toUri();
+
         ExhibitionApiDetailResponse response = webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("https").host("apis.data.go.kr")
-                        .path("/B553457/cultureinfo/detail2")
-                        .queryParam("serviceKey", serviceKey)
-                        .queryParam("seq", seq)
-                        .build())
+                .uri(uri)
                 .retrieve()
                 .bodyToMono(ExhibitionApiDetailResponse.class)
                 .block();
+
         return response.getBody().getItems().getItem();
     }
 
@@ -99,7 +119,7 @@ public class ExhibitionSyncService {
         exhibition.setEndDate(parseDate(basic.getEndDate()));
         exhibition.setExhibitionArea(basic.getArea());
 
-        if(detail != null) {
+        if (detail != null) {
             exhibition.setExhibitionUrl(detail.getUrl());
             exhibition.setExhibitionPrice(detail.getPrice());
             exhibition.setExhibitionImgUrl(detail.getImgUrl());
@@ -110,7 +130,7 @@ public class ExhibitionSyncService {
             exhibition.setExhibitionTicketPrice(ExhibitionPriceUtil.resolveTicketPrice(free));
 
             Long placeSeq = parseLongOrNull(detail.getPlaceSeq());
-            if(placeSeq != null) {
+            if (placeSeq != null) {
                 venueRepository.findByVenueSeq(placeSeq)
                         .ifPresent(exhibition::setVenue);
             }
@@ -120,6 +140,7 @@ public class ExhibitionSyncService {
 
         exhibitionRepository.save(exhibition);
     }
+
     private LocalDate parseDate(String s) {
         try {
             return LocalDate.parse(s, DateTimeFormatter.BASIC_ISO_DATE);
@@ -127,10 +148,11 @@ public class ExhibitionSyncService {
             return null;
         }
     }
+
     private Long parseLongOrNull(String s) {
         try {
             return Long.parseLong(s);
-        }catch (Exception e) {
+        } catch (Exception e) {
             return null;
         }
     }

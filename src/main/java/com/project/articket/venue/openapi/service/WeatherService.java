@@ -9,7 +9,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
@@ -36,24 +40,33 @@ public class WeatherService {
         GridConverter.Grid grid = GridConverter.toGrid(venue.getVenueLatitude(), venue.getVenueLongitude());
         BaseDateTime baseTime = resolveBaseDateTime(LocalDateTime.now());
 
+        URI uri = buildWeatherUri(grid, baseTime);
+
         WeatherApiResponse response = webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("https").host("apis.data.go.kr")
-                        .path("/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst")
-                        .queryParam("serviceKey", serviceKey)
-                        .queryParam("dataType", "JSON")
-                        .queryParam("base_date", baseTime.date())
-                        .queryParam("base_time", baseTime.time())
-                        .queryParam("nx", grid.nx())
-                        .queryParam("ny", grid.ny())
-                        .queryParam("numOfRows", 10)
-                        .queryParam("pageNo", 1)
-                        .build())
+                .uri(uri)
                 .retrieve()
                 .bodyToMono(WeatherApiResponse.class)
                 .block();
         return toDTO(response);
     }
+
+    private URI buildWeatherUri(GridConverter.Grid grid, BaseDateTime baseTime) {
+        String encodedServiceKey = URLEncoder.encode(serviceKey, StandardCharsets.UTF_8);
+
+        return UriComponentsBuilder
+                .fromUriString("https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst")
+                .queryParam("serviceKey", encodedServiceKey)
+                .queryParam("dataType", "JSON")
+                .queryParam("base_date", baseTime.date())
+                .queryParam("base_time", baseTime.time())
+                .queryParam("nx", grid.nx())
+                .queryParam("ny", grid.ny())
+                .queryParam("numOfRows", 10)
+                .queryParam("pageNo", 1)
+                .build(true)
+                .toUri();
+    }
+
     private BaseDateTime resolveBaseDateTime(LocalDateTime now) {
         LocalDateTime adjusted = now.minusMinutes(40);
         return new BaseDateTime(
@@ -61,6 +74,7 @@ public class WeatherService {
                 adjusted.format(DateTimeFormatter.ofPattern("HH00"))
         );
     }
+
     private WeatherDTO toDTO(WeatherApiResponse response) {
         Map<String, String> values = response.getBody().getItems().getItem().stream()
                 .collect(Collectors.toMap(WeatherApiResponse.Item::getCategory, WeatherApiResponse.Item::getObsrValue));
@@ -73,6 +87,7 @@ public class WeatherService {
                 .windSpeed(values.get("WSD"))
                 .build();
     }
+
     private String mapPty(String code) {
         return switch (code) {
             case "0" -> "없음";
@@ -84,13 +99,13 @@ public class WeatherService {
     }
 
     private String mapWindDirection(String degreeStr) {
-        if(degreeStr == null) return "알 수 없음";
+        if (degreeStr == null) return "알 수 없음";
         try {
             double degree = Double.parseDouble(degreeStr);
             String[] directions = {"북", "북동", "동", "남동", "남", "남서", "서", "북서"};
             int index = (int) Math.round(degree / 45.0) % 8;
             return directions[index];
-        }catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             return "알 수 없음";
         }
     }

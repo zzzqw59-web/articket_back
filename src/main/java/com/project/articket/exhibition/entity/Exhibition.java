@@ -33,7 +33,7 @@ public class Exhibition {
     @Column(name = "EXHIBITION_END_CREATED_AT")
     private LocalDate endDate;
 
-    @Column(name = "EXHIBITION_URL")
+    @Column(name = "EXHIBITION_URL", length = 1000)
     private String exhibitionUrl;
 
     @Column(name = "EXHIBITION_AREA")
@@ -45,7 +45,7 @@ public class Exhibition {
     @Column(name = "EXHIBITION_TICKET_PRICE")
     private Integer exhibitionTicketPrice;
 
-    @Column(name = "EXHIBITION_IMG_URL")
+    @Column(name = "EXHIBITION_IMG_URL", length = 1000)
     private String exhibitionImgUrl;
 
     @Column(name = "EXHIBITION_DESCRIPTION")

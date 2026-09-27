@@ -28,7 +28,7 @@ public class SyncTestController {
         return "Exhibition 동기화 완료";
     }
 
-    @GetMapping("/all")
+    @PostMapping("/all")
     public String syncAll() {
         System.out.println("========== SYNC ALL 실행 ==========");
         venueSyncService.syncVenues();
