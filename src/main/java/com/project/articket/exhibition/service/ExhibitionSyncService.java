@@ -35,7 +35,9 @@ public class ExhibitionSyncService {
     private String serviceKey;
 
     public void syncExhibitions() {
+        System.out.println("===== 전시 동기화 시작 =====");
         List<ExhibitionApiListItem> basicItems = fetchAllPages();
+        System.out.println("===== 전시 목록 개수: " + basicItems.size() + " =====");
 
         for (ExhibitionApiListItem basic : basicItems) {
             if (!"전시".equals(basic.getRealmName())) {
@@ -44,6 +46,7 @@ public class ExhibitionSyncService {
             if (exhibitionRepository.existsByExhibitionSeq(basic.getSeq())) {
                 continue;
             }
+            System.out.println("상세 조회: " + basic.getTitle());
 
             ExhibitionApiDetailItem detail = fetchDetail(basic.getSeq());
             insert(basic, detail);
@@ -55,6 +58,7 @@ public class ExhibitionSyncService {
                 Thread.currentThread().interrupt();
                 break;
             }
+            System.out.println("===== 전시 동기화 종료 =====");
         }
     }
 
@@ -130,6 +134,11 @@ public class ExhibitionSyncService {
             exhibition.setExhibitionTicketPrice(ExhibitionPriceUtil.resolveTicketPrice(free));
 
             Long placeSeq = parseLongOrNull(detail.getPlaceSeq());
+            System.out.println(
+                    "전시명 = " + basic.getTitle()
+                            + " / placeSeq = " + detail.getPlaceSeq()
+                            + " / 변환값 = " + placeSeq
+            );
             if (placeSeq != null) {
                 venueRepository.findByVenueSeq(placeSeq)
                         .ifPresent(exhibition::setVenue);
