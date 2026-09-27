@@ -40,13 +40,20 @@ public class ExhibitionSyncService {
         System.out.println("===== 전시 목록 개수: " + basicItems.size() + " =====");
 
         for (ExhibitionApiListItem basic : basicItems) {
+            System.out.println(
+                    "제목 = " + basic.getTitle()
+                            + " / realmName = " + basic.getRealmName()
+                            + " / seq = " + basic.getSeq()
+            );
             if (!"전시".equals(basic.getRealmName())) {
+                System.out.println("→ 전시 아님, SKIP");
                 continue;
             }
             if (exhibitionRepository.existsByExhibitionSeq(basic.getSeq())) {
+                System.out.println("→ 이미 존재, SKIP");
                 continue;
             }
-            System.out.println("상세 조회: " + basic.getTitle());
+            System.out.println("→ 저장 진행");
 
             ExhibitionApiDetailItem detail = fetchDetail(basic.getSeq());
             insert(basic, detail);
@@ -58,7 +65,6 @@ public class ExhibitionSyncService {
                 Thread.currentThread().interrupt();
                 break;
             }
-            System.out.println("===== 전시 동기화 종료 =====");
         }
     }
 
@@ -75,9 +81,22 @@ public class ExhibitionSyncService {
                     .block();
 
             totalCount = response.getBody().getTotalCount();
+            // 현재 페이지 데이터
+            List<ExhibitionApiListItem> items =
+                    response.getBody().getItems().getItem();
+
+            System.out.println(
+                    "페이지 = " + page
+                            + " / 전체 데이터 = " + totalCount
+                            + " / 현재 페이지 데이터 = " + items.size()
+                            + " / 첫 seq = " + items.get(0).getSeq()
+                            + " / 마지막 seq = " + items.get(items.size() - 1).getSeq()
+            );
+
             result.addAll(response.getBody().getItems().getItem());
             page++;
         }
+        System.out.println("최종 가져온 데이터 = " + result.size());
         return result;
     }
 
@@ -90,7 +109,7 @@ public class ExhibitionSyncService {
                 .queryParam("realmCode", "D000")
                 .queryParam("serviceTp", "A")
                 .queryParam("numOfrows", 100)
-                .queryParam("pageNo", page)
+                .queryParam("PageNo", page)
                 .build(true)   // 이미 인코딩된 값이니 재인코딩 금지
                 .toUri();
     }
