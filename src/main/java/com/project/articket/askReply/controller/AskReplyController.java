@@ -5,6 +5,7 @@ import com.project.articket.askReply.dto.AskReplyRequestDTO;
 import com.project.articket.askReply.service.AskReplyService;
 import com.project.articket.common.dto.PageRequestDTO;
 import com.project.articket.common.dto.PageResponseDTO;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class AskReplyController {
             @PathVariable("askId") Long askId,
             @RequestParam("memberId") Long memberId,                 // 추후 @AuthenticationPrincipal로 대체
             @RequestParam("loginMemberType") String loginMemberType, // 작성 권한(ADMIN, MANAGER 등) 검증용
-            @RequestBody AskReplyRequestDTO requestDto
+            @Valid @RequestBody AskReplyRequestDTO requestDto
     ) {
         Long replyId = askReplyService.createReply(askId, memberId, loginMemberType, requestDto);
         return ResponseEntity.ok(replyId);
@@ -33,7 +34,7 @@ public class AskReplyController {
     @GetMapping("/api/asks/{askId}/replies")
     public ResponseEntity<PageResponseDTO<AskReplyDTO>> getReplyList(
             @PathVariable("askId") Long askId,
-            PageRequestDTO pageRequestDTO
+            @ModelAttribute PageRequestDTO pageRequestDTO
     ) {
         PageResponseDTO<AskReplyDTO> response = askReplyService.getReplyList(askId, pageRequestDTO);
         return ResponseEntity.ok(response);
@@ -43,7 +44,6 @@ public class AskReplyController {
     // PUT /api/asks/{askId}/replies/{replyId}
     @PutMapping("/api/asks/{askId}/replies/{replyId}")
     public ResponseEntity<Void> updateReply(
-            @PathVariable("askId") Long askId,
             @PathVariable("replyId") Long replyId,
             @RequestParam("memberId") Long memberId, // 작성자 본인 검증용
             @RequestBody AskReplyRequestDTO requestDto
@@ -56,7 +56,6 @@ public class AskReplyController {
     // DELETE /api/asks/{askId}/replies/{replyId}
     @DeleteMapping("/api/asks/{askId}/replies/{replyId}")
     public ResponseEntity<Void> deleteReply(
-            @PathVariable("askId") Long askId,
             @PathVariable("replyId") Long replyId,
             @RequestParam("memberId") Long memberId,                 // 작성자 본인 확인용
             @RequestParam("loginMemberType") String loginMemberType // 관리자 삭제 권한 확인용
