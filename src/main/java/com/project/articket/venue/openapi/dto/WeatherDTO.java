@@ -1,4 +1,4 @@
-package com.project.articket.venue.dto;
+package com.project.articket.venue.openapi.dto;
 
 import lombok.Builder;
 import lombok.Getter;

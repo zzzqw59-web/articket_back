@@ -1,8 +1,8 @@
 package com.project.articket.venue.openapi.service;
 
 import com.project.articket.common.util.GridConverter;
-import com.project.articket.venue.dto.WeatherApiResponse;
-import com.project.articket.venue.dto.WeatherDTO;
+import com.project.articket.venue.openapi.dto.WeatherApiResponse;
+import com.project.articket.venue.openapi.dto.WeatherDTO;
 import com.project.articket.venue.entity.Venue;
 import com.project.articket.venue.repository.VenueRepository;
 import lombok.RequiredArgsConstructor;
@@ -76,7 +76,16 @@ public class WeatherService {
     }
 
     private WeatherDTO toDTO(WeatherApiResponse response) {
-        Map<String, String> values = response.getBody().getItems().getItem().stream()
+        if (response == null || response.getResponse() == null
+                || response.getResponse().getBody() == null
+                || response.getResponse().getBody().getItems() == null) {
+            throw new IllegalStateException("기상청 응답이 비어 있습니다.");
+        }
+        var heather = response.getResponse().getHeader();
+        if(heather != null && !"00".equals(heather.getResultCode())) {
+            throw new IllegalStateException("기상청 API 오류: " + heather.getResultCode() + " " + heather.getResultMsg());
+        }
+        Map<String, String> values = response.getResponse().getBody().getItems().getItem().stream()
                 .collect(Collectors.toMap(WeatherApiResponse.Item::getCategory, WeatherApiResponse.Item::getObsrValue));
 
         return WeatherDTO.builder()

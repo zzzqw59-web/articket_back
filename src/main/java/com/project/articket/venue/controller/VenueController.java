@@ -2,7 +2,7 @@ package com.project.articket.venue.controller;
 
 import com.project.articket.venue.dto.VenueDetailResponseDTO;
 import com.project.articket.venue.dto.VenueSummaryDTO;
-import com.project.articket.venue.dto.WeatherDTO;
+import com.project.articket.venue.openapi.dto.WeatherDTO;
 import com.project.articket.venue.openapi.service.WeatherService;
 import com.project.articket.venue.service.VenueQueryService;
 import lombok.RequiredArgsConstructor;

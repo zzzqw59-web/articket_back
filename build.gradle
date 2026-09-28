@@ -51,6 +51,7 @@ dependencies {
 	// json 데이터르 처리하기 위한 라이브러리
 	implementation 'org.json:json:20250517'
 	implementation 'tools.jackson.dataformat:jackson-dataformat-xml'
+	implementation 'com.fasterxml.jackson.core:jackson-annotations'
 	// API 서버 비동기 호출
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	// 외부 API 파싱 및 정보 추출
