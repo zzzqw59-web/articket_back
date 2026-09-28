@@ -21,11 +21,10 @@ public class AskReplyController {
     @PostMapping("/api/asks/{askId}/replies")
     public ResponseEntity<Long> createReply(
             @PathVariable("askId") Long askId,
-            @RequestParam("memberId") Long memberId,                 // 추후 @AuthenticationPrincipal로 대체
-            @RequestParam("loginMemberType") String loginMemberType, // 작성 권한(ADMIN, MANAGER 등) 검증용
+            @RequestParam("memberId") Long memberId, // 추후 @AuthenticationPrincipal로 대체
             @Valid @RequestBody AskReplyRequestDTO requestDto
     ) {
-        Long replyId = askReplyService.createReply(askId, memberId, loginMemberType, requestDto);
+        Long replyId = askReplyService.createReply(askId, memberId, requestDto);
         return ResponseEntity.ok(replyId);
     }
 
@@ -53,14 +52,14 @@ public class AskReplyController {
     }
 
     // ASK-COM-004: 문의 댓글 삭제
-    // DELETE /api/asks/{askId}/replies/{replyId}
+// DELETE /api/asks/{askId}/replies/{replyId}
     @DeleteMapping("/api/asks/{askId}/replies/{replyId}")
     public ResponseEntity<Void> deleteReply(
+            @PathVariable("askId") Long askId,
             @PathVariable("replyId") Long replyId,
-            @RequestParam("memberId") Long memberId,                 // 작성자 본인 확인용
-            @RequestParam("loginMemberType") String loginMemberType // 관리자 삭제 권한 확인용
+            @RequestParam("memberId") Long memberId // 요청자 본인 / 권한 검증용
     ) {
-        askReplyService.deleteReply(replyId, memberId, loginMemberType);
+        askReplyService.deleteReply(replyId, memberId);
         return ResponseEntity.noContent().build();
     }
 

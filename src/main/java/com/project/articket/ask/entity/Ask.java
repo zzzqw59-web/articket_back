@@ -78,7 +78,7 @@ public class Ask {
     public void updateAsk(String askTitle, String askBody, Integer askType, Integer askSecret, Exhibition exhibition) {
         this.askTitle = askTitle;
         this.askBody = askBody;
-        this.askType = askType;
+        this.askType = askType != null ? askType : 0;
         this.askSecret = askSecret != null ? askSecret : 0;
         this.exhibitionId = exhibition;
     }

@@ -14,10 +14,13 @@ import com.project.articket.common.dto.PageRequestDTO;
 import com.project.articket.common.dto.PageResponseDTO;
 import com.project.articket.common.enums.MemberRole;
 import com.project.articket.common.util.CustomFileUtil;
+import com.project.articket.common.util.NotificationManger;
 import com.project.articket.exhibition.entity.Exhibition;
 import com.project.articket.exhibition.repository.ExhibitionRepository;
 import com.project.articket.member.entity.Member;
 import com.project.articket.member.repository.MemberRepository;
+import com.project.articket.notification.dto.NotificationCreateDTO;
+import com.project.articket.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,12 +37,13 @@ public class AskServiceImpl implements AskService {
 
     private final AskRepository askRepository;
     private final AskImageRepository askImageRepository;
-    private final AskReplyRepository askReplyRepository;
     private final MemberRepository memberRepository;
     private final ExhibitionRepository exhibitionRepository;
     private final CustomFileUtil fileUtil;
+    private final NotificationManger notificationManger;
 
-    // 1. 문의글 작성 (파일 업로드 포함)
+
+    // 1. 문의글 작성 (파일 업로드 및 관리자 알림 발송 포함)
     @Override
     @Transactional
     public Long createAsk(Long memberId, AskCreateRequestDTO requestDto, List<MultipartFile> files) {
@@ -72,6 +76,35 @@ public class AskServiceImpl implements AskService {
                 }
             }
         }
+
+        // --- [1. 관리자 대상 새 문의 등록 알림 발송] ---
+        notificationManger.notifyAllAdmins(0, savedAsk.getAskId());
+
+        // --- [2. 전시 관계자(STAFF) 대상 알림 발송 - TODO] ---
+        /*
+         * TODO: [전시 담당자(STAFF) 알림 연동]
+         * - 조건: 전시 관련 문의글인 경우 (requestDto.getExhibitionId() != null)
+         * - 로직:
+         *   1. exhibitionManagerRepository.findByExhibition_ExhibitionId(exhibitionId) 조회
+         *   2. 해당 전시를 담당하는 STAFF 회원 리스트 추출
+         *   3. 각 STAFF 회원에게 notificationType: 0 알림 생성 및 발송
+         *
+         * 예시 코드:
+         * if (savedAsk.getExhibition() != null) {
+         *     Long exhibitionId = savedAsk.getExhibition().getExhibitionId();
+         *     List<Member> staffMembers = exhibitionManagerRepository.findStaffByExhibitionId(exhibitionId);
+         *
+         *     for (Member staff : staffMembers) {
+         *         notificationService.createNotification(
+         *                 NotificationCreateDTO.builder()
+         *                         .receiver(staff)
+         *                         .notificationType(0)
+         *                         .notificationTargetId(savedAsk.getAskId())
+         *                         .build()
+         *         );
+         *     }
+         * }
+         */
 
         return savedAsk.getAskId();
     }
