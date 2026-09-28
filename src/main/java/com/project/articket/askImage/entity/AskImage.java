@@ -41,4 +41,15 @@ public class AskImage {
     @CreationTimestamp
     @Column(name = "ASK_IMAGE_CREATED_AT", nullable = false, updatable = false)
     private LocalDateTime askImageCreatedAt;
+
+    // --- 엔티티 전용 생성 정적 팩토리 메서드 ---
+    public static AskImage createAskImage(Ask ask, String originalFilename, String savedFilename, int order) {
+        return AskImage.builder()
+                .askId(ask)
+                .askImageOrigin(originalFilename)
+                .askImageFilename(savedFilename)
+                .askImageUrl("/api/asks/images/" + savedFilename) // 엔티티 생성 시 자동 조합
+                .askImageOrder(order)
+                .build();
+    }
 }

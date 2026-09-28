@@ -67,4 +67,19 @@ public class Ask {
     @OneToMany(mappedBy = "askId", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Builder.Default
     private List<AskReply> replies = new ArrayList<>();
+
+    public void increaseHits() {
+        if (this.askHits == null) {
+            this.askHits = 0L;
+        }
+        this.askHits++;
+    }
+
+    public void updateAsk(String askTitle, String askBody, Integer askType, Integer askSecret, Exhibition exhibition) {
+        this.askTitle = askTitle;
+        this.askBody = askBody;
+        this.askType = askType != null ? askType : 0;
+        this.askSecret = askSecret != null ? askSecret : 0;
+        this.exhibitionId = exhibition;
+    }
 }

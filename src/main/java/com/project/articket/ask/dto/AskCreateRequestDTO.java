@@ -22,10 +22,10 @@ public class AskCreateRequestDTO {
         return Ask.builder()
                 .memberId(member)
                 .exhibitionId(exhibition)
+                .askType(this.askType != null ? this.askType : 0)
+                .askSecret(this.askSecret != null ? this.askSecret : 0)
                 .askTitle(this.askTitle)
                 .askBody(this.askBody)
-                .askType(this.askType)
-                .askSecret(this.askSecret != null ? this.askSecret : 0)
                 .askHits(0L)
                 .build();
     }

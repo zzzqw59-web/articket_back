@@ -8,58 +8,74 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.project.articket.common.util.DateTimeUtils.toDateTimeSecondString;
+
 @Getter
 @Builder
 public class AskResponseDTO {
 
-    private Long askId;
-    private Long memberId;
-    private String memberName;
-    private Long exhibitionId;
+    private String memberNickname;
+    private String memberType;          // 작성자 권한/타입 (MemberRole)
     private String exhibitionTitle;
     private String askTitle;
     private String askBody;
     private Integer askType;
     private Integer askSecret;
     private Long askHits;
-    private LocalDateTime askCreatedAt;
+    private String askCreatedAt;
+    private String askModifiedAt;
 
-    private List<AskImageDTO> images; // 이미지 상세 DTO 리스트
+    private List<AskImageDTO> images;   // ★ 이미지 목록 (유지)
 
+    // --- 1. 이미지 응답 DTO (유지) ---
     @Getter
     @Builder
     public static class AskImageDTO {
-        private Long askImageId;
-        private String askImageOrigin;
-        private String askImageFilename;
-        private String thumbnailUrl; // s_ 접두사가 붙은 썸네일 파일명
-        private Integer askImageOrder;
+        private String askImageOrigin;   // 원본 첨부파일명
+        private String imageUrl;         // 원본 이미지 접근 URL (/api/files/UUID_xxx.jpg)
+        private String thumbnailUrl;     // 썸네일 이미지 접근 URL (/api/files/s_UUID_xxx.jpg)
+        private Integer askImageOrder;   // 이미지 순서
 
         public static AskImageDTO from(AskImage image) {
+            if (image == null) return null;
+
+            String filename = image.getAskImageFilename();
+            String originalUrl = image.getAskImageUrl();
+
+            // askImageUrl에서 파일명(filename) 부분을 "s_" + filename 으로 치환하여 썸네일 URL 생성
+            String thumbUrl = (originalUrl != null && filename != null && originalUrl.contains(filename))
+                    ? originalUrl.replace(filename, "s_" + filename)
+                    : null;
+
             return AskImageDTO.builder()
-                    .askImageId(image.getAskImageId())
                     .askImageOrigin(image.getAskImageOrigin())
-                    .askImageFilename(image.getAskImageFilename())
-                    .thumbnailUrl("s_" + image.getAskImageFilename()) // CustomFileUtil의 썸네일 생성 규칙
+                    .imageUrl(originalUrl)
+                    .thumbnailUrl(thumbUrl)
                     .askImageOrder(image.getAskImageOrder())
                     .build();
         }
     }
 
+    // --- 정적 팩토리 메서드 ---
     public static AskResponseDTO from(Ask ask, List<AskImage> images) {
+        LocalDateTime createdAt = ask.getAskCreatedAt();
+        LocalDateTime modifiedAt = ask.getAskModifiedAt();
+
+        // 등록 시간과 수정 시간이 같으면(수정된 적 없으면) null 처리
+        boolean isModified = modifiedAt != null && !modifiedAt.equals(createdAt);
+
         return AskResponseDTO.builder()
-                .askId(ask.getAskId())
-                .memberId(ask.getMemberId().getMemberId())
-                .memberName(ask.getMemberId().getMemberName())
-                .exhibitionId(ask.getExhibitionId() != null ? ask.getExhibitionId().getExhibitionId() : null)
+                .memberNickname(ask.getMemberId().getMemberNickname())
+                .memberType(ask.getMemberId().getMemberType())
                 .exhibitionTitle(ask.getExhibitionId() != null ? ask.getExhibitionId().getExhibitionTitle() : null)
                 .askTitle(ask.getAskTitle())
                 .askBody(ask.getAskBody())
                 .askType(ask.getAskType())
                 .askSecret(ask.getAskSecret())
                 .askHits(ask.getAskHits())
-                .askCreatedAt(ask.getAskCreatedAt())
-                .images(images.stream().map(AskImageDTO::from).toList())
+                .askCreatedAt(toDateTimeSecondString(ask.getAskCreatedAt()))
+                .askModifiedAt(isModified ? toDateTimeSecondString(ask.getAskModifiedAt()) : null)
+                .images(images != null ? images.stream().map(AskImageDTO::from).toList() : List.of())
                 .build();
     }
 }
