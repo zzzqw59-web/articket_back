@@ -8,7 +8,7 @@ import com.project.articket.review.dto.ReviewUpdateDTO;
 public interface ReviewService {
     PageResponseDTO<ReviewDTO> reviewPage(PageRequestDTO pageRequestDTO);
 
-    void reviewCreate(ReviewCreateDTO reviewCreateDTO);
+    void reviewCreate(Long memberId, ReviewCreateDTO reviewCreateDTO);
 
     void reviewUpdate(Long reviewId, ReviewUpdateDTO reviewUpdateDTO);
 

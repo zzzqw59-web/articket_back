@@ -45,4 +45,11 @@ public class Review {
 
     @Column(name = "REVIEW_HITS", nullable = false)
     private Integer reviewHits = 0;
+
+    public Review(Member member, Exhibition exhibition, String reviewTitle, String reviewBody) {
+        this.member = member;
+        this.exhibition = exhibition;
+        this.reviewTitle = reviewTitle;
+        this.reviewBody = reviewBody;
+    }
 }
