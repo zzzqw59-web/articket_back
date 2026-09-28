@@ -17,4 +17,5 @@ public class ReviewReplyDTO {
     private String reviewReplyBody;
     private String memberName;
     private LocalDateTime reviewReplyCreatedAt;
+    private LocalDateTime reviewReplyModifiedAt;
 }

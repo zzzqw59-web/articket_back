@@ -37,11 +37,13 @@ public class ReviewServiceImpl implements ReviewService {
             dto.setReviewTitle(review.getReviewTitle());
             dto.setReviewBody(review.getReviewBody());
             dto.setReviewCreatedAt(review.getReviewCreatedAt());
+            dto.setReviewModifiedAt(review.getReviewModifiedAt());
             dto.setReviewHits(review.getReviewHits());
             return dto;
         }).toList();
         return new PageResponseDTO<>(dtoList, pageRequestDTO, page.getTotalElements());
     }
+
 
     @Override
     public void reviewCreate(Long memberId, ReviewCreateDTO reviewCreateDTO) {
@@ -54,7 +56,6 @@ public class ReviewServiceImpl implements ReviewService {
     @Transactional
     @Override
     public void reviewUpdate(Long reviewId, ReviewUpdateDTO reviewUpdateDTO) {
-        System.out.println("reviewId = " + reviewId);
         Review review = repository.findById(reviewId).orElseThrow(() -> new IllegalArgumentException("리뷰가 존재하지 않습니다."));
         review.setReviewTitle(reviewUpdateDTO.getReviewTitle());
         review.setReviewBody(reviewUpdateDTO.getReviewBody());

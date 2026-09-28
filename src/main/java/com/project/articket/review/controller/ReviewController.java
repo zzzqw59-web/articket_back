@@ -25,7 +25,7 @@ public class ReviewController {
     @PostMapping("/reviews")
     public void reviewCreate(@Valid @RequestBody ReviewCreateDTO reviewCreateDTO) {
 //        JWT에서 로그인 회원의 memberId를 가져온 뒤
-//        reviewService.reviewCreate(Long memberId, reviewCreateDTO);
+        reviewService.reviewCreate(1L, reviewCreateDTO);
     }
 
     @PutMapping("/reviews/{reviewId}")

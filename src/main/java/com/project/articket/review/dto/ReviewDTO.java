@@ -18,5 +18,6 @@ public class ReviewDTO {
     private String reviewTitle;
     private String reviewBody;
     private LocalDateTime reviewCreatedAt;
+    private LocalDateTime reviewModifiedAt;
     private Integer reviewHits;
 }

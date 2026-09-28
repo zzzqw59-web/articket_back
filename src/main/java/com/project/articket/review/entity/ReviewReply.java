@@ -37,4 +37,10 @@ public class ReviewReply {
     @UpdateTimestamp
     @Column(name = "REVIEW_REPLY_MODIFIED_AT")
     private LocalDateTime reviewReplyModifiedAt;
+
+    public ReviewReply(Review review, String reviewReplyBody, Member member) {
+        this.review = review;
+        this.reviewReplyBody = reviewReplyBody;
+        this.member = member;
+    }
 }
