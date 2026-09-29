@@ -3,11 +3,18 @@ package com.project.articket.reservation.entity;
 import com.project.articket.exhibition.entity.Exhibition;
 import com.project.articket.member.entity.Member;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "RESERVATION")
 public class Reservation {
