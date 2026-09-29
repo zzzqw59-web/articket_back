@@ -11,7 +11,9 @@ import com.project.articket.review.dto.ReviewDTO;
 import com.project.articket.review.dto.ReviewUpdateDTO;
 import com.project.articket.review.entity.Review;
 import com.project.articket.review.entity.ReviewImage;
+import com.project.articket.review.entity.ReviewReply;
 import com.project.articket.review.repository.ReviewImageRepository;
+import com.project.articket.review.repository.ReviewReplyRepository;
 import com.project.articket.review.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +36,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final MemberRepository memberRepository;
     private final ExhibitionRepository exhibitionRepository;
     private final ReviewImageRepository reviewImageRepository;
+    private final ReviewReplyRepository reviewReplyRepository;
 
     @Value("${com.spring.website.upload.path}")
     private String fileDir;
@@ -122,11 +125,117 @@ public class ReviewServiceImpl implements ReviewService {
         Review review = repository.findById(reviewId).orElseThrow(() -> new IllegalArgumentException("리뷰가 존재하지 않습니다."));
         review.setReviewTitle(reviewUpdateDTO.getReviewTitle());
         review.setReviewBody(reviewUpdateDTO.getReviewBody());
+
+        List<MultipartFile> images = reviewUpdateDTO.getImages();
+        List<ReviewImage> reviewImages =
+                reviewImageRepository.findByReviewReviewIdOrderByReviewImageOrder(reviewId);
+
+        int currentImageCount = reviewImages.size();
+        int deleteImageCount = reviewUpdateDTO.getDeleteImageIds() == null ? 0 : reviewUpdateDTO.getDeleteImageIds().size();
+        int newImageCount = images == null ? 0 : images.size();
+
+        if (currentImageCount - deleteImageCount + newImageCount > 3) {
+            throw new IllegalArgumentException("등록할 수 있는 이미지는 최대 3개입니다.");
+        }
+
+        // 이미지 파일 검증
+        if (images != null) {
+            for (MultipartFile image : images) {
+                if (image.getSize() > 5 * 1024 * 1024) {
+                    throw new IllegalArgumentException("이미지는 5MB 이하만 등록 가능합니다.");
+                }
+
+                String contentType = image.getContentType();
+
+                if (!List.of("image/jpeg", "image/png", "image/webp").contains(contentType)) {
+                    throw new IllegalArgumentException("JPG, JPEG, PNG, WEBP 이미지만 등록 가능합니다.");
+                }
+            }
+        }
+
+        if (reviewUpdateDTO.getDeleteImageIds() != null) {
+            for (Long deleteImageId : reviewUpdateDTO.getDeleteImageIds()) {
+                ReviewImage reviewImage = reviewImageRepository.findById(deleteImageId).orElseThrow(() -> new IllegalArgumentException("이미지가 존재하지 않습니다."));
+
+                if (!reviewImage.getReview().getReviewId().equals(reviewId)) {
+                    throw new IllegalArgumentException("해당 리뷰의 이미지가 아닙니다.");
+                }
+                
+                String reviewImageFilename = reviewImage.getReviewImageFilename();
+
+                Path uploadPath = Paths.get(fileDir, "review");
+                Path deletePath = uploadPath.resolve(reviewImageFilename);
+
+                try {
+                    Files.delete(deletePath);
+                } catch (IOException e) {
+                    throw new RuntimeException("이미지 파일 삭제에 실패했습니다.", e);
+                }
+
+                reviewImageRepository.delete(reviewImage);
+            }
+        }
+
+        List<ReviewImage> remainingImages = reviewImageRepository.findByReviewReviewIdOrderByReviewImageOrder(reviewId);
+
+        for (int i = 0; i < remainingImages.size(); i++) {
+            remainingImages.get(i).setReviewImageOrder(i + 1);
+        }
+
+        if (images != null && !images.isEmpty()) {
+            Path uploadPath = Paths.get(fileDir, "review");
+
+            try {
+                Files.createDirectories(uploadPath);
+
+                for (int i = 0; i < images.size(); i++) {
+                    MultipartFile image = images.get(i);
+                    String originalFilename = image.getOriginalFilename();
+                    String uuid = UUID.randomUUID().toString();
+                    String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+                    String savedFilename = uuid + extension;
+                    Path savePath = uploadPath.resolve(savedFilename);
+
+                    image.transferTo(savePath);
+
+                    String imageUrl = "/upload/review/" + savedFilename;
+
+                    int imageOrder = remainingImages.size() + i + 1;
+                    ReviewImage reviewImage = new ReviewImage(review, originalFilename, savedFilename, imageUrl, imageOrder
+                    );
+
+                    reviewImageRepository.save(reviewImage);
+                }
+
+            } catch (IOException e) {
+                throw new RuntimeException("파일 저장에 실패하였습니다.", e);
+            }
+        }
     }
+
     @Transactional
     @Override
     public void reviewDelete(Long reviewId) {
         Review review = repository.findById(reviewId).orElseThrow(() -> new IllegalArgumentException("리뷰가 존재하지 않습니다."));
+        List<ReviewImage> reviewImages = reviewImageRepository.findByReviewReviewIdOrderByReviewImageOrder(reviewId);
+        List<ReviewReply> reviewReplies = reviewReplyRepository.findByReviewReviewId(reviewId);
+
+        for (ReviewReply reviewReply : reviewReplies) {
+            reviewReplyRepository.delete(reviewReply);
+        }
+        Path uploadPath = Paths.get(fileDir, "review");
+
+        for (ReviewImage reviewImage : reviewImages) {
+            Path deletePath = uploadPath.resolve(reviewImage.getReviewImageFilename());
+
+            try {
+                Files.delete(deletePath);
+            } catch (IOException e) {
+                throw new RuntimeException("이미지가 존재하지 않습니다.", e);
+            }
+            reviewImageRepository.delete(reviewImage);
+        }
+
         repository.delete(review);
     }
 
