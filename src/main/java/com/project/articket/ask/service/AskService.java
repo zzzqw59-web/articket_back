@@ -24,4 +24,5 @@ public interface AskService {
     AskResponseDTO getAskDetail(Long askId, Long loginMemberId, String loginMemberType);
     Long updateAsk(Long askId, Long memberId, AskUpdateRequestDTO requestDto, List<MultipartFile> newFiles);
     void deleteAsk(Long askId, Long memberId);
+    PageResponseDTO<AskListResponseDTO> getMyAskList(Long memberId, String searchType, String keyword, Integer askType, PageRequestDTO pageRequestDTO);
 }

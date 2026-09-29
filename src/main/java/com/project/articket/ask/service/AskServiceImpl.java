@@ -260,4 +260,18 @@ public class AskServiceImpl implements AskService {
 
         askRepository.delete(ask);
     }
+
+    // 6. 마이페이지 문의글 목록 조회
+    @Override
+    public PageResponseDTO<AskListResponseDTO> getMyAskList(Long memberId, String searchType, String keyword, Integer askType, PageRequestDTO pageRequestDTO) {
+        Pageable pageable = pageRequestDTO.getPageable("askId");
+
+        Page<Ask> askPage = askRepository.searchMyAsks(memberId, searchType, keyword, askType, pageable);
+
+        List<AskListResponseDTO> dtoList = askPage.getContent().stream()
+                .map(AskListResponseDTO::from) // 단일 인자 from 메서드 호출로 정상화
+                .toList();
+
+        return new PageResponseDTO<>(dtoList, pageRequestDTO, askPage.getTotalElements());
+    }
 }

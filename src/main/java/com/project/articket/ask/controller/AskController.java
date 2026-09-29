@@ -88,4 +88,20 @@ public class AskController {
         askService.deleteAsk(askId, memberId);
         return ResponseEntity.noContent().build();
     }
+
+    // 6. 마이페이지 문의글 목록 조회 (검색 + 페이징)
+    // GET /api/asks
+    @GetMapping("/my")
+    public ResponseEntity<PageResponseDTO<AskListResponseDTO>> getMyAskList(
+            @RequestParam(value = "memberId", required = false) Long memberId,
+            @RequestParam(value = "searchType", required = false) String searchType,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "askType", required = false) Integer askType,
+            PageRequestDTO pageRequestDTO
+    ) {
+        PageResponseDTO<AskListResponseDTO> response = askService.getMyAskList(
+                memberId, searchType, keyword, askType, pageRequestDTO
+        );
+        return ResponseEntity.ok(response);
+    }
 }

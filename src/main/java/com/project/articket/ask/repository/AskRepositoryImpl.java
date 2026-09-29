@@ -55,6 +55,34 @@ public class AskRepositoryImpl implements AskRepositoryCustom {
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
 
+    @Override
+    public Page<Ask> searchMyAsks(Long memberId, String searchType, String keyword, Integer askType, Pageable pageable) {
+        List<Ask> content = queryFactory
+                .selectFrom(ask)
+                .leftJoin(ask.memberId, member).fetchJoin()
+                .leftJoin(ask.exhibitionId, exhibition).fetchJoin()
+                .where(
+                        ask.memberId.memberId.eq(memberId), // [핵심] 내 글만 조회하도록 강제
+                        searchCondition(searchType, keyword),
+                        askTypeEq(askType)
+                )
+                .orderBy(ask.askCreatedAt.desc()) // 마이페이지는 보통 최신순 고정
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        JPAQuery<Long> countQuery = queryFactory
+                .select(ask.count())
+                .from(ask)
+                .where(
+                        ask.memberId.memberId.eq(memberId),
+                        searchCondition(searchType, keyword),
+                        askTypeEq(askType)
+                );
+
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+    }
+
     private OrderSpecifier<?> getSortOrder(String sort) {
         if ("hits".equals(sort)) {
             return ask.askHits.desc();
@@ -117,4 +145,5 @@ public class AskRepositoryImpl implements AskRepositoryCustom {
 
         return isPublic;
     }
+
 }
