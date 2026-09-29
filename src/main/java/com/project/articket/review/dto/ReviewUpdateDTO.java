@@ -6,6 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,4 +21,10 @@ public class ReviewUpdateDTO {
 
     @NotBlank(message = "리뷰 내용을 입력하세요.")
     private String reviewBody;
+
+    // 새로 추가할 이미지
+    private List<MultipartFile> images;
+
+    // 삭제할 기존 이미지 ID
+    private List<Long> deleteImageIds;
 }

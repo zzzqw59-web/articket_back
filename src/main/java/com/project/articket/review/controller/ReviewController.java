@@ -8,6 +8,7 @@ import com.project.articket.review.dto.ReviewUpdateDTO;
 import com.project.articket.review.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,14 +23,14 @@ public class ReviewController {
         return dto;
     }
 
-    @PostMapping("/reviews")
-    public void reviewCreate(@Valid @RequestBody ReviewCreateDTO reviewCreateDTO) {
+    @PostMapping(value = "/reviews", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public void reviewCreate(@Valid @ModelAttribute ReviewCreateDTO reviewCreateDTO) {
 //        JWT에서 로그인 회원의 memberId를 가져온 뒤
         reviewService.reviewCreate(1L, reviewCreateDTO);
     }
 
-    @PutMapping("/reviews/{reviewId}")
-    public void reviewUpdate(@PathVariable Long reviewId, @Valid @RequestBody ReviewUpdateDTO reviewUpdateDTO) {
+    @PutMapping(value = "/reviews/{reviewId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public void reviewUpdate(@PathVariable Long reviewId, @Valid @ModelAttribute ReviewUpdateDTO reviewUpdateDTO) {
         reviewService.reviewUpdate(reviewId, reviewUpdateDTO);
     }
 

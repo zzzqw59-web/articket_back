@@ -1,10 +1,7 @@
 package com.project.articket.review.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -19,7 +16,6 @@ public class ReviewImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "REVIEW_IMAGE_ID", nullable = false)
     private Long reviewImageId;
-
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "REVIEW_ID", nullable = false)
@@ -40,4 +36,12 @@ public class ReviewImage {
     @CreationTimestamp
     @Column(name = "REVIEW_IMAGE_CREATED_AT", nullable = false)
     private LocalDateTime reviewImageCreatedAt;
+
+    public ReviewImage(Review review, String reviewImageOrigin, String reviewImageFilename, String reviewImageUrl, Integer reviewImageOrder) {
+        this.review = review;
+        this.reviewImageOrigin = reviewImageOrigin;
+        this.reviewImageFilename = reviewImageFilename;
+        this.reviewImageUrl = reviewImageUrl;
+        this.reviewImageOrder = reviewImageOrder;
+    }
 }
