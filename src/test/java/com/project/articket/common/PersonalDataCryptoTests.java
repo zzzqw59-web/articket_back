@@ -97,4 +97,29 @@ class PersonalDataCryptoTests {
                 secondEncryptedPhone
         );
     }
+
+    @Test
+    void encryptedLengthTest() {
+
+        String name = "김태현";
+        String phone = "01012345678";
+
+        String encryptedName =
+                personalDataCrypto.encryptName(name);
+
+        String encryptedPhone =
+                personalDataCrypto.encryptPhone(phone);
+
+        System.out.println("원본 이름: " + name);
+        System.out.println("이름 원본 길이: " + name.length());
+        System.out.println("암호화된 이름: " + encryptedName);
+        System.out.println("암호화된 이름 길이: " + encryptedName.length());
+
+        System.out.println();
+
+        System.out.println("원본 전화번호: " + phone);
+        System.out.println("전화번호 원본 길이: " + phone.length());
+        System.out.println("암호화된 전화번호: " + encryptedPhone);
+        System.out.println("암호화된 전화번호 길이: " + encryptedPhone.length());
+    }
 }

@@ -86,4 +86,41 @@ public class VerificationService {
 
         verification.verify(now);
     }
+
+    @Transactional
+    public void useVerifiedVerification(
+            String phoneNumber,
+            String verificationType
+    ) {
+
+        Verification verification = verificationRepository
+                .findTopByPhoneNumberAndVerificationTypeOrderByVerificationCreatedAtDesc(
+                        phoneNumber,
+                        verificationType
+                )
+                .orElseThrow(() ->
+                        new RuntimeException("인증 요청 정보를 찾을 수 없습니다.")
+                );
+
+        if (verification.getVerificationVerifiedAt() == null) {
+            throw new RuntimeException("휴대폰 인증이 완료되지 않았습니다.");
+        }
+
+        if (verification.getVerificationUsedAt() != null) {
+            throw new RuntimeException("이미 사용된 인증입니다.");
+        }
+
+        LocalDateTime now = LocalDateTime.now()
+                .withSecond(0)
+                .withNano(0);
+
+        LocalDateTime usableUntil =
+                verification.getVerificationVerifiedAt().plusMinutes(5);
+
+        if (now.isAfter(usableUntil)) {
+            throw new RuntimeException("휴대폰 인증 유효시간이 만료되었습니다.");
+        }
+
+        verification.use(now);
+    }
 }

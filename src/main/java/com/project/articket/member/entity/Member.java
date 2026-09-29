@@ -16,6 +16,10 @@ public class Member {
     public static final int STATUS_INACTIVE = 0;
     public static final int STATUS_ACTIVE = 1;
 
+    public static final String TYPE_MEMBER = "MEMBER";
+    public static final String TYPE_STAFF = "STAFF";
+    public static final String TYPE_ADMIN = "ADMIN";
+
     @Id
     @GeneratedValue(
             strategy = GenerationType.SEQUENCE,
@@ -29,25 +33,54 @@ public class Member {
     @Column(name = "MEMBER_ID")
     private Long memberId;
 
-    @Column(name = "MEMBER_EMAIL", nullable = false, unique = true, length = 255)
+    @Column(
+            name = "MEMBER_EMAIL",
+            nullable = false,
+            unique = true,
+            length = 255
+    )
     private String memberEmail;
 
-    @Column(name = "MEMBER_PASSWORD", nullable = false, length = 255)
+    @Column(
+            name = "MEMBER_PASSWORD",
+            nullable = false,
+            length = 255
+    )
     private String memberPassword;
 
-    @Column(name = "MEMBER_NICKNAME", nullable = false, length = 50)
+    @Column(
+            name = "MEMBER_NICKNAME",
+            nullable = false,
+            length = 50
+    )
     private String memberNickname;
 
-    @Column(name = "MEMBER_NAME", nullable = false, length = 50)
+    @Column(
+            name = "MEMBER_NAME",
+            nullable = false,
+            length = 255
+    )
     private String memberName;
 
-    @Column(name = "MEMBER_PHONE", nullable = false, unique = true, length = 255)
+    @Column(
+            name = "MEMBER_PHONE",
+            nullable = false,
+            unique = true,
+            length = 255
+    )
     private String memberPhone;
 
-    @Column(name = "MEMBER_TYPE", nullable = false, length = 20)
+    @Column(
+            name = "MEMBER_TYPE",
+            nullable = false,
+            length = 20
+    )
     private String memberType;
 
-    @Column(name = "MEMBER_STATUS", nullable = false)
+    @Column(
+            name = "MEMBER_STATUS",
+            nullable = false
+    )
     private Integer memberStatus;
 
     @Column(
@@ -59,12 +92,18 @@ public class Member {
 
     @PrePersist
     public void prePersist() {
-        this.memberJoinCreatedAt = LocalDateTime.now()
-                .withSecond(0)
-                .withNano(0);
+
+        this.memberJoinCreatedAt =
+                LocalDateTime.now()
+                        .withSecond(0)
+                        .withNano(0);
 
         if (this.memberStatus == null) {
             this.memberStatus = STATUS_ACTIVE;
         }
+    }
+
+    public void updatePassword(String memberPassword) {
+        this.memberPassword = memberPassword;
     }
 }

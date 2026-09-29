@@ -64,4 +64,8 @@ public class Verification {
     public void verify(LocalDateTime verifiedAt) {
         this.verificationVerifiedAt = verifiedAt;
     }
+
+    public void use(LocalDateTime usedAt) {
+        this.verificationUsedAt = usedAt;
+    }
 }
