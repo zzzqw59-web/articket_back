@@ -38,4 +38,10 @@ public class ReviewController {
     public void reviewDelete(@PathVariable Long reviewId) {
         reviewService.reviewDelete(reviewId);
     }
+
+    @GetMapping("/reviews/{reviewId}")
+    public ReviewDTO reviewDetail(@PathVariable Long reviewId) {
+        ReviewDTO dto = reviewService.reviewDetail(reviewId);
+        return dto;
+    }
 }

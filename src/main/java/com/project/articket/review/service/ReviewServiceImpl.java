@@ -129,4 +129,24 @@ public class ReviewServiceImpl implements ReviewService {
         Review review = repository.findById(reviewId).orElseThrow(() -> new IllegalArgumentException("리뷰가 존재하지 않습니다."));
         repository.delete(review);
     }
+
+    @Transactional
+    @Override
+    public ReviewDTO reviewDetail(Long reviewId) {
+        Review review = repository.findById(reviewId).orElseThrow(() -> new IllegalArgumentException("리뷰가 존재하지 않습니다."));
+
+        review.setReviewHits(review.getReviewHits() + 1);
+
+        ReviewDTO dto = new ReviewDTO();
+        dto.setReviewId(reviewId);
+        dto.setMemberName(review.getMember().getMemberName());
+        dto.setReviewTitle(review.getReviewTitle());
+        dto.setReviewBody(review.getReviewBody());
+        dto.setReviewCreatedAt(review.getReviewCreatedAt());
+        dto.setReviewModifiedAt(review.getReviewModifiedAt());
+        dto.setExhibitionTitle(review.getExhibition().getExhibitionTitle());
+        dto.setReviewHits(review.getReviewHits());
+
+        return dto;
+    }
 }

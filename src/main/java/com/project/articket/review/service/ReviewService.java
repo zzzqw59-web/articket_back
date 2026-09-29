@@ -13,4 +13,6 @@ public interface ReviewService {
     void reviewUpdate(Long reviewId, ReviewUpdateDTO reviewUpdateDTO);
 
     void reviewDelete(Long reviewId);
+
+    ReviewDTO reviewDetail(Long reviewId);
 }
