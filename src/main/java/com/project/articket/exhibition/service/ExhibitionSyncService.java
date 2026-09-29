@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.apache.commons.text.StringEscapeUtils;
+import org.jsoup.Jsoup;
 
 import java.net.URI;
 import java.net.URLEncoder;
@@ -137,7 +139,7 @@ public class ExhibitionSyncService {
         Exhibition exhibition = new Exhibition();
 
         exhibition.setExhibitionSeq(basic.getSeq());
-        exhibition.setExhibitionTitle(basic.getTitle());
+        exhibition.setExhibitionTitle(cleanHtml(basic.getTitle()));
         exhibition.setStartDate(parseDate(basic.getStartDate()));
         exhibition.setEndDate(parseDate(basic.getEndDate()));
         exhibition.setExhibitionArea(basic.getArea());
@@ -146,7 +148,7 @@ public class ExhibitionSyncService {
             exhibition.setExhibitionUrl(detail.getUrl());
             exhibition.setExhibitionPrice(detail.getPrice());
             exhibition.setExhibitionImgUrl(detail.getImgUrl());
-            exhibition.setExhibitionDescription(detail.getContents1());
+            exhibition.setExhibitionDescription(cleanHtml(detail.getContents1()));
 
             boolean free = ExhibitionPriceUtil.isFree(detail.getPrice());
             exhibition.setIsFree(free);
@@ -183,5 +185,14 @@ public class ExhibitionSyncService {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private String cleanHtml(String text) {
+        if(text == null || text.isBlank()) {
+            return text;
+        }
+        String decoded = StringEscapeUtils.unescapeHtml4(text);
+
+        return Jsoup.parse(decoded).text();
     }
 }

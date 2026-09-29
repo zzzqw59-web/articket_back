@@ -30,7 +30,7 @@ public class ExhibitionQueryService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        return exhibitionRepository.seqrchByFree(isFree, keyword, pageable)
+        return exhibitionRepository.searchByFree(isFree, keyword, pageable)
                 .map(e -> ExhibitionListItemDTO.builder()
                         .id(e.getExhibitionId())
                         .title(e.getExhibitionTitle())

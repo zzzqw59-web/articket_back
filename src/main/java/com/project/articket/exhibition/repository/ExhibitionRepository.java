@@ -14,13 +14,14 @@ public interface ExhibitionRepository extends JpaRepository<Exhibition, Long> {
     boolean existsByExhibitionSeq(Long exhibitionSeq);
 
     @Query("""
-        SELECT e FROM Exhibition e JOIN e.venue v
+        SELECT e FROM Exhibition e LEFT JOIN e.venue v
         WHERE e.isFree = :isFree
         AND (:keyword IS NULL
+                OR :keyword = ''
                 OR e.exhibitionTitle LIKE CONCAT('%', :keyword, '%')
                 OR v.venueTitle LIKE CONCAT('%', :keyword, '%'))             
         """)
-    Page<Exhibition> seqrchByFree(
+    Page<Exhibition> searchByFree(
             @Param("isFree") boolean isFree,
             @Param("keyword") String keyword,
             Pageable pageable
