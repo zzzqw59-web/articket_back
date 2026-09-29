@@ -160,10 +160,23 @@ public class AskServiceImpl implements AskService {
     @Override
     @Transactional
     public Long updateAsk(Long askId, Long memberId, AskUpdateRequestDTO requestDto, List<MultipartFile> newFiles) {
+        // 1. 문의글 조회
         Ask ask = askRepository.findById(askId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 문의글입니다. askId=" + askId));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 문의글입니다."));
 
-        if (!ask.getMemberId().getMemberId().equals(memberId)) {
+        // 2. 요청한 회원 조회
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        // 3. 글 작성자 본인인지 확인 (엔티티 연관관계 구조에 맞게 조절)
+        boolean isWriter = ask.getMemberId().getMemberId().equals(memberId);
+
+        // 4. 회원의 권한이 ADMIN(또는 관리자 권한 enum/문자열)인지 확인
+        // 예: member.getRole() == Role.ADMIN 이거나 member.getMemberType().equals("ADMIN") 등
+        boolean isAdmin = MemberRole.ADMIN.equalsKey((member.getMemberType()));
+
+        // 5. 작성자도 아니고 관리자도 아니면 차단
+        if (!isWriter && !isAdmin) {
             throw new IllegalStateException("수정 권한이 없습니다.");
         }
 
@@ -220,10 +233,23 @@ public class AskServiceImpl implements AskService {
     @Override
     @Transactional
     public void deleteAsk(Long askId, Long memberId) {
+        // 1. 문의글 조회
         Ask ask = askRepository.findById(askId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 문의글입니다. askId=" + askId));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 문의글입니다."));
 
-        if (!ask.getMemberId().getMemberId().equals(memberId)) {
+        // 2. 요청한 회원 조회
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        // 3. 글 작성자 본인인지 확인 (엔티티 연관관계 구조에 맞게 조절)
+        boolean isWriter = ask.getMemberId().getMemberId().equals(memberId);
+
+        // 4. 회원의 권한이 ADMIN(또는 관리자 권한 enum/문자열)인지 확인
+        // 예: member.getRole() == Role.ADMIN 이거나 member.getMemberType().equals("ADMIN") 등
+        boolean isAdmin = MemberRole.ADMIN.equalsKey((member.getMemberType()));
+
+        // 5. 작성자도 아니고 관리자도 아니면 차단
+        if (!isWriter && !isAdmin) {
             throw new IllegalStateException("삭제 권한이 없습니다.");
         }
 
