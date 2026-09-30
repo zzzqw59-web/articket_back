@@ -18,9 +18,14 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @GetMapping("/reviews")
-    public PageResponseDTO<ReviewDTO> reviewList(PageRequestDTO pageRequestDTO) {
-        PageResponseDTO<ReviewDTO> dto = reviewService.reviewPage(pageRequestDTO);
-        return dto;
+    public PageResponseDTO<ReviewDTO> reviewList(@RequestParam(required = false) String keyword, PageRequestDTO pageRequestDTO) {
+        if (keyword == null || keyword.isBlank()) {
+            PageResponseDTO<ReviewDTO> dto = reviewService.reviewPage(pageRequestDTO);
+            return dto;
+        } else {
+            PageResponseDTO<ReviewDTO> dto = reviewService.reviewSearch(keyword, pageRequestDTO);
+            return dto;
+        }
     }
 
     @PostMapping(value = "/reviews", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ReviewRepository extends JpaRepository<Review, Long> {
     // 내 리뷰 목록
     Page<Review> findByMemberMemberId(Long memberId, Pageable pageable);
+
+    Page<Review> findByReviewTitleContainingOrReviewBodyContaining(String reviewTitle, String reviewBody, Pageable pageable);
 }
