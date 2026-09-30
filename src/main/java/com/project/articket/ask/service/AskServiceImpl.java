@@ -24,9 +24,11 @@ import com.project.articket.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -136,9 +138,9 @@ public class AskServiceImpl implements AskService {
     @Override
     @Transactional
     public AskResponseDTO getAskDetail(Long askId, Long loginMemberId) {
+        // 1. 존재하지 않는 글일 경우 404 Not Found 예외 던지기
         Ask ask = askRepository.findById(askId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 문의글입니다. askId=" + askId));
-
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 문의글입니다. askId=" + askId));
         // DB에서 안전하게 회원 권한 조회
         String loginMemberType = null;
         if (loginMemberId != null) {
