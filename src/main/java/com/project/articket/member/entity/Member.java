@@ -103,7 +103,15 @@ public class Member {
         }
     }
 
+    public void updateNickname(String memberNickname) {
+        this.memberNickname = memberNickname;
+    }
+
     public void updatePassword(String memberPassword) {
         this.memberPassword = memberPassword;
+    }
+
+    public void updatePhone(String memberPhone) {
+        this.memberPhone = memberPhone;
     }
 }

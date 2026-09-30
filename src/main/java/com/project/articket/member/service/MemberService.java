@@ -2,6 +2,7 @@ package com.project.articket.member.service;
 
 import com.project.articket.common.crypto.PersonalDataCrypto;
 import com.project.articket.member.dto.MemberResponseDTO;
+import com.project.articket.member.dto.MemberUpdateRequestDTO;
 import com.project.articket.member.dto.PasswordResetRequestDTO;
 import com.project.articket.member.dto.SignupRequestDTO;
 import com.project.articket.member.entity.Member;
@@ -133,5 +134,53 @@ public class MemberService {
                 .memberStatus(member.getMemberStatus())
                 .joinCreatedAt(member.getMemberJoinCreatedAt())
                 .build();
+    }
+
+    @Transactional
+    public void updateMember(
+            Long memberId,
+            MemberUpdateRequestDTO requestDTO
+    ) {
+        Member member =
+                memberRepository.findById(memberId)
+                        .orElseThrow(
+                                () -> new RuntimeException(
+                                        "회원 정보를 찾을 수 없습니다."
+                                )
+                        );
+
+        String encryptedPhone =
+                personalDataCrypto.encryptPhone(
+                        requestDTO.getPhone()
+                );
+
+        if (!member.getMemberPhone().equals(encryptedPhone)
+                && memberRepository.existsByMemberPhone(encryptedPhone)) {
+            throw new RuntimeException(
+                    "이미 사용 중인 휴대폰 번호입니다."
+            );
+        }
+
+        verificationService.useVerifiedVerification(
+                requestDTO.getPhone(),
+                "MEMBER_UPDATE"
+        );
+
+        member.updateNickname(
+                requestDTO.getNickname()
+        );
+
+        if (requestDTO.getPassword() != null
+                && !requestDTO.getPassword().isBlank()) {
+
+            String encodedPassword =
+                    passwordEncoder.encode(
+                            requestDTO.getPassword()
+                    );
+
+            member.updatePassword(encodedPassword);
+        }
+
+        member.updatePhone(encryptedPhone);
     }
 }

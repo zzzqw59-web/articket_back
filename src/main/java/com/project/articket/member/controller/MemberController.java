@@ -1,6 +1,7 @@
 package com.project.articket.member.controller;
 
 import com.project.articket.member.dto.MemberResponseDTO;
+import com.project.articket.member.dto.MemberUpdateRequestDTO;
 import com.project.articket.member.dto.PasswordCheckRequestDTO;
 import com.project.articket.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
@@ -27,17 +28,35 @@ public class MemberController {
         return ResponseEntity.ok(responseDTO);
     }
 
+    @PatchMapping("/me")
+    public ResponseEntity<Void> updateMember(
+            Authentication authentication,
+            @RequestBody MemberUpdateRequestDTO requestDTO
+    ) {
+        Long memberId =
+                (Long) authentication.getPrincipal();
+
+        memberService.updateMember(
+                memberId,
+                requestDTO
+        );
+
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/me/password/check")
     public ResponseEntity<Boolean> checkPassword(
             Authentication authentication,
             @RequestBody PasswordCheckRequestDTO requestDTO
     ) {
-        Long memberId = (Long) authentication.getPrincipal();
+        Long memberId =
+                (Long) authentication.getPrincipal();
 
-        boolean matches = memberService.checkPassword(
-                memberId,
-                requestDTO.getPassword()
-        );
+        boolean matches =
+                memberService.checkPassword(
+                        memberId,
+                        requestDTO.getPassword()
+                );
 
         return ResponseEntity.ok(matches);
     }
