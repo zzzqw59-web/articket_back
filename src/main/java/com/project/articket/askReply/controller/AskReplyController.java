@@ -8,6 +8,7 @@ import com.project.articket.common.dto.PageResponseDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,10 +22,19 @@ public class AskReplyController {
     @PostMapping("/api/asks/{askId}/replies")
     public ResponseEntity<Long> createReply(
             @PathVariable("askId") Long askId,
-            @RequestParam("memberId") Long memberId, // 추후 @AuthenticationPrincipal로 대체
+            Authentication authentication,
             @Valid @RequestBody AskReplyRequestDTO requestDto
     ) {
-        Long replyId = askReplyService.createReply(askId, memberId, requestDto);
+        Long memberId =
+                (Long) authentication.getPrincipal();
+
+        Long replyId =
+                askReplyService.createReply(
+                        askId,
+                        memberId,
+                        requestDto
+                );
+
         return ResponseEntity.ok(replyId);
     }
 
@@ -35,7 +45,12 @@ public class AskReplyController {
             @PathVariable("askId") Long askId,
             @ModelAttribute PageRequestDTO pageRequestDTO
     ) {
-        PageResponseDTO<AskReplyDTO> response = askReplyService.getReplyList(askId, pageRequestDTO);
+        PageResponseDTO<AskReplyDTO> response =
+                askReplyService.getReplyList(
+                        askId,
+                        pageRequestDTO
+                );
+
         return ResponseEntity.ok(response);
     }
 
@@ -44,22 +59,37 @@ public class AskReplyController {
     @PutMapping("/api/asks/{askId}/replies/{replyId}")
     public ResponseEntity<Void> updateReply(
             @PathVariable("replyId") Long replyId,
-            @RequestParam("memberId") Long memberId, // 작성자 본인 검증용
+            Authentication authentication,
             @RequestBody AskReplyRequestDTO requestDto
     ) {
-        askReplyService.updateReply(replyId, memberId, requestDto);
+        Long memberId =
+                (Long) authentication.getPrincipal();
+
+        askReplyService.updateReply(
+                replyId,
+                memberId,
+                requestDto
+        );
+
         return ResponseEntity.ok().build();
     }
 
     // ASK-COM-004: 문의 댓글 삭제
-// DELETE /api/asks/{askId}/replies/{replyId}
+    // DELETE /api/asks/{askId}/replies/{replyId}
     @DeleteMapping("/api/asks/{askId}/replies/{replyId}")
     public ResponseEntity<Void> deleteReply(
             @PathVariable("askId") Long askId,
             @PathVariable("replyId") Long replyId,
-            @RequestParam("memberId") Long memberId // 요청자 본인 / 권한 검증용
+            Authentication authentication
     ) {
-        askReplyService.deleteReply(replyId, memberId);
+        Long memberId =
+                (Long) authentication.getPrincipal();
+
+        askReplyService.deleteReply(
+                replyId,
+                memberId
+        );
+
         return ResponseEntity.noContent().build();
     }
 
@@ -67,10 +97,18 @@ public class AskReplyController {
     // GET /api/my/replies
     @GetMapping("/api/my/replies")
     public ResponseEntity<PageResponseDTO<AskReplyDTO>> getMyReplies(
-            @RequestParam("memberId") Long memberId, // 추후 @AuthenticationPrincipal로 대체
+            Authentication authentication,
             PageRequestDTO pageRequestDTO
     ) {
-        PageResponseDTO<AskReplyDTO> response = askReplyService.getMyReplyList(memberId, pageRequestDTO);
+        Long memberId =
+                (Long) authentication.getPrincipal();
+
+        PageResponseDTO<AskReplyDTO> response =
+                askReplyService.getMyReplyList(
+                        memberId,
+                        pageRequestDTO
+                );
+
         return ResponseEntity.ok(response);
     }
 }

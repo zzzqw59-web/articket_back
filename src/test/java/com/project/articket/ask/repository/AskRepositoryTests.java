@@ -1,6 +1,7 @@
 package com.project.articket.ask.repository;
 
 import java.time.LocalDateTime;
+
 import com.project.articket.ask.entity.Ask;
 import com.project.articket.askImage.entity.AskImage;
 import com.project.articket.askImage.repository.AskImageRepository;
@@ -50,7 +51,7 @@ class AskRepositoryTests {
                 .memberPassword("password123!")
                 .memberName("홍길동")
                 .memberNickname("티켓왕")
-                .memberType("일반회원")
+                .memberType(Member.TYPE_MEMBER)
                 .memberPhone("010-1234-4567")
                 .memberJoinCreatedAt(LocalDateTime.now())
                 .memberStatus(0)
@@ -61,7 +62,7 @@ class AskRepositoryTests {
                 .memberPassword("password123!")
                 .memberName("김철수")
                 .memberNickname("전시매니아")
-                .memberType("일반회원")
+                .memberType(Member.TYPE_MEMBER)
                 .memberPhone("010-1234-4568")
                 .memberJoinCreatedAt(LocalDateTime.now())
                 .memberStatus(0)
@@ -72,7 +73,7 @@ class AskRepositoryTests {
                 .memberPassword("admin123!")
                 .memberName("관리자")
                 .memberNickname("운영자")
-                .memberType("관리자")
+                .memberType(Member.TYPE_ADMIN)
                 .memberPhone("010-1234-4599")
                 .memberJoinCreatedAt(LocalDateTime.now())
                 .memberStatus(0)

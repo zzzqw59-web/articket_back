@@ -9,6 +9,7 @@ import com.project.articket.review.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -29,9 +30,13 @@ public class ReviewController {
     }
 
     @PostMapping(value = "/reviews", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public void reviewCreate(@Valid @ModelAttribute ReviewCreateDTO reviewCreateDTO) {
-//        JWT에서 로그인 회원의 memberId를 가져온 뒤
-        reviewService.reviewCreate(1L, reviewCreateDTO);
+    public void reviewCreate(
+            Authentication authentication,
+            @Valid @ModelAttribute ReviewCreateDTO reviewCreateDTO
+    ) {
+        Long memberId = (Long) authentication.getPrincipal();
+
+        reviewService.reviewCreate(memberId, reviewCreateDTO);
     }
 
     @PutMapping(value = "/reviews/{reviewId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
