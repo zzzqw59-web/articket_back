@@ -1,11 +1,14 @@
 package com.project.articket.reservation.service;
 
+import com.project.articket.common.dto.PageRequestDTO;
+import com.project.articket.common.dto.PageResponseDTO;
 import com.project.articket.reservation.dto.ReservationCreateDTO;
 import com.project.articket.reservation.dto.ReservationDTO;
-import org.springframework.data.domain.Page;
 
 public interface ReservationService {
     void reservationCreate(Long memberId, ReservationCreateDTO reservationCreateDTO);
 
-    Page<ReservationDTO> reservationPage(Long memberId, ReservationDTO reservationDTO);
+    PageResponseDTO<ReservationDTO> reservationPage(Long memberId, PageRequestDTO pageRequestDTO);
+
+    ReservationDTO reservationDetail(Long reservationId);
 }
