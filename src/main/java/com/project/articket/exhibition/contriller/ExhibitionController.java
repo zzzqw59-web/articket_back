@@ -40,7 +40,7 @@ public class ExhibitionController {
     @PutMapping(value = "/{exhibitionId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     //@PreAuthorize("hasAnyRole('ADMIN', 'EXHIBITION_STAFF')")
     public ExhibitionDetailResponseDTO update(
-            @PathVariable Long exhibitionId,
+            @PathVariable("exhibitionId") Long exhibitionId,
             @Valid @RequestPart("data")ExhibitionUpdateRequest request,
             @RequestPart(value = "image", required = false)MultipartFile image) {
         return exhibitionCommandService.update(exhibitionId, request, image);
