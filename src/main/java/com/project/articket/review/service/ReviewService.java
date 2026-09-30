@@ -15,4 +15,6 @@ public interface ReviewService {
     void reviewDelete(Long reviewId);
 
     ReviewDTO reviewDetail(Long reviewId);
+
+    PageResponseDTO<ReviewDTO> reviewSearch(String keyword, PageRequestDTO pageRequestDTO);
 }

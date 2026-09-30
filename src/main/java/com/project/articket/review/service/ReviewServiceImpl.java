@@ -18,6 +18,7 @@ import com.project.articket.review.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -60,6 +61,26 @@ public class ReviewServiceImpl implements ReviewService {
         return new PageResponseDTO<>(dtoList, pageRequestDTO, page.getTotalElements());
     }
 
+    @Override
+    public PageResponseDTO<ReviewDTO> reviewSearch(String keyword, PageRequestDTO pageRequestDTO) {
+
+        Page<Review> page = repository.findByReviewTitleContainingOrReviewBodyContaining(keyword, keyword, pageRequestDTO.getPageable("reviewCreatedAt"));
+        List<ReviewDTO> dtoList = page.getContent().stream().map(review -> {
+            ReviewDTO dto = new ReviewDTO();
+            dto.setReviewId(review.getReviewId());
+            dto.setMemberName(review.getMember().getMemberName());
+            dto.setExhibitionTitle(review.getExhibition().getExhibitionTitle());
+            dto.setReviewTitle(review.getReviewTitle());
+            dto.setReviewBody(review.getReviewBody());
+            dto.setReviewCreatedAt(review.getReviewCreatedAt());
+            dto.setReviewModifiedAt(review.getReviewModifiedAt());
+            dto.setReviewHits(review.getReviewHits());
+
+            return dto;
+        }).toList();
+
+        return new PageResponseDTO<>(dtoList, pageRequestDTO, page.getTotalElements());
+    }
 
     @Override
     public void reviewCreate(Long memberId, ReviewCreateDTO reviewCreateDTO) {
