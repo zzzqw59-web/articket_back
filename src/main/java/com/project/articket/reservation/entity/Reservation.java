@@ -37,8 +37,9 @@ public class Reservation {
     @Column(name = "RESERVATION_DAY", nullable = false)
     private LocalDate reservationDay;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "RESERVATION_STATUS", nullable = false)
-    private String reservationStatus;
+    private ReservationStatus reservationStatus;
 
     @CreationTimestamp
     @Column(name = "RESERVATION_CREATED_AT", nullable = false)
@@ -49,4 +50,13 @@ public class Reservation {
 
     @Column(name = "RESERVATION_AMOUNT", nullable = false)
     private Long reservationAmount;
+
+    public Reservation(Member member, Exhibition exhibition, Integer reservationPerson, LocalDate reservationDay, ReservationStatus reservationStatus, Long reservationAmount) {
+        this.member = member;
+        this.exhibition = exhibition;
+        this.reservationPerson = reservationPerson;
+        this.reservationDay = reservationDay;
+        this.reservationStatus = reservationStatus;
+        this.reservationAmount = reservationAmount;
+    }
 }
