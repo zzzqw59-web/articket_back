@@ -15,6 +15,7 @@ import static com.project.articket.common.util.DateTimeUtils.toDateTimeSecondStr
 public class AskResponseDTO {
 
     private String memberNickname;
+    private Long memberId;
     private String memberType;          // 작성자 권한/타입 (MemberRole)
     private String exhibitionTitle;
     private String askTitle;
@@ -73,6 +74,7 @@ public class AskResponseDTO {
         boolean isModified = modifiedAt != null && !modifiedAt.equals(createdAt);
 
         return AskResponseDTO.builder()
+                .memberId(ask.getMemberId().getMemberId())
                 .memberNickname(ask.getMemberId().getMemberNickname())
                 .memberType(ask.getMemberId().getMemberType())
                 .exhibitionTitle(ask.getExhibitionId() != null ? ask.getExhibitionId().getExhibitionTitle() : null)

@@ -44,11 +44,10 @@ public class AskController {
             @RequestParam(value = "askType", required = false) Integer askType,
             @RequestParam(value = "sort", required = false) String sort,
             @RequestParam(value = "loginMemberId", required = false) Long loginMemberId, // 추후 시큐리티 세션에서 인출
-            @RequestParam(value = "loginMemberType", required = false) String loginMemberType, // 추후 시큐리티 세션에서 인출
             PageRequestDTO pageRequestDTO
     ) {
         PageResponseDTO<AskListResponseDTO> response = askService.getAskList(
-                searchType, keyword, askType, loginMemberId, loginMemberType, sort, pageRequestDTO
+                searchType, keyword, askType, loginMemberId, sort, pageRequestDTO
         );
         return ResponseEntity.ok(response);
     }
@@ -58,10 +57,9 @@ public class AskController {
     @GetMapping("/{askId}")
     public ResponseEntity<AskResponseDTO> getAskDetail(
             @PathVariable("askId") Long askId,
-            @RequestParam(value = "loginMemberId", required = false) Long loginMemberId,
-            @RequestParam(value = "loginMemberType", required = false) String loginMemberType
+            @RequestParam(value = "loginMemberId", required = false) Long loginMemberId
     ) {
-        AskResponseDTO response = askService.getAskDetail(askId, loginMemberId, loginMemberType);
+        AskResponseDTO response = askService.getAskDetail(askId, loginMemberId);
         return ResponseEntity.ok(response);
     }
 
