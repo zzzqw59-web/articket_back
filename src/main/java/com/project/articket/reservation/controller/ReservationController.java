@@ -35,4 +35,10 @@ public class ReservationController {
         Long memberId = (Long) authentication.getPrincipal();
         reservationService.reservationCreate(memberId, reservationCreateDTO);
     }
+
+    @DeleteMapping("/{reservationId}/cancel")
+    void reservationCancel(@PathVariable Long reservationId, Authentication authentication) {
+        Long memberId = (Long) authentication.getPrincipal();
+        reservationService.reservationCancel(memberId, reservationId);
+    }
 }

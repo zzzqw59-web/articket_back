@@ -11,4 +11,6 @@ public interface ReservationService {
     PageResponseDTO<ReservationDTO> reservationPage(Long memberId, PageRequestDTO pageRequestDTO);
 
     ReservationDTO reservationDetail(Long reservationId);
+
+    void reservationCancel(Long memberId, Long reservationId);
 }

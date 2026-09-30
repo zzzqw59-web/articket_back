@@ -14,6 +14,7 @@ import com.project.articket.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -65,6 +66,7 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationDTO;
     }
 
+    @Transactional
     @Override
     public void reservationCreate(Long memberId, ReservationCreateDTO reservationCreateDTO) {
         Exhibition exhibition = exhibitionRepository.findById(reservationCreateDTO.getExhibitionId()).orElseThrow(() -> new IllegalArgumentException("해당 전시가 존재하지 않습니다."));
@@ -92,5 +94,20 @@ public class ReservationServiceImpl implements ReservationService {
         Reservation reservation = new Reservation(member, exhibition, reservationCreateDTO.getReservationPerson(), reservationCreateDTO.getReservationDay(), ReservationStatus.PENDING, totalPrice);
 
         reservationRepository.save(reservation);
+    }
+
+    @Transactional
+    @Override
+    public void reservationCancel(Long memberId, Long reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new IllegalArgumentException("해당 예약이 존재하지 않습니다."));
+
+        if (!reservation.getMember().getMemberId().equals(memberId)) {
+            throw new IllegalArgumentException("본인의 예약만 취소할 수 있습니다.");
+        }
+
+        if (reservation.getReservationStatus() == ReservationStatus.CANCELED) {
+            throw new IllegalArgumentException("이미 취소된 예약은 취소할 수 없습니다.");
+        }
+        reservation.cancel();
     }
 }
