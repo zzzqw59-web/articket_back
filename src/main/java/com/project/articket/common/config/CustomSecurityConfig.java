@@ -3,6 +3,7 @@ package com.project.articket.common.config;
 import com.project.articket.common.filter.JWTCheckFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -81,9 +82,12 @@ public class CustomSecurityConfig {
                         ).permitAll()
 
                         .requestMatchers(
-                                org.springframework.http.HttpMethod.GET,
+                                HttpMethod.GET,
                                 "/api/exhibitions/**",
-                                "/api/venues/**"
+                                "/api/venues/**",
+                                "/api/reviews/**",
+                                "/api/asks/**",
+                                "/api/images/**"
                         ).permitAll()
 
                         .anyRequest()

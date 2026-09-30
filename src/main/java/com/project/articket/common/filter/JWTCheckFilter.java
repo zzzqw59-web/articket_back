@@ -37,8 +37,9 @@ public class JWTCheckFilter extends OncePerRequestFilter {
         if (authorizationHeader == null
                 || !authorizationHeader.startsWith("Bearer ")) {
 
-            response.setStatus(
-                    HttpServletResponse.SC_UNAUTHORIZED
+            filterChain.doFilter(
+                    request,
+                    response
             );
 
             return;

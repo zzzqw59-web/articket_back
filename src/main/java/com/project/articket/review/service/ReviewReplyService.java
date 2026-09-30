@@ -7,7 +7,7 @@ import com.project.articket.review.dto.*;
 public interface ReviewReplyService {
     PageResponseDTO<ReviewReplyDTO> reviewReplyPage(Long reviewId, PageRequestDTO pageRequestDTO);
 
-    void reviewReplyCreate(Long reviewId, ReviewReplyCreateDTO reviewReplyCreateDTO);
+    void reviewReplyCreate(Long reviewId, Long memberId, ReviewReplyCreateDTO reviewReplyCreateDTO);
 
     void reviewReplyUpdate(Long reviewReplyId, ReviewReplyUpdateDTO reviewReplyUpdateDTO);
 

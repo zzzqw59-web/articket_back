@@ -8,9 +8,8 @@ import com.project.articket.review.dto.ReviewReplyUpdateDTO;
 import com.project.articket.review.service.ReviewReplyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,8 +24,14 @@ public class ReviewReplyController {
     }
 
     @PostMapping("/reviews/{reviewId}/replies")
-    public void reviewReplyCreate(@PathVariable Long reviewId, @Valid @RequestBody ReviewReplyCreateDTO reviewReplyCreateDTO) {
-        reviewReplyService.reviewReplyCreate(reviewId, reviewReplyCreateDTO);
+    public void reviewReplyCreate(
+            @PathVariable Long reviewId,
+            Authentication authentication,
+            @Valid @RequestBody ReviewReplyCreateDTO reviewReplyCreateDTO
+    ) {
+        Long memberId = (Long) authentication.getPrincipal();
+
+        reviewReplyService.reviewReplyCreate(reviewId, memberId, reviewReplyCreateDTO);
     }
 
     @PutMapping("/reviews/{reviewId}/replies/{reviewReplyId}")
