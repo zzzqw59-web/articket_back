@@ -10,4 +10,18 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Page<Review> findByMemberMemberId(Long memberId, Pageable pageable);
 
     Page<Review> findByReviewTitleContainingOrReviewBodyContaining(String reviewTitle, String reviewBody, Pageable pageable);
+
+    Page<Review> findByReviewTitleContaining(String keyword, Pageable pageable);
+
+    Page<Review> findByMemberMemberNameContaining(String keyword, Pageable pageable);
+
+    Page<Review> findByExhibitionExhibitionTitleContaining(String keyword, Pageable pageable);
+
+    Page<Review> findByReviewTitleContainingOrReviewBodyContainingOrMemberMemberNameContainingOrExhibitionExhibitionTitleContaining(
+            String reviewTitle,
+            String reviewBody,
+            String memberName,
+            String exhibitionTitle,
+            Pageable pageable
+    );
 }

@@ -69,13 +69,23 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public PageResponseDTO<ReviewDTO> reviewSearch(String keyword, PageRequestDTO pageRequestDTO) {
-        Page<Review> page =
-                repository.findByReviewTitleContainingOrReviewBodyContaining(
-                        keyword,
-                        keyword,
-                        pageRequestDTO.getPageable("reviewCreatedAt")
-                );
+    public PageResponseDTO<ReviewDTO> reviewSearch(String searchType, String keyword, PageRequestDTO pageRequestDTO) {
+        Page<Review> page;
+
+        if ("title".equals(searchType)) {
+            page = repository.findByReviewTitleContaining(keyword, pageRequestDTO.getPageable("reviewCreatedAt"));
+        } else if ("all".equals(searchType)) {
+            page = repository.findByReviewTitleContainingOrReviewBodyContainingOrMemberMemberNameContainingOrExhibitionExhibitionTitleContaining(keyword, keyword, keyword, keyword, pageRequestDTO.getPageable("reviewCreatedAt"));
+        } else if ("exhibition".equals(searchType)) {
+            page = repository.findByExhibitionExhibitionTitleContaining(keyword, pageRequestDTO.getPageable("reviewCreatedAt"));
+        } else if ("writer".equals(searchType)) {
+            page = repository.findByMemberMemberNameContaining(keyword, pageRequestDTO.getPageable("reviewCreatedAt"));
+        } else {
+            page = repository.findByReviewTitleContainingOrReviewBodyContaining(
+                    keyword,
+                    keyword,
+                    pageRequestDTO.getPageable("reviewCreatedAt"));
+        }
 
         List<ReviewDTO> dtoList = page.getContent().stream().map(review -> {
             ReviewDTO dto = new ReviewDTO();

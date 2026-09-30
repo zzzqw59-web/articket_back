@@ -16,5 +16,5 @@ public interface ReviewService {
 
     ReviewDTO reviewDetail(Long reviewId);
 
-    PageResponseDTO<ReviewDTO> reviewSearch(String keyword, PageRequestDTO pageRequestDTO);
+    PageResponseDTO<ReviewDTO> reviewSearch(String searchType, String keyword, PageRequestDTO pageRequestDTO);
 }

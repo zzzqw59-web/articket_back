@@ -19,12 +19,12 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @GetMapping("/reviews")
-    public PageResponseDTO<ReviewDTO> reviewList(@RequestParam(required = false) String keyword, PageRequestDTO pageRequestDTO) {
+    public PageResponseDTO<ReviewDTO> reviewList(@RequestParam(required = false) String searchType, @RequestParam(required = false) String keyword, PageRequestDTO pageRequestDTO) {
         if (keyword == null || keyword.isBlank()) {
             PageResponseDTO<ReviewDTO> dto = reviewService.reviewPage(pageRequestDTO);
             return dto;
         } else {
-            PageResponseDTO<ReviewDTO> dto = reviewService.reviewSearch(keyword, pageRequestDTO);
+            PageResponseDTO<ReviewDTO> dto = reviewService.reviewSearch(searchType, keyword, pageRequestDTO);
             return dto;
         }
     }
