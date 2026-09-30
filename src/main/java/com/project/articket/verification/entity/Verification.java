@@ -2,6 +2,9 @@ package com.project.articket.verification.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
 
 import java.time.LocalDateTime;
 
@@ -35,9 +38,12 @@ public class Verification {
     @Column(name = "VERIFICATION_TYPE", nullable = false, length = 20)
     private String verificationType;
 
+    @Generated(event = EventType.INSERT)
+    @ColumnDefault("SYSDATE")
     @Column(
             name = "VERIFICATION_CREATED_AT",
             nullable = false,
+            updatable = false,
             columnDefinition = "DATE"
     )
     private LocalDateTime verificationCreatedAt;

@@ -9,7 +9,7 @@ public interface VerificationRepository
         extends JpaRepository<Verification, Long> {
 
     Optional<Verification>
-    findTopByPhoneNumberAndVerificationTypeOrderByVerificationCreatedAtDesc(
+    findTopByPhoneNumberAndVerificationTypeOrderByVerificationCreatedAtDescVerificationIdDesc(
             String phoneNumber,
             String verificationType
     );

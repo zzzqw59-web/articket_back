@@ -26,17 +26,14 @@ public class VerificationService {
         String verificationCode =
                 String.format("%06d", secureRandom.nextInt(1000000));
 
-        LocalDateTime createdAt = LocalDateTime.now()
-                .withSecond(0)
-                .withNano(0);
-
-        LocalDateTime expiresAt = createdAt.plusMinutes(5);
+        LocalDateTime expiresAt = LocalDateTime.now()
+                .withNano(0)
+                .plusMinutes(5);
 
         Verification verification = Verification.builder()
                 .phoneNumber(phoneNumber)
                 .verificationCode(verificationCode)
                 .verificationType(verificationType)
-                .verificationCreatedAt(createdAt)
                 .verificationExpiresAt(expiresAt)
                 .build();
 
@@ -56,7 +53,7 @@ public class VerificationService {
     ) {
 
         Verification verification = verificationRepository
-                .findTopByPhoneNumberAndVerificationTypeOrderByVerificationCreatedAtDesc(
+                .findTopByPhoneNumberAndVerificationTypeOrderByVerificationCreatedAtDescVerificationIdDesc(
                         phoneNumber,
                         verificationType
                 )
@@ -73,7 +70,6 @@ public class VerificationService {
         }
 
         LocalDateTime now = LocalDateTime.now()
-                .withSecond(0)
                 .withNano(0);
 
         if (now.isAfter(verification.getVerificationExpiresAt())) {
@@ -94,7 +90,7 @@ public class VerificationService {
     ) {
 
         Verification verification = verificationRepository
-                .findTopByPhoneNumberAndVerificationTypeOrderByVerificationCreatedAtDesc(
+                .findTopByPhoneNumberAndVerificationTypeOrderByVerificationCreatedAtDescVerificationIdDesc(
                         phoneNumber,
                         verificationType
                 )
@@ -111,7 +107,6 @@ public class VerificationService {
         }
 
         LocalDateTime now = LocalDateTime.now()
-                .withSecond(0)
                 .withNano(0);
 
         LocalDateTime usableUntil =

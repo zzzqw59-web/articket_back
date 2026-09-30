@@ -1,6 +1,7 @@
 package com.project.articket.member.service;
 
 import com.project.articket.common.crypto.PersonalDataCrypto;
+import com.project.articket.member.dto.MemberResponseDTO;
 import com.project.articket.member.dto.PasswordResetRequestDTO;
 import com.project.articket.member.dto.SignupRequestDTO;
 import com.project.articket.member.entity.Member;
@@ -25,37 +26,21 @@ public class MemberService {
     }
 
     public boolean existsByPhone(String phone) {
-
-        String encryptedPhone =
-                personalDataCrypto.encryptPhone(phone);
-
-        return memberRepository.existsByMemberPhone(
-                encryptedPhone
-        );
+        String encryptedPhone = personalDataCrypto.encryptPhone(phone);
+        return memberRepository.existsByMemberPhone(encryptedPhone);
     }
 
     @Transactional
     public void signup(SignupRequestDTO requestDTO) {
-
-        if (memberRepository.existsByMemberEmail(
-                requestDTO.getEmail()
-        )) {
-            throw new RuntimeException(
-                    "이미 사용 중인 이메일입니다."
-            );
+        if (memberRepository.existsByMemberEmail(requestDTO.getEmail())) {
+            throw new RuntimeException("이미 사용 중인 이메일입니다.");
         }
 
         String encryptedPhone =
-                personalDataCrypto.encryptPhone(
-                        requestDTO.getPhone()
-                );
+                personalDataCrypto.encryptPhone(requestDTO.getPhone());
 
-        if (memberRepository.existsByMemberPhone(
-                encryptedPhone
-        )) {
-            throw new RuntimeException(
-                    "이미 가입된 휴대폰 번호입니다."
-            );
+        if (memberRepository.existsByMemberPhone(encryptedPhone)) {
+            throw new RuntimeException("이미 가입된 휴대폰 번호입니다.");
         }
 
         verificationService.useVerifiedVerification(
@@ -64,14 +49,10 @@ public class MemberService {
         );
 
         String encodedPassword =
-                passwordEncoder.encode(
-                        requestDTO.getPassword()
-                );
+                passwordEncoder.encode(requestDTO.getPassword());
 
         String encryptedName =
-                personalDataCrypto.encryptName(
-                        requestDTO.getName()
-                );
+                personalDataCrypto.encryptName(requestDTO.getName());
 
         Member member = Member.builder()
                 .memberEmail(requestDTO.getEmail())
@@ -86,19 +67,12 @@ public class MemberService {
     }
 
     @Transactional
-    public void resetPassword(
-            PasswordResetRequestDTO requestDTO
-    ) {
-
+    public void resetPassword(PasswordResetRequestDTO requestDTO) {
         String encryptedPhone =
-                personalDataCrypto.encryptPhone(
-                        requestDTO.getPhone()
-                );
+                personalDataCrypto.encryptPhone(requestDTO.getPhone());
 
         Member member =
-                memberRepository.findByMemberPhone(
-                                encryptedPhone
-                        )
+                memberRepository.findByMemberPhone(encryptedPhone)
                         .orElseThrow(
                                 () -> new RuntimeException(
                                         "회원 정보를 찾을 수 없습니다."
@@ -111,10 +85,53 @@ public class MemberService {
         );
 
         String encodedPassword =
-                passwordEncoder.encode(
-                        requestDTO.getNewPassword()
-                );
+                passwordEncoder.encode(requestDTO.getNewPassword());
 
         member.updatePassword(encodedPassword);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean checkPassword(Long memberId, String password) {
+        Member member =
+                memberRepository.findById(memberId)
+                        .orElseThrow(
+                                () -> new RuntimeException(
+                                        "회원 정보를 찾을 수 없습니다."
+                                )
+                        );
+
+        return passwordEncoder.matches(
+                password,
+                member.getMemberPassword()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public MemberResponseDTO getMember(Long memberId) {
+        Member member =
+                memberRepository.findById(memberId)
+                        .orElseThrow(
+                                () -> new RuntimeException(
+                                        "회원 정보를 찾을 수 없습니다."
+                                )
+                        );
+
+        return MemberResponseDTO.builder()
+                .email(member.getMemberEmail())
+                .nickname(member.getMemberNickname())
+                .name(
+                        personalDataCrypto.decryptName(
+                                member.getMemberName()
+                        )
+                )
+                .phone(
+                        personalDataCrypto.decryptPhone(
+                                member.getMemberPhone()
+                        )
+                )
+                .memberType(member.getMemberType())
+                .memberStatus(member.getMemberStatus())
+                .joinCreatedAt(member.getMemberJoinCreatedAt())
+                .build();
     }
 }

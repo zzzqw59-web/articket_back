@@ -2,6 +2,9 @@ package com.project.articket.member.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
 
 import java.time.LocalDateTime;
 
@@ -83,21 +86,18 @@ public class Member {
     )
     private Integer memberStatus;
 
+    @Generated(event = EventType.INSERT)
+    @ColumnDefault("SYSDATE")
     @Column(
             name = "MEMBER_JOIN_CREATED_AT",
             nullable = false,
+            updatable = false,
             columnDefinition = "DATE"
     )
     private LocalDateTime memberJoinCreatedAt;
 
     @PrePersist
     public void prePersist() {
-
-        this.memberJoinCreatedAt =
-                LocalDateTime.now()
-                        .withSecond(0)
-                        .withNano(0);
-
         if (this.memberStatus == null) {
             this.memberStatus = STATUS_ACTIVE;
         }

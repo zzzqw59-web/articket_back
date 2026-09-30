@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,28 +20,50 @@ class VerificationRepositoryTests {
     @Test
     void verificationInsertTest() {
 
-        LocalDateTime createdAt = LocalDateTime.now()
-                .withSecond(0)
-                .withNano(0);
+        LocalDateTime beforeSave = LocalDateTime.now();
 
-        LocalDateTime expiresAt = createdAt.plusMinutes(5);
+        LocalDateTime expiresAt =
+                LocalDateTime.now()
+                        .withNano(0)
+                        .plusMinutes(5);
 
         Verification verification = Verification.builder()
                 .phoneNumber("01011112222")
                 .verificationCode("123456")
                 .verificationType("SIGNUP")
-                .verificationCreatedAt(createdAt)
                 .verificationExpiresAt(expiresAt)
                 .build();
 
         Verification savedVerification =
-                verificationRepository.save(verification);
+                verificationRepository.saveAndFlush(verification);
 
-        assertNotNull(savedVerification.getVerificationId());
+        LocalDateTime afterSave = LocalDateTime.now();
 
-        Verification foundVerification = verificationRepository
-                .findById(savedVerification.getVerificationId())
-                .orElseThrow();
+        assertNotNull(
+                savedVerification.getVerificationId()
+        );
+
+        // DB DEFAULT SYSDATE 생성 확인
+        assertNotNull(
+                savedVerification.getVerificationCreatedAt()
+        );
+
+        assertFalse(
+                savedVerification.getVerificationCreatedAt()
+                        .isBefore(beforeSave.minusSeconds(5))
+        );
+
+        assertFalse(
+                savedVerification.getVerificationCreatedAt()
+                        .isAfter(afterSave.plusSeconds(5))
+        );
+
+        Verification foundVerification =
+                verificationRepository
+                        .findById(
+                                savedVerification.getVerificationId()
+                        )
+                        .orElseThrow();
 
         assertEquals(
                 "01011112222",
@@ -58,7 +81,7 @@ class VerificationRepositoryTests {
         );
 
         assertEquals(
-                createdAt,
+                savedVerification.getVerificationCreatedAt(),
                 foundVerification.getVerificationCreatedAt()
         );
 
@@ -67,7 +90,27 @@ class VerificationRepositoryTests {
                 foundVerification.getVerificationExpiresAt()
         );
 
-        assertNull(foundVerification.getVerificationVerifiedAt());
-        assertNull(foundVerification.getVerificationUsedAt());
+        assertNull(
+                foundVerification.getVerificationVerifiedAt()
+        );
+
+        assertNull(
+                foundVerification.getVerificationUsedAt()
+        );
+
+        // 최신 인증 요청 조회 확인
+        Optional<Verification> latest =
+                verificationRepository
+                        .findTopByPhoneNumberAndVerificationTypeOrderByVerificationCreatedAtDescVerificationIdDesc(
+                                "01011112222",
+                                "SIGNUP"
+                        );
+
+        assertTrue(latest.isPresent());
+
+        assertEquals(
+                savedVerification.getVerificationId(),
+                latest.get().getVerificationId()
+        );
     }
 }
