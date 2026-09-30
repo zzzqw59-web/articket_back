@@ -10,9 +10,9 @@ public interface ReviewService {
 
     void reviewCreate(Long memberId, ReviewCreateDTO reviewCreateDTO);
 
-    void reviewUpdate(Long reviewId, ReviewUpdateDTO reviewUpdateDTO);
+    void reviewUpdate(Long memberId, Long reviewId, ReviewUpdateDTO reviewUpdateDTO);
 
-    void reviewDelete(Long reviewId);
+    void reviewDelete(Long memberId, Long reviewId);
 
     ReviewDTO reviewDetail(Long reviewId);
 

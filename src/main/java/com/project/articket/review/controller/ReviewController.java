@@ -40,13 +40,15 @@ public class ReviewController {
     }
 
     @PutMapping(value = "/reviews/{reviewId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public void reviewUpdate(@PathVariable Long reviewId, @Valid @ModelAttribute ReviewUpdateDTO reviewUpdateDTO) {
-        reviewService.reviewUpdate(reviewId, reviewUpdateDTO);
+    public void reviewUpdate(@PathVariable Long reviewId, @Valid @ModelAttribute ReviewUpdateDTO reviewUpdateDTO, Authentication authentication) {
+        Long memberId = (Long) authentication.getPrincipal();
+        reviewService.reviewUpdate(memberId, reviewId, reviewUpdateDTO);
     }
 
     @DeleteMapping("/reviews/{reviewId}")
-    public void reviewDelete(@PathVariable Long reviewId) {
-        reviewService.reviewDelete(reviewId);
+    public void reviewDelete(@PathVariable Long reviewId, Authentication authentication) {
+        Long memberId = (Long) authentication.getPrincipal();
+        reviewService.reviewDelete(memberId, reviewId);
     }
 
     @GetMapping("/reviews/{reviewId}")
