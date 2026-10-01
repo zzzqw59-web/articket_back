@@ -10,6 +10,7 @@ import com.project.articket.common.dto.PageResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,11 +28,18 @@ public class AskController {
     // - RequestPart로 DTO(JSON)와 MultipartFile 리스트를 전달받음
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Long> createAsk(
-            @RequestParam("memberId") Long memberId, // TODO 추후 @AuthenticationPrincipal로 대체
+            Authentication authentication,
             @RequestPart("requestDto") AskCreateRequestDTO requestDto,
             @RequestPart(value = "files", required = false) List<MultipartFile> files
     ) {
-        Long askId = askService.createAsk(memberId, requestDto, files);
+        Long memberId = (Long) authentication.getPrincipal();
+
+        Long askId = askService.createAsk(
+                memberId,
+                requestDto,
+                files
+        );
+
         return ResponseEntity.ok(askId);
     }
 
@@ -43,12 +51,23 @@ public class AskController {
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "askType", required = false) Integer askType,
             @RequestParam(value = "sort", required = false) String sort,
-            @RequestParam(value = "loginMemberId", required = false) Long loginMemberId, // 추후 시큐리티 세션에서 인출
-            PageRequestDTO pageRequestDTO
+            PageRequestDTO pageRequestDTO,
+            Authentication authentication
     ) {
-        PageResponseDTO<AskListResponseDTO> response = askService.getAskList(
-                searchType, keyword, askType, loginMemberId, sort, pageRequestDTO
-        );
+        Long loginMemberId = getMemberId(authentication);
+        String loginMemberType = getMemberType(authentication);
+
+        PageResponseDTO<AskListResponseDTO> response =
+                askService.getAskList(
+                        searchType,
+                        keyword,
+                        askType,
+                        loginMemberId,
+                        loginMemberType,
+                        sort,
+                        pageRequestDTO
+                );
+
         return ResponseEntity.ok(response);
     }
 
@@ -57,22 +76,44 @@ public class AskController {
     @GetMapping("/{askId}")
     public ResponseEntity<AskResponseDTO> getAskDetail(
             @PathVariable("askId") Long askId,
-            @RequestParam(value = "loginMemberId", required = false) Long loginMemberId
+            Authentication authentication
     ) {
-        AskResponseDTO response = askService.getAskDetail(askId, loginMemberId);
+        Long loginMemberId = getMemberId(authentication);
+        String loginMemberType = getMemberType(authentication);
+
+        AskResponseDTO response =
+                askService.getAskDetail(
+                        askId,
+                        loginMemberId,
+                        loginMemberType
+                );
+
         return ResponseEntity.ok(response);
     }
 
     // 4. 문의글 수정 (기존 이미지 유지 목록 + 새 이미지 파일 첨부)
     // PUT /api/asks/{askId}
-    @PutMapping(value = "/{askId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(
+            value = "/{askId}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public ResponseEntity<Long> updateAsk(
             @PathVariable("askId") Long askId,
-            @RequestParam("memberId") Long memberId,
+            Authentication authentication,
             @RequestPart("requestDto") AskUpdateRequestDTO requestDto,
             @RequestPart(value = "newFiles", required = false) List<MultipartFile> newFiles
     ) {
-        Long updatedAskId = askService.updateAsk(askId, memberId, requestDto, newFiles);
+        Long memberId =
+                (Long) authentication.getPrincipal();
+
+        Long updatedAskId =
+                askService.updateAsk(
+                        askId,
+                        memberId,
+                        requestDto,
+                        newFiles
+                );
+
         return ResponseEntity.ok(updatedAskId);
     }
 
@@ -81,25 +122,49 @@ public class AskController {
     @DeleteMapping("/{askId}")
     public ResponseEntity<Void> deleteAsk(
             @PathVariable("askId") Long askId,
-            @RequestParam("memberId") Long memberId
+            Authentication authentication
     ) {
-        askService.deleteAsk(askId, memberId);
+        Long memberId =
+                (Long) authentication.getPrincipal();
+
+        askService.deleteAsk(
+                askId,
+                memberId
+        );
+
         return ResponseEntity.noContent().build();
     }
 
-    // 6. 마이페이지 문의글 목록 조회 (검색 + 페이징)
-    // GET /api/asks
-    @GetMapping("/my")
-    public ResponseEntity<PageResponseDTO<AskListResponseDTO>> getMyAskList(
-            @RequestParam(value = "memberId", required = false) Long memberId,
-            @RequestParam(value = "searchType", required = false) String searchType,
-            @RequestParam(value = "keyword", required = false) String keyword,
-            @RequestParam(value = "askType", required = false) Integer askType,
-            PageRequestDTO pageRequestDTO
+    private Long getMemberId(
+            Authentication authentication
     ) {
-        PageResponseDTO<AskListResponseDTO> response = askService.getMyAskList(
-                memberId, searchType, keyword, askType, pageRequestDTO
-        );
-        return ResponseEntity.ok(response);
+        if (authentication == null
+                || !authentication.isAuthenticated()) {
+
+            return null;
+        }
+
+        return (Long) authentication.getPrincipal();
+    }
+
+    private String getMemberType(
+            Authentication authentication
+    ) {
+        if (authentication == null
+                || !authentication.isAuthenticated()) {
+
+            return null;
+        }
+
+        return authentication
+                .getAuthorities()
+                .stream()
+                .findFirst()
+                .map(authority ->
+                        authority
+                                .getAuthority()
+                                .replaceFirst("^ROLE_", "")
+                )
+                .orElse(null);
     }
 }

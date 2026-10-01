@@ -59,10 +59,38 @@ dependencies {
 	implementation 'org.apache.commons:commons-text:1.14.0'
 	// 썸네일 의존성
 	implementation 'net.coobird:thumbnailator:0.4.20'
+
+    // Bean Validation 추가
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	// SOLAPI API
+	implementation 'com.solapi:sdk:1.0.3'
+
+	// 개인정보 암호화를 위한 Google Tink
+	implementation 'com.google.crypto.tink:tink:1.23.0'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+
+	def envFile = rootProject.file('.env')
+
+	if (envFile.exists()) {
+		envFile.eachLine { line ->
+			def trimmedLine = line.trim()
+
+			if (trimmedLine && !trimmedLine.startsWith('#')) {
+				def separatorIndex = trimmedLine.indexOf('=')
+
+				if (separatorIndex > 0) {
+					def key = trimmedLine.substring(0, separatorIndex).trim()
+					def value = trimmedLine.substring(separatorIndex + 1).trim()
+
+					environment key, value
+				}
+			}
+		}
+	}
 }
 
 // QClass 자동 생성 경로 설정

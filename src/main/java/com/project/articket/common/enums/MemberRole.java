@@ -15,7 +15,10 @@ public enum MemberRole {
     private final String title;
 
     public boolean equalsKey(String roleKey) {
-        if (roleKey == null) return false;
-        return this.key.equalsIgnoreCase(roleKey) || this.name().equalsIgnoreCase(roleKey);
+        if (roleKey == null) {
+            return false;
+        }
+
+        return this.key.equalsIgnoreCase(roleKey);
     }
 }
