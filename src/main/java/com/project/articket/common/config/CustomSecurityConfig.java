@@ -74,7 +74,8 @@ public class CustomSecurityConfig {
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/api/**"
                         ).permitAll()
 
                         .requestMatchers(
