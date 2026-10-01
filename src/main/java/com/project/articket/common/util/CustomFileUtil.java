@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -71,21 +73,46 @@ public class CustomFileUtil {
         Path thumnailPath = null;
 
         try {
+
+            log.info("===== 파일 업로드 시작 =====");
+            log.info("원본 파일명 = {}", originalFilename);
+            log.info("Content-Type = {}", file.getContentType());
+            log.info("파일 크기 = {}", file.getSize());
+            log.info("저장 경로 = {}", savePath);
+
             Files.copy(file.getInputStream(), savePath);
+            log.info("원본 파일 저장 성공");
+
+            // ★ 여기 추가
+            BufferedImage testImage = ImageIO.read(savePath.toFile());
+
+            if (testImage == null) {
+                log.error("ImageIO가 이미지를 읽지 못했습니다.");
+            } else {
+                log.info(
+                        "ImageIO 이미지 읽기 성공 - width={}, height={}",
+                        testImage.getWidth(),
+                        testImage.getHeight()
+                );
+            }
+
             String contentType = file.getContentType();
 
             if(contentType != null && contentType.startsWith("image/")) {
                 thumnailPath = uploadPath.resolve("s_" + savedName).normalize();
-
+                log.info("썸네일 생성 시작 = {}", thumnailPath);
                 Thumbnails.of(savePath.toFile())
                         .size(200, 133)
                         .toFile(thumnailPath.toFile());
+                log.info("썸네일 생성 성공");
 
             }
 
             log.info("파일 저장 완료 - 원본 파일명: {}, 저장 파일명: {}", originalFilename, savedName);
             return savedName;
         } catch (IOException io) {
+            log.error(
+                    "파일 저장/썸네일 생성 중 IOException 발생", io);
             throw new FileUploadException("파일을 저장하는 중 오류가 발생했습니다.", io);
         }
     }
