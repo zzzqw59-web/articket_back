@@ -6,4 +6,5 @@ import org.springframework.data.domain.Pageable;
 
 public interface AskRepositoryCustom {
     Page<Ask> searchAsks(String searchType, String keyword, Integer askType, Long loginMemberId, String loginMemberType, String sort, Pageable pageable);
+    Page<Ask> searchMyAsks(Long memberId, String searchType, String keyword, Integer askType, Pageable pageable);
 }

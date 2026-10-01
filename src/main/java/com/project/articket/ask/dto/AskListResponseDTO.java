@@ -11,6 +11,7 @@ import static com.project.articket.common.util.DateTimeUtils.toDateTimeSecondStr
 public class AskListResponseDTO {
 
     private Long askId;
+    private Long memberId;
     private String memberNickname;
     private String memberType;
     private String askTitle;
@@ -26,6 +27,7 @@ public class AskListResponseDTO {
     public static AskListResponseDTO from(Ask ask) {
         return AskListResponseDTO.builder()
                 .askId(ask.getAskId())
+                .memberId(ask.getMemberId().getMemberId())
                 .memberNickname(ask.getMemberId().getMemberNickname())
                 .memberType(ask.getMemberId().getMemberType())
                 .askTitle(ask.getAskTitle())

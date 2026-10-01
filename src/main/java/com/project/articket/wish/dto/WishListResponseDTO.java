@@ -50,7 +50,7 @@ public class WishListResponseDTO {
 
         return WishListResponseDTO.builder()
                 .exhibitionTitle(exhibition.getExhibitionTitle())
-                .venueTitle(exhibition.getVenueId() != null ? exhibition.getVenueId().getVenueTitle(): null)
+                .venueTitle(exhibition.getVenue() != null ? exhibition.getVenue().getVenueTitle(): null)
                 .posterUrl(exhibition.getExhibitionImgUrl())
                 .isRunning(isRunning)
                 .exhibitionPeriod(period)

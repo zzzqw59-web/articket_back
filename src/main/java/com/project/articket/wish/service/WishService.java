@@ -16,6 +16,9 @@ public interface WishService {
     //특정 회원의 종료된 전시 위시 일괄 삭제
     int deleteExpiredWishes(Long memberId);
 
+    // 추가 기능: 특정 전시 위시리스트 수 조회 추가 + 현재 회원의 찜 여부 조회
+    WishToggleResponseDTO getWishCountByExhibition(Long memberId, Long exhibitionId);
+
     //특정 회원의 전시 위시 일괄 삭제
     void deleteAllWishes(Long memberId);
 }
