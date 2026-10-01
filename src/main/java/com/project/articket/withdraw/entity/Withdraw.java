@@ -74,4 +74,14 @@ public class Withdraw {
             columnDefinition = "DATE"
     )
     private LocalDateTime withdrawDue;
+
+    public void cancel() {
+        this.withdrawStatus = WithdrawStatus.CANCELED;
+        this.withdrawCanceledAt = LocalDateTime.now().withNano(0);
+    }
+
+    public void complete() {
+        this.withdrawStatus = WithdrawStatus.COMPLETED;
+        this.withdrawnAt = LocalDateTime.now().withNano(0);
+    }
 }

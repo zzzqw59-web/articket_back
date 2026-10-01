@@ -1,6 +1,7 @@
 package com.project.articket.common.config;
 
 import com.project.articket.common.filter.JWTCheckFilter;
+import com.project.articket.common.filter.WithdrawAccessFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -47,7 +48,8 @@ public class CustomSecurityConfig {
     @Bean
     SecurityFilterChain filterChain(
             HttpSecurity http,
-            JWTCheckFilter jwtCheckFilter
+            JWTCheckFilter jwtCheckFilter,
+            WithdrawAccessFilter withdrawAccessFilter
     ) throws Exception {
 
         http
@@ -97,6 +99,11 @@ public class CustomSecurityConfig {
                 .addFilterBefore(
                         jwtCheckFilter,
                         UsernamePasswordAuthenticationFilter.class
+                )
+
+                .addFilterAfter(
+                        withdrawAccessFilter,
+                        JWTCheckFilter.class
                 );
 
         return http.build();
