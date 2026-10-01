@@ -52,4 +52,11 @@ public class WishController {
         wishService.deleteAllWishes(memberId);
         return ResponseEntity.noContent().build();
     }
+    // 추가 기능: WISH-005: 특정 전시의 총 위시리스트 카운트 조회 + 현재 회원이 찜했는가를 조회
+    @GetMapping("/count/{exhibitionId}")
+    public ResponseEntity<WishToggleResponseDTO> getWishCount(@PathVariable Long exhibitionId,
+                                                              @RequestParam Long memberId){
+        WishToggleResponseDTO response = wishService.getWishCountByExhibition(memberId, exhibitionId);
+        return ResponseEntity.ok(response);
+    }
 }

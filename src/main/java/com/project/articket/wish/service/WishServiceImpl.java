@@ -86,6 +86,17 @@ public class WishServiceImpl implements WishService {
         return wishRepository.deleteExpiredWishesByMemberId(memberId, today);
     }
 
+    //기능 추가: 특정 전시회의 총 위시리스트 수 조회 구현 + 현재 회원이 해당 전시를 찜했는지 확인
+    @Transactional(readOnly = true)
+    public WishToggleResponseDTO getWishCountByExhibition(Long memberId, Long exhibitionId) {
+        // 해당 전시의 전체 찜 개수
+        long totalWishCount  = wishRepository.countByExhibitionId_ExhibitionId(exhibitionId);
+        // 현재 회원이 해당 전시를 찜했는지 확인
+        boolean isWished = wishRepository.existsByMemberId_MemberIdAndExhibitionId_ExhibitionId(memberId, exhibitionId);
+        return WishToggleResponseDTO.of(exhibitionId, isWished, totalWishCount);
+    }
+
+
     @Override
     @Transactional
     public void deleteAllWishes(Long memberId) {

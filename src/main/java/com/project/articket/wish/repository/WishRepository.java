@@ -16,6 +16,7 @@ public interface WishRepository extends JpaRepository<Wish, Long> {
     // 1. 특정 회원이 특정 전시를 위시리스트에 추가했는지 확인 (단건 조회)
     Optional<Wish> findByMemberId_MemberIdAndExhibitionId_ExhibitionId(Long memberId, Long exhibitionId);
 
+
     // 2. 특정 회원이 특정 전시를 위시리스트에 추가했는지 여부 확인 (존재 여부)
     boolean existsByMemberId_MemberIdAndExhibitionId_ExhibitionId(Long memberId, Long exhibitionId);
 

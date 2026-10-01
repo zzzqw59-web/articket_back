@@ -38,7 +38,7 @@ public class ExhibitionController {
     }
 
     @PutMapping(value = "/{exhibitionId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    //@PreAuthorize("hasAnyRole('ADMIN', 'EXHIBITION_STAFF')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ExhibitionDetailResponseDTO update(
             @PathVariable("exhibitionId") Long exhibitionId,
             @Valid @RequestPart("data")ExhibitionUpdateRequest request,
