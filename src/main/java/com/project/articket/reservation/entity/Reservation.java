@@ -60,6 +60,10 @@ public class Reservation {
         this.reservationAmount = reservationAmount;
     }
 
+    public void reserve() {
+        this.reservationStatus = ReservationStatus.RESERVED;
+    }
+
     public void cancel() {
         this.reservationStatus = ReservationStatus.CANCELED;
         this.reservationCanceledAt = LocalDateTime.now();
