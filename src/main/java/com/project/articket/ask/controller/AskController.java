@@ -55,7 +55,6 @@ public class AskController {
             Authentication authentication
     ) {
         Long loginMemberId = getMemberId(authentication);
-        String loginMemberType = getMemberType(authentication);
 
         PageResponseDTO<AskListResponseDTO> response =
                 askService.getAskList(
@@ -63,7 +62,6 @@ public class AskController {
                         keyword,
                         askType,
                         loginMemberId,
-                        loginMemberType,
                         sort,
                         pageRequestDTO
                 );
@@ -79,13 +77,11 @@ public class AskController {
             Authentication authentication
     ) {
         Long loginMemberId = getMemberId(authentication);
-        String loginMemberType = getMemberType(authentication);
 
         AskResponseDTO response =
                 askService.getAskDetail(
                         askId,
-                        loginMemberId,
-                        loginMemberType
+                        loginMemberId
                 );
 
         return ResponseEntity.ok(response);
