@@ -1,5 +1,6 @@
 package com.project.articket.payment.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.project.articket.payment.entity.PaymentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class PaymentCancelResponseDTO {
     private Long paymentId;
+
     private String paymentOrderId;
     private Long paymentAmount;
     private Long paymentRefundAmount;
