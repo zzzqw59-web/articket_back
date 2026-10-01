@@ -17,7 +17,6 @@ import static com.project.articket.common.util.DateTimeUtils.toDateString;
 @Builder
 public class WishListResponseDTO {
 
-    private Long exhibitionId;      // 전시 번호
     private String exhibitionTitle; // 전시 제목
     private String venueTitle;      // 전시장
     private String posterUrl;       // 전시 포스터 이미지 URL
@@ -50,7 +49,6 @@ public class WishListResponseDTO {
         String period = toDateString(startDate) + " ~ " + toDateString(endDate);
 
         return WishListResponseDTO.builder()
-                .exhibitionId(exhibition.getExhibitionId())
                 .exhibitionTitle(exhibition.getExhibitionTitle())
                 .venueTitle(exhibition.getVenue() != null ? exhibition.getVenue().getVenueTitle(): null)
                 .posterUrl(exhibition.getExhibitionImgUrl())
