@@ -16,13 +16,14 @@ public interface WishRepository extends JpaRepository<Wish, Long> {
     // 1. 특정 회원이 특정 전시를 위시리스트에 추가했는지 확인 (단건 조회)
     Optional<Wish> findByMemberId_MemberIdAndExhibitionId_ExhibitionId(Long memberId, Long exhibitionId);
 
+
     // 2. 특정 회원이 특정 전시를 위시리스트에 추가했는지 여부 확인 (존재 여부)
     boolean existsByMemberId_MemberIdAndExhibitionId_ExhibitionId(Long memberId, Long exhibitionId);
 
     // 3. 마이페이지 - 특정 회원의 위시리스트 목록 조회 (페이징 + N+1 방지 Fetch Join)
     @Query(value = "SELECT w FROM Wish w " +
             "JOIN FETCH w.exhibitionId e " +
-            "LEFT JOIN FETCH e.venueId v " +  // Exhibition -> Venue 까지 한번에 Fetch Join
+            "LEFT JOIN FETCH e.venue v " +  // Exhibition -> Venue 까지 한번에 Fetch Join
             "WHERE w.memberId.memberId = :memberId " +
             "ORDER BY w.wishId DESC",
             countQuery = "SELECT COUNT(w) FROM Wish w WHERE w.memberId.memberId = :memberId")

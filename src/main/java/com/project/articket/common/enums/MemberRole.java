@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum MemberRole {
 
-    MEMBER("MEMBER", "일반회원"),
+    USER("USER", "일반회원"),
     STAFF("STAFF", "전시관계자"),
     ADMIN("ADMIN", "관리자");
 
