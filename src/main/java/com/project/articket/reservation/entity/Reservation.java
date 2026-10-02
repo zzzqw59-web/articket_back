@@ -31,8 +31,12 @@ public class Reservation {
     @JoinColumn(name = "EXHIBITION_ID", nullable = false)
     private Exhibition exhibition;
 
+    @Column(name = "RESERVATION_ORDER_ID", nullable = false, unique = true, length = 64)
+    private String reservationOrderId;
+
     @Column(name = "RESERVATION_PERSON", nullable = false)
     private Integer reservationPerson;
+
 
     @Column(name = "RESERVATION_DAY", nullable = false)
     private LocalDate reservationDay;
@@ -51,13 +55,18 @@ public class Reservation {
     @Column(name = "RESERVATION_AMOUNT", nullable = false)
     private Long reservationAmount;
 
-    public Reservation(Member member, Exhibition exhibition, Integer reservationPerson, LocalDate reservationDay, ReservationStatus reservationStatus, Long reservationAmount) {
+    public Reservation(Member member, Exhibition exhibition, String reservationOrderId, Integer reservationPerson, LocalDate reservationDay, ReservationStatus reservationStatus, Long reservationAmount) {
         this.member = member;
         this.exhibition = exhibition;
+        this.reservationOrderId = reservationOrderId;
         this.reservationPerson = reservationPerson;
         this.reservationDay = reservationDay;
         this.reservationStatus = reservationStatus;
         this.reservationAmount = reservationAmount;
+    }
+
+    public void reserve() {
+        this.reservationStatus = ReservationStatus.RESERVED;
     }
 
     public void cancel() {

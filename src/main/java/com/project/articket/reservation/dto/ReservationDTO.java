@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class ReservationDTO {
     private Long reservationId;
+    private String reservationOrderId;
     private String exhibitionTitle;
     private String exhibitionArea;
     private LocalDate reservationDay;

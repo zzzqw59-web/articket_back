@@ -13,4 +13,8 @@ public interface ReservationService {
     ReservationDTO reservationDetail(Long reservationId);
 
     void reservationCancel(Long memberId, Long reservationId);
+
+    void reserveReservation(Long reservationId);
+
+    void cancelReservation(Long reservationId);
 }

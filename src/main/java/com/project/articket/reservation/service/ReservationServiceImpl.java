@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +34,7 @@ public class ReservationServiceImpl implements ReservationService {
         List<ReservationDTO> dtolist = page.getContent().stream().map(reservation -> {
             ReservationDTO dto = new ReservationDTO();
             dto.setReservationId(reservation.getReservationId());
+            dto.setReservationOrderId(reservation.getReservationOrderId());
             dto.setExhibitionTitle(reservation.getExhibition().getExhibitionTitle());
             dto.setExhibitionArea(reservation.getExhibition().getExhibitionArea());
             dto.setReservationAmount(reservation.getReservationAmount());
@@ -54,6 +56,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         ReservationDTO reservationDTO = new ReservationDTO();
         reservationDTO.setReservationId(reservation.getReservationId());
+        reservationDTO.setReservationOrderId(reservation.getReservationOrderId());
         reservationDTO.setExhibitionTitle(reservation.getExhibition().getExhibitionTitle());
         reservationDTO.setExhibitionArea(reservation.getExhibition().getExhibitionArea());
         reservationDTO.setReservationDay(reservation.getReservationDay());
@@ -89,9 +92,10 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         Long totalPrice = (long) reservationCreateDTO.getReservationPerson() * exhibition.getExhibitionTicketPrice();
+        String orderId = "Articket-" + UUID.randomUUID();
 
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new IllegalArgumentException("해당 멤버는 존재하지 않습니다."));
-        Reservation reservation = new Reservation(member, exhibition, reservationCreateDTO.getReservationPerson(), reservationCreateDTO.getReservationDay(), ReservationStatus.PENDING, totalPrice);
+        Reservation reservation = new Reservation(member, exhibition, orderId, reservationCreateDTO.getReservationPerson(), reservationCreateDTO.getReservationDay(), ReservationStatus.PENDING, totalPrice);
 
         reservationRepository.save(reservation);
     }
@@ -108,6 +112,21 @@ public class ReservationServiceImpl implements ReservationService {
         if (reservation.getReservationStatus() == ReservationStatus.CANCELED) {
             throw new IllegalArgumentException("이미 취소된 예약은 취소할 수 없습니다.");
         }
+        reservation.cancel();
+    }
+
+    @Transactional
+    @Override
+    public void reserveReservation(Long reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new IllegalArgumentException("해당 예약이 존재하지 않습니다."));
+        reservation.reserve();
+
+    }
+
+    @Transactional
+    @Override
+    public void cancelReservation(Long reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new IllegalArgumentException("해당 예약이 존재하지 않습니다."));
         reservation.cancel();
     }
 }
