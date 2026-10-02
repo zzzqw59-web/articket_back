@@ -127,7 +127,6 @@ public class Member {
         this.memberNickname = memberNickname;
         this.memberName = memberName;
         this.memberPhone = memberPhone;
-        this.memberType = TYPE_MEMBER;
         this.memberStatus = STATUS_INACTIVE;
     }
 }
