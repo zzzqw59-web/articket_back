@@ -2,6 +2,7 @@ package com.project.articket.payment.service;
 
 import com.project.articket.common.dto.PageRequestDTO;
 import com.project.articket.common.dto.PageResponseDTO;
+import com.project.articket.exhibition.repository.ExhibitionRepository;
 import com.project.articket.payment.dto.PaymentConfirmRequestDTO;
 import com.project.articket.payment.dto.PaymentConfirmResponseDTO;
 import com.project.articket.payment.dto.PaymentDetailResponseDTO;
@@ -20,6 +21,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.List;
 
@@ -124,5 +128,48 @@ public class PaymentServiceImpl implements PaymentService {
         paymentRepository.save(payment);
 
         return response;
+    }
+
+    @Transactional
+    @Override
+    public void paymentRefund(Long paymentId) {
+        Payment payment = paymentRepository.findById(paymentId).orElseThrow(() -> new IllegalArgumentException("해당 결제가 존재하지 않습니다."));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long memberId = (Long) authentication.getPrincipal();
+
+        if (!memberId.equals(payment.getReservation().getMember().getMemberId())) {
+            throw new IllegalArgumentException("동일한 회원이 아닙니다.");
+        }
+
+        if (!"RESERVED".equals(payment.getReservation().getReservationStatus())) {
+            throw new IllegalArgumentException("환불 할 수 없는 예약입니다.");
+        }
+
+        if (!"DONE".equals(payment.getPaymentStatus())) {
+            throw new IllegalArgumentException("환불이 불가능합니다.");
+        }
+
+        LocalDate today = LocalDate.now();
+        LocalDate reservationDay = payment.getReservation().getReservationDay();
+        long daysUntil = ChronoUnit.DAYS.between(today, reservationDay);
+
+        if (daysUntil <= 0) {
+            throw new IllegalArgumentException("환불 할 수 없는 예약입니다.");
+        }
+
+        int refundRate;
+
+        if (daysUntil >= 10) {
+            refundRate = 100;
+        } else if (daysUntil >= 7) {
+            refundRate = 90;
+        } else if (daysUntil >= 3) {
+            refundRate = 80;
+        } else {
+            refundRate = 70;
+        }
+
+        long refundAmount = payment.getPaymentAmount() * refundRate / 100;
+        payment.setPaymentRefundAmount(refundAmount);
     }
 }

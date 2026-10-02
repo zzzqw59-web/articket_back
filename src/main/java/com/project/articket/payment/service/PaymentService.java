@@ -13,4 +13,6 @@ public interface PaymentService {
     PaymentDetailResponseDTO paymentDetail(Long paymentId);
 
     PageResponseDTO<PaymentListResponseDTO> paymentList(String searchType, String keyword, PageRequestDTO pageRequestDTO);
+
+    void paymentRefund(Long paymentId);
 }
