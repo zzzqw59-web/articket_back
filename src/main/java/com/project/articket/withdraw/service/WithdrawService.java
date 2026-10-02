@@ -2,11 +2,16 @@ package com.project.articket.withdraw.service;
 
 import com.project.articket.member.entity.Member;
 import com.project.articket.member.repository.MemberRepository;
+import com.project.articket.member.service.RefreshTokenService;
+import com.project.articket.notification.service.NotificationService;
+import com.project.articket.reservation.entity.ReservationStatus;
+import com.project.articket.wish.service.WishService;
 import com.project.articket.withdraw.dto.WithdrawRequestDTO;
 import com.project.articket.withdraw.dto.WithdrawResponseDTO;
 import com.project.articket.withdraw.entity.Withdraw;
 import com.project.articket.withdraw.enums.WithdrawStatus;
 import com.project.articket.withdraw.repository.WithdrawRepository;
+import com.project.articket.withdraw.repository.WithdrawReservationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,8 +27,12 @@ import java.util.List;
 public class WithdrawService {
 
     private final WithdrawRepository withdrawRepository;
+    private final WithdrawReservationRepository withdrawReservationRepository;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final WishService wishService;
+    private final NotificationService notificationService;
+    private final RefreshTokenService refreshTokenService;
 
     @Transactional
     public void requestWithdraw(
@@ -47,6 +56,14 @@ public class WithdrawService {
             );
         }
 
+        if (Member.TYPE_ADMIN.equals(
+                member.getMemberType()
+        )) {
+            throw new RuntimeException(
+                    "관리자 계정은 회원 탈퇴를 신청할 수 없습니다."
+            );
+        }
+
         boolean exists =
                 withdrawRepository
                         .existsByMemberMemberIdAndWithdrawStatus(
@@ -57,6 +74,22 @@ public class WithdrawService {
         if (exists) {
             throw new RuntimeException(
                     "이미 탈퇴 신청이 진행 중입니다."
+            );
+        }
+
+        boolean hasActiveReservation =
+                withdrawReservationRepository
+                        .existsByMemberMemberIdAndReservationStatusIn(
+                                memberId,
+                                List.of(
+                                        ReservationStatus.PENDING,
+                                        ReservationStatus.RESERVED
+                                )
+                        );
+
+        if (hasActiveReservation) {
+            throw new RuntimeException(
+                    "진행 중이거나 완료된 예약이 있어 탈퇴를 신청할 수 없습니다."
             );
         }
 
@@ -152,5 +185,17 @@ public class WithdrawService {
         for (Withdraw withdraw : expiredWithdraws) {
             withdraw.complete();
         }
+    }
+
+    @Transactional
+    public void deleteWithdrawnMemberRelatedData(
+            Long memberId
+    ) {
+
+        wishService.deleteAllWishes(memberId);
+
+        notificationService.deleteAllNotifications(memberId);
+
+        refreshTokenService.delete(memberId);
     }
 }

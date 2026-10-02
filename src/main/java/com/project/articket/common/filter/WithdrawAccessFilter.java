@@ -47,6 +47,31 @@ public class WithdrawAccessFilter extends OncePerRequestFilter {
         Long memberId =
                 (Long) authentication.getPrincipal();
 
+        boolean completed =
+                withdrawRepository
+                        .existsByMemberMemberIdAndWithdrawStatus(
+                                memberId,
+                                WithdrawStatus.COMPLETED
+                        );
+
+        if (completed) {
+
+            response.setStatus(
+                    HttpServletResponse.SC_FORBIDDEN
+            );
+
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType(
+                    "application/json;charset=UTF-8"
+            );
+
+            response.getWriter().write(
+                    "{\"message\":\"탈퇴 완료된 회원은 서비스를 이용할 수 없습니다.\"}"
+            );
+
+            return;
+        }
+
         boolean withdrawing =
                 withdrawRepository
                         .existsByMemberMemberIdAndWithdrawStatus(
@@ -55,6 +80,16 @@ public class WithdrawAccessFilter extends OncePerRequestFilter {
                         );
 
         if (!withdrawing) {
+
+            filterChain.doFilter(
+                    request,
+                    response
+            );
+
+            return;
+        }
+
+        if (isAllowedDuringWithdrawal(request)) {
 
             filterChain.doFilter(
                     request,
@@ -76,6 +111,34 @@ public class WithdrawAccessFilter extends OncePerRequestFilter {
         response.getWriter().write(
                 "{\"message\":\"탈퇴 진행 중에는 해당 서비스를 이용할 수 없습니다.\"}"
         );
+    }
+
+    private boolean isAllowedDuringWithdrawal(
+            HttpServletRequest request
+    ) {
+
+        String path =
+                request.getRequestURI();
+
+        String method =
+                request.getMethod();
+
+        if ("GET".equalsIgnoreCase(method)
+                && path.equals("/api/members/me")) {
+            return true;
+        }
+
+        if ("GET".equalsIgnoreCase(method)
+                && path.equals("/api/members/me/withdraw")) {
+            return true;
+        }
+
+        if ("DELETE".equalsIgnoreCase(method)
+                && path.equals("/api/members/me/withdraw")) {
+            return true;
+        }
+
+        return false;
     }
 
     @Override
@@ -119,21 +182,6 @@ public class WithdrawAccessFilter extends OncePerRequestFilter {
 
         if ("GET".equalsIgnoreCase(method)
                 && path.startsWith("/api/images")) {
-            return true;
-        }
-
-        if ("GET".equalsIgnoreCase(method)
-                && path.equals("/api/members/me")) {
-            return true;
-        }
-
-        if ("GET".equalsIgnoreCase(method)
-                && path.equals("/api/members/me/withdraw")) {
-            return true;
-        }
-
-        if ("DELETE".equalsIgnoreCase(method)
-                && path.equals("/api/members/me/withdraw")) {
             return true;
         }
 
