@@ -7,6 +7,7 @@ import com.project.articket.payment.dto.*;
 import com.project.articket.payment.entity.Payment;
 import com.project.articket.payment.entity.PaymentStatus;
 import com.project.articket.payment.repository.PaymentRepository;
+import com.project.articket.reservation.dto.ReservationCancelDTO;
 import com.project.articket.reservation.entity.Reservation;
 import com.project.articket.reservation.entity.ReservationStatus;
 import com.project.articket.reservation.repository.ReservationRepository;
@@ -130,7 +131,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Transactional
     @Override
-    public void paymentRefund(Long paymentId) {
+    public void paymentRefund(Long paymentId, ReservationCancelDTO reservationCancelDTO) {
         Payment payment = paymentRepository.findById(paymentId).orElseThrow(() -> new IllegalArgumentException("해당 결제가 존재하지 않습니다."));
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long memberId = (Long) authentication.getPrincipal();
@@ -169,8 +170,6 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         long refundAmount = payment.getPaymentAmount() * refundRate / 100;
-        payment.setPaymentRefundAmount(refundAmount);
-
         String auth = tossSecretKey + ":";
         PaymentCancelRequestDTO request = new PaymentCancelRequestDTO("고객 요청에 의한 예약 취소", refundAmount);
 
@@ -183,14 +182,16 @@ public class PaymentServiceImpl implements PaymentService {
                 .bodyToMono(PaymentCancelResponseDTO.class)
                 .block();
 
-        if (response.getCancels() == null || response.getCancels().isEmpty()) {
+        if (response.getCancels() == null || response.getCancels().isEmpty() || !"DONE".equals(response.getCancels().get(0).getCancelStatus())) {
             throw new IllegalArgumentException("환불이 정상적으로 처리되지 않았습니다.");
         }
+
+
 
         payment.setPaymentCanceledAt(LocalDateTime.now());
         payment.setPaymentRefundAmount(refundAmount);
         payment.setPaymentStatus(PaymentStatus.CANCELED);
 
-        payment.getReservation().setReservationStatus(ReservationStatus.CANCELED);
+        payment.getReservation().cancel(reservationCancelDTO.getCancelReason(), reservationCancelDTO.getCancelDetail());
     }
 }

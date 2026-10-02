@@ -7,6 +7,7 @@ import com.project.articket.payment.dto.PaymentConfirmResponseDTO;
 import com.project.articket.payment.dto.PaymentDetailResponseDTO;
 import com.project.articket.payment.dto.PaymentListResponseDTO;
 import com.project.articket.payment.service.PaymentService;
+import com.project.articket.reservation.dto.ReservationCancelDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -33,5 +34,10 @@ public class PaymentController {
     PaymentConfirmResponseDTO paymentApprove(@Valid @RequestBody PaymentConfirmRequestDTO paymentConfirmRequestDTO) {
         PaymentConfirmResponseDTO paymentConfirmResponseDTO = paymentService.paymentConfirm(paymentConfirmRequestDTO);
         return paymentConfirmResponseDTO;
+    }
+
+    @DeleteMapping("/{paymentId}/cancel")
+    void paymentRefund(@PathVariable Long paymentId, @Valid @RequestBody ReservationCancelDTO reservationCancelDTO) {
+        paymentService.paymentRefund(paymentId, reservationCancelDTO);
     }
 }
