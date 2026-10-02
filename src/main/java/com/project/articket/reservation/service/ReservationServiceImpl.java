@@ -6,9 +6,11 @@ import com.project.articket.exhibition.entity.Exhibition;
 import com.project.articket.exhibition.repository.ExhibitionRepository;
 import com.project.articket.member.entity.Member;
 import com.project.articket.member.repository.MemberRepository;
+import com.project.articket.reservation.dto.ReservationCancelDTO;
 import com.project.articket.reservation.dto.ReservationCreateDTO;
 import com.project.articket.reservation.dto.ReservationDTO;
 import com.project.articket.reservation.entity.Reservation;
+import com.project.articket.reservation.entity.ReservationCancelReason;
 import com.project.articket.reservation.entity.ReservationStatus;
 import com.project.articket.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
@@ -102,9 +104,9 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Transactional
     @Override
-    public void reservationCancel(Long memberId, Long reservationId) {
+    public void reservationCancel(Long memberId, Long reservationId, ReservationCancelDTO reservationCancelDTO) {
+        // 회원이 직접 예약을 취소
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new IllegalArgumentException("해당 예약이 존재하지 않습니다."));
-
         if (!reservation.getMember().getMemberId().equals(memberId)) {
             throw new IllegalArgumentException("본인의 예약만 취소할 수 있습니다.");
         }
@@ -112,7 +114,12 @@ public class ReservationServiceImpl implements ReservationService {
         if (reservation.getReservationStatus() == ReservationStatus.CANCELED) {
             throw new IllegalArgumentException("이미 취소된 예약은 취소할 수 없습니다.");
         }
-        reservation.cancel();
+
+        if (reservationCancelDTO.getCancelReason() == ReservationCancelReason.OTHER && (reservationCancelDTO.getCancelDetail() == null || reservationCancelDTO.getCancelDetail().isBlank())) {
+            throw new IllegalArgumentException("기타 취소 사유를 입력해주세요.");
+        }
+
+        reservation.cancel(reservationCancelDTO.getCancelReason(), reservation.getReservationCancelDetail());
     }
 
     @Transactional
@@ -125,8 +132,9 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Transactional
     @Override
-    public void cancelReservation(Long reservationId) {
+    public void cancelReservation(Long reservationId, ReservationCancelReason reason, String detail) {
+        // 다른 서비스에서 예약 상태를 취소로 변경
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new IllegalArgumentException("해당 예약이 존재하지 않습니다."));
-        reservation.cancel();
+        reservation.cancel(reason, detail);
     }
 }
