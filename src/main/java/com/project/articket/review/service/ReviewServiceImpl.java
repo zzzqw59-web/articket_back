@@ -69,13 +69,23 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public PageResponseDTO<ReviewDTO> reviewSearch(String keyword, PageRequestDTO pageRequestDTO) {
-        Page<Review> page =
-                repository.findByReviewTitleContainingOrReviewBodyContaining(
-                        keyword,
-                        keyword,
-                        pageRequestDTO.getPageable("reviewCreatedAt")
-                );
+    public PageResponseDTO<ReviewDTO> reviewSearch(String searchType, String keyword, PageRequestDTO pageRequestDTO) {
+        Page<Review> page;
+
+        if ("title".equals(searchType)) {
+            page = repository.findByReviewTitleContaining(keyword, pageRequestDTO.getPageable("reviewCreatedAt"));
+        } else if ("all".equals(searchType)) {
+            page = repository.findByReviewTitleContainingOrReviewBodyContainingOrMemberMemberNameContainingOrExhibitionExhibitionTitleContaining(keyword, keyword, keyword, keyword, pageRequestDTO.getPageable("reviewCreatedAt"));
+        } else if ("exhibition".equals(searchType)) {
+            page = repository.findByExhibitionExhibitionTitleContaining(keyword, pageRequestDTO.getPageable("reviewCreatedAt"));
+        } else if ("writer".equals(searchType)) {
+            page = repository.findByMemberMemberNameContaining(keyword, pageRequestDTO.getPageable("reviewCreatedAt"));
+        } else {
+            page = repository.findByReviewTitleContainingOrReviewBodyContaining(
+                    keyword,
+                    keyword,
+                    pageRequestDTO.getPageable("reviewCreatedAt"));
+        }
 
         List<ReviewDTO> dtoList = page.getContent().stream().map(review -> {
             ReviewDTO dto = new ReviewDTO();
@@ -177,9 +187,13 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Transactional
     @Override
-    public void reviewUpdate(Long reviewId, ReviewUpdateDTO reviewUpdateDTO) {
+    public void reviewUpdate(Long memberId, Long reviewId, ReviewUpdateDTO reviewUpdateDTO) {
         Review review = repository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("리뷰가 존재하지 않습니다."));
+
+        if (!review.getMember().getMemberId().equals(memberId)) {
+            throw new IllegalArgumentException("본인이 작성한 리뷰만 수정할 수 있습니다.");
+        }
 
         review.setReviewTitle(reviewUpdateDTO.getReviewTitle());
         review.setReviewBody(reviewUpdateDTO.getReviewBody());
@@ -315,9 +329,13 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Transactional
     @Override
-    public void reviewDelete(Long reviewId) {
+    public void reviewDelete(Long memberId, Long reviewId) {
         Review review = repository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("리뷰가 존재하지 않습니다."));
+
+        if (!review.getMember().getMemberId().equals(memberId)) {
+            throw new IllegalArgumentException("본인이 작성한 리뷰만 삭제할 수 있습니다.");
+        }
 
         List<ReviewImage> reviewImages =
                 reviewImageRepository.findByReviewReviewIdOrderByReviewImageOrder(reviewId);

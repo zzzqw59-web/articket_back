@@ -31,6 +31,7 @@ public class JWTCheckFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
+
         String authorizationHeader =
                 request.getHeader(HttpHeaders.AUTHORIZATION);
 
@@ -75,6 +76,7 @@ public class JWTCheckFilter extends OncePerRequestFilter {
             SecurityContextHolder
                     .getContext()
                     .setAuthentication(authentication);
+
 
             filterChain.doFilter(
                     request,

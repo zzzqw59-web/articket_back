@@ -11,25 +11,24 @@ import static com.project.articket.common.util.DateTimeUtils.toDateTimeSecondStr
 @Getter
 @Builder
 public class AskReplyDTO {
-
-    private String memberNickname;     // 댓글 작성자 닉네임
-    private String memberType;         // 댓글 작성자 권한/타입 (MemberRole 연계: ADMIN, MANAGER, USER)
-    private String askReplyBody;       // 댓글 내용
-    private String askReplyCreatedAt;  // 작성일시
-    private String askReplyModifiedAt; // 수정일시 (수정된 적 없으면 null)
+    private Long askReplyId;           // ★ 수정/삭제 시 필수
+    private Long memberId;             // ★ 작성자 본인 여부 판별용
+    private String memberNickname;
+    private String memberType;
+    private String askReplyBody;
+    private String askReplyCreatedAt;
+    private String askReplyModifiedAt;
 
     public static AskReplyDTO from(AskReply reply) {
-        if (reply == null) {
-            return null;
-        }
+        if (reply == null) return null;
 
         LocalDateTime createdAt = reply.getAskReplyCreatedAt();
         LocalDateTime modifiedAt = reply.getAskReplyModifiedAt();
-
-        // 등록 일시와 수정 일시가 동일하면(수정 이력이 없으면) null 처리
         boolean isModified = modifiedAt != null && !modifiedAt.equals(createdAt);
 
         return AskReplyDTO.builder()
+                .askReplyId(reply.getAskReplyId())
+                .memberId(reply.getMemberId().getMemberId())
                 .memberNickname(reply.getMemberId().getMemberNickname())
                 .memberType(reply.getMemberId().getMemberType())
                 .askReplyBody(reply.getAskReplyBody())
