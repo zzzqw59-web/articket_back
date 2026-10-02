@@ -13,6 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class MemberService {
@@ -182,5 +184,52 @@ public class MemberService {
         }
 
         member.updatePhone(encryptedPhone);
+    }
+
+    @Transactional
+    public void anonymizeWithdrawnMember(Long memberId) {
+
+        Member member =
+                memberRepository.findById(memberId)
+                        .orElseThrow(
+                                () -> new RuntimeException(
+                                        "회원 정보를 찾을 수 없습니다."
+                                )
+                        );
+
+        String anonymousEmail =
+                "withdrawn_"
+                        + memberId
+                        + "@articket.invalid";
+
+        String randomPassword =
+                UUID.randomUUID().toString();
+
+        String encodedPassword =
+                passwordEncoder.encode(
+                        randomPassword
+                );
+
+        String anonymousNickname =
+                "탈퇴회원_"
+                        + memberId;
+
+        String encryptedAnonymousName =
+                personalDataCrypto.encryptName(
+                        "탈퇴회원"
+                );
+
+        String encryptedAnonymousPhone =
+                personalDataCrypto.encryptPhone(
+                        "withdrawn_" + memberId
+                );
+
+        member.anonymize(
+                anonymousEmail,
+                encodedPassword,
+                anonymousNickname,
+                encryptedAnonymousName,
+                encryptedAnonymousPhone
+        );
     }
 }

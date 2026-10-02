@@ -114,4 +114,20 @@ public class Member {
     public void updatePhone(String memberPhone) {
         this.memberPhone = memberPhone;
     }
+
+    public void anonymize(
+            String memberEmail,
+            String memberPassword,
+            String memberNickname,
+            String memberName,
+            String memberPhone
+    ) {
+        this.memberEmail = memberEmail;
+        this.memberPassword = memberPassword;
+        this.memberNickname = memberNickname;
+        this.memberName = memberName;
+        this.memberPhone = memberPhone;
+        this.memberType = TYPE_MEMBER;
+        this.memberStatus = STATUS_INACTIVE;
+    }
 }
