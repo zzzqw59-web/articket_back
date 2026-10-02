@@ -54,4 +54,14 @@ public class Payment {
 
     @Column(name = "PAYMENT_CANCELED_AT")
     private LocalDateTime paymentCanceledAt;
+
+    public Payment(Reservation reservation, String paymentOrderId, String paymentKey, Long paymentAmount, PaymentStatus paymentStatus, String paymentMethod, LocalDateTime paymentApprovedAt) {
+        this.reservation = reservation;
+        this.paymentOrderId = paymentOrderId;
+        this.paymentKey = paymentKey;
+        this.paymentAmount = paymentAmount;
+        this.paymentStatus = paymentStatus;
+        this.paymentMethod = paymentMethod;
+        this.paymentApprovedAt = paymentApprovedAt;
+    }
 }
