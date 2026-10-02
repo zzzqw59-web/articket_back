@@ -8,18 +8,21 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class PaymentCancelResponseDTO {
-    private Long paymentId;
-
+    @JsonProperty("orderId")
     private String paymentOrderId;
+
+    @JsonProperty("totalAmount")
     private Long paymentAmount;
-    private Long paymentRefundAmount;
+
+    @JsonProperty("status")
     private PaymentStatus paymentStatus;
-    private String paymentMethod;
-    private LocalDateTime paymentCanceledAt;
+
+    private List<CancelDTO> cancels;
 }

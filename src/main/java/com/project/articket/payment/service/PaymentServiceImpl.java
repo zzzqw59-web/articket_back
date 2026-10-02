@@ -3,11 +3,9 @@ package com.project.articket.payment.service;
 import com.project.articket.common.dto.PageRequestDTO;
 import com.project.articket.common.dto.PageResponseDTO;
 import com.project.articket.exhibition.repository.ExhibitionRepository;
-import com.project.articket.payment.dto.PaymentConfirmRequestDTO;
-import com.project.articket.payment.dto.PaymentConfirmResponseDTO;
-import com.project.articket.payment.dto.PaymentDetailResponseDTO;
-import com.project.articket.payment.dto.PaymentListResponseDTO;
+import com.project.articket.payment.dto.*;
 import com.project.articket.payment.entity.Payment;
+import com.project.articket.payment.entity.PaymentStatus;
 import com.project.articket.payment.repository.PaymentRepository;
 import com.project.articket.reservation.entity.Reservation;
 import com.project.articket.reservation.entity.ReservationStatus;
@@ -141,25 +139,26 @@ public class PaymentServiceImpl implements PaymentService {
             throw new IllegalArgumentException("동일한 회원이 아닙니다.");
         }
 
-        if (!"RESERVED".equals(payment.getReservation().getReservationStatus())) {
+        if (!payment.getReservation().getReservationStatus().equals(ReservationStatus.RESERVED)) {
             throw new IllegalArgumentException("환불 할 수 없는 예약입니다.");
         }
 
-        if (!"DONE".equals(payment.getPaymentStatus())) {
+        if (!payment.getPaymentStatus().equals(PaymentStatus.DONE)) {
             throw new IllegalArgumentException("환불이 불가능합니다.");
         }
 
         LocalDate today = LocalDate.now();
         LocalDate reservationDay = payment.getReservation().getReservationDay();
+        LocalDateTime reservationCreatedAt = payment.getReservation().getReservationCreatedAt();
+        boolean within24hours = ChronoUnit.HOURS.between(reservationCreatedAt, LocalDateTime.now()) < 24;
         long daysUntil = ChronoUnit.DAYS.between(today, reservationDay);
+        int refundRate;
 
         if (daysUntil <= 0) {
             throw new IllegalArgumentException("환불 할 수 없는 예약입니다.");
         }
 
-        int refundRate;
-
-        if (daysUntil >= 10) {
+        if (daysUntil >= 10 || (daysUntil >= 3 && within24hours)) {
             refundRate = 100;
         } else if (daysUntil >= 7) {
             refundRate = 90;
@@ -171,5 +170,27 @@ public class PaymentServiceImpl implements PaymentService {
 
         long refundAmount = payment.getPaymentAmount() * refundRate / 100;
         payment.setPaymentRefundAmount(refundAmount);
+
+        String auth = tossSecretKey + ":";
+        PaymentCancelRequestDTO request = new PaymentCancelRequestDTO("고객 요청에 의한 예약 취소", refundAmount);
+
+        PaymentCancelResponseDTO response = webClient.post()
+                .uri("https://api.tosspayments.com/v1/payments/{paymentKey}/cancel", payment.getPaymentKey())
+                .header("Authorization", "Basic " + Base64.getEncoder().encodeToString(auth.getBytes()))
+                .bodyValue(request)
+                .retrieve()
+                .onStatus(status -> status.isError(), clientResponse -> clientResponse.bodyToMono(String.class).map(message -> new IllegalArgumentException("Toss 환불 실패: " + message)))
+                .bodyToMono(PaymentCancelResponseDTO.class)
+                .block();
+
+        if (response.getCancels() == null || response.getCancels().isEmpty()) {
+            throw new IllegalArgumentException("환불이 정상적으로 처리되지 않았습니다.");
+        }
+
+        payment.setPaymentCanceledAt(LocalDateTime.now());
+        payment.setPaymentRefundAmount(refundAmount);
+        payment.setPaymentStatus(PaymentStatus.CANCELED);
+
+        payment.getReservation().setReservationStatus(ReservationStatus.CANCELED);
     }
 }

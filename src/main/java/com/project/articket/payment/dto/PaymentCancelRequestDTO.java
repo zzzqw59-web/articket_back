@@ -14,4 +14,6 @@ import lombok.Setter;
 public class PaymentCancelRequestDTO {
     @NotBlank(message = "환불 사유는 필수입니다.")
     private String cancelReason;
+
+    private Long cancelAmount;
 }
