@@ -2,11 +2,11 @@ package com.project.articket.reservation.controller;
 
 import com.project.articket.common.dto.PageRequestDTO;
 import com.project.articket.common.dto.PageResponseDTO;
+import com.project.articket.reservation.dto.ReservationCancelDTO;
 import com.project.articket.reservation.dto.ReservationCreateDTO;
 import com.project.articket.reservation.dto.ReservationDTO;
 import com.project.articket.reservation.service.ReservationService;
 import jakarta.validation.Valid;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -37,8 +37,8 @@ public class ReservationController {
     }
 
     @DeleteMapping("/{reservationId}/cancel")
-    void reservationCancel(@PathVariable Long reservationId, Authentication authentication) {
+    void reservationCancel(@PathVariable Long reservationId, @Valid @RequestBody ReservationCancelDTO reservationCancelDTO, Authentication authentication) {
         Long memberId = (Long) authentication.getPrincipal();
-        reservationService.reservationCancel(memberId, reservationId);
+        reservationService.reservationCancel(memberId, reservationId, reservationCancelDTO);
     }
 }
