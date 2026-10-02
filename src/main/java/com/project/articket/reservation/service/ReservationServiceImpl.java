@@ -34,6 +34,7 @@ public class ReservationServiceImpl implements ReservationService {
         List<ReservationDTO> dtolist = page.getContent().stream().map(reservation -> {
             ReservationDTO dto = new ReservationDTO();
             dto.setReservationId(reservation.getReservationId());
+            dto.setReservationOrderId(reservation.getReservationOrderId());
             dto.setExhibitionTitle(reservation.getExhibition().getExhibitionTitle());
             dto.setExhibitionArea(reservation.getExhibition().getExhibitionArea());
             dto.setReservationAmount(reservation.getReservationAmount());
@@ -55,6 +56,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         ReservationDTO reservationDTO = new ReservationDTO();
         reservationDTO.setReservationId(reservation.getReservationId());
+        reservationDTO.setReservationOrderId(reservation.getReservationOrderId());
         reservationDTO.setExhibitionTitle(reservation.getExhibition().getExhibitionTitle());
         reservationDTO.setExhibitionArea(reservation.getExhibition().getExhibitionArea());
         reservationDTO.setReservationDay(reservation.getReservationDay());
