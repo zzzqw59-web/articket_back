@@ -1,4 +1,4 @@
-0. test.env파일을 .env로 수정하거나 .env파일을 만들다
+0. .env파일을 만든다
 1. 상단의 디버그 버튼 우측의 설정 버튼 클릭
 2. 구성 -> 편집 열기
 3. springboot의 application클릭

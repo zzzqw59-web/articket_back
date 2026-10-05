@@ -2,14 +2,18 @@ package com.project.articket.withdraw.service;
 
 import com.project.articket.member.entity.Member;
 import com.project.articket.member.repository.MemberRepository;
+import com.project.articket.member.service.MemberService;
 import com.project.articket.member.service.RefreshTokenService;
+import com.project.articket.memberRetention.service.MemberRetentionService;
 import com.project.articket.notification.service.NotificationService;
+import com.project.articket.payment.entity.PaymentStatus;
 import com.project.articket.reservation.entity.ReservationStatus;
 import com.project.articket.wish.service.WishService;
 import com.project.articket.withdraw.dto.WithdrawRequestDTO;
 import com.project.articket.withdraw.dto.WithdrawResponseDTO;
 import com.project.articket.withdraw.entity.Withdraw;
 import com.project.articket.withdraw.enums.WithdrawStatus;
+import com.project.articket.withdraw.repository.WithdrawPaymentRepository;
 import com.project.articket.withdraw.repository.WithdrawRepository;
 import com.project.articket.withdraw.repository.WithdrawReservationRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +32,10 @@ public class WithdrawService {
 
     private final WithdrawRepository withdrawRepository;
     private final WithdrawReservationRepository withdrawReservationRepository;
+    private final WithdrawPaymentRepository withdrawPaymentRepository;
     private final MemberRepository memberRepository;
+    private final MemberService memberService;
+    private final MemberRetentionService memberRetentionService;
     private final PasswordEncoder passwordEncoder;
     private final WishService wishService;
     private final NotificationService notificationService;
@@ -90,6 +97,22 @@ public class WithdrawService {
         if (hasActiveReservation) {
             throw new RuntimeException(
                     "진행 중이거나 완료된 예약이 있어 탈퇴를 신청할 수 없습니다."
+            );
+        }
+
+        boolean hasActivePayment =
+                withdrawPaymentRepository
+                        .existsByReservation_Member_MemberIdAndPaymentStatusIn(
+                                memberId,
+                                List.of(
+                                        PaymentStatus.READY,
+                                        PaymentStatus.DONE
+                                )
+                        );
+
+        if (hasActivePayment) {
+            throw new RuntimeException(
+                    "처리 중이거나 완료된 결제가 있어 탈퇴를 신청할 수 없습니다."
             );
         }
 
@@ -179,11 +202,60 @@ public class WithdrawService {
     @Transactional
     public void completeExpiredWithdraws() {
 
-        List<Withdraw> expiredWithdraws =
-                withdrawRepository.findExpiredWithdraws();
+        List<Long> expiredWithdrawIds =
+                withdrawRepository.findExpiredWithdraws()
+                        .stream()
+                        .map(Withdraw::getWithdrawId)
+                        .toList();
 
-        for (Withdraw withdraw : expiredWithdraws) {
-            withdraw.complete();
+        for (Long withdrawId : expiredWithdrawIds) {
+
+            Withdraw targetWithdraw =
+                    withdrawRepository.findById(withdrawId)
+                            .orElseThrow(
+                                    () -> new RuntimeException(
+                                            "탈퇴 신청 정보를 찾을 수 없습니다."
+                                    )
+                            );
+
+            Long memberId =
+                    targetWithdraw.getMember()
+                            .getMemberId();
+
+            boolean hasPaymentHistory =
+                    withdrawPaymentRepository
+                            .existsByReservation_Member_MemberId(
+                                    memberId
+                            );
+
+            deleteWithdrawnMemberRelatedData(memberId);
+
+            Withdraw managedWithdraw =
+                    withdrawRepository.findById(withdrawId)
+                            .orElseThrow(
+                                    () -> new RuntimeException(
+                                            "탈퇴 신청 정보를 찾을 수 없습니다."
+                                    )
+                            );
+
+            Member member =
+                    memberRepository.findById(memberId)
+                            .orElseThrow(
+                                    () -> new RuntimeException(
+                                            "회원 정보를 찾을 수 없습니다."
+                                    )
+                            );
+
+            managedWithdraw.complete();
+
+            if (hasPaymentHistory) {
+                memberRetentionService.saveRetention(
+                        member,
+                        managedWithdraw.getWithdrawnAt()
+                );
+            }
+
+            memberService.anonymizeWithdrawnMember(memberId);
         }
     }
 
@@ -192,9 +264,9 @@ public class WithdrawService {
             Long memberId
     ) {
 
-        wishService.deleteAllWishes(memberId);
-
         notificationService.deleteAllNotifications(memberId);
+
+        wishService.deleteAllWishes(memberId);
 
         refreshTokenService.delete(memberId);
     }
