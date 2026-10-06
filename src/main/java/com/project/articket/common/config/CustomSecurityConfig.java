@@ -1,5 +1,6 @@
 package com.project.articket.common.config;
 
+import com.project.articket.common.filter.DeactiveAccessFilter;
 import com.project.articket.common.filter.JWTCheckFilter;
 import com.project.articket.common.filter.WithdrawAccessFilter;
 import org.springframework.context.annotation.Bean;
@@ -49,7 +50,8 @@ public class CustomSecurityConfig {
     SecurityFilterChain filterChain(
             HttpSecurity http,
             JWTCheckFilter jwtCheckFilter,
-            WithdrawAccessFilter withdrawAccessFilter
+            WithdrawAccessFilter withdrawAccessFilter,
+            DeactiveAccessFilter deactiveAccessFilter
     ) throws Exception {
 
         http
@@ -93,6 +95,14 @@ public class CustomSecurityConfig {
                                 "/api/wishes/**"
                         ).permitAll()
 
+                        .requestMatchers(
+                                "/api/admin/**"
+                        ).hasRole("ADMIN")
+
+                        .requestMatchers(
+                                "/api/staff/**"
+                        ).hasRole("STAFF")
+
                         .anyRequest()
                         .authenticated()
                 )
@@ -105,6 +115,11 @@ public class CustomSecurityConfig {
                 .addFilterAfter(
                         withdrawAccessFilter,
                         JWTCheckFilter.class
+                )
+
+                .addFilterAfter(
+                        deactiveAccessFilter,
+                        WithdrawAccessFilter.class
                 );
 
         return http.build();
