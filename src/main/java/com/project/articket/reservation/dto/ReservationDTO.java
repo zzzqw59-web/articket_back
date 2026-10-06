@@ -1,5 +1,6 @@
 package com.project.articket.reservation.dto;
 
+import com.project.articket.exhibition.entity.Exhibition;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,5 @@ public class ReservationDTO {
     private LocalDateTime reservationCreatedAt;
     private String reservationStatus;
     private LocalDateTime reservationCanceledAt;
-
-
+    private Long exhibitionId;
 }
