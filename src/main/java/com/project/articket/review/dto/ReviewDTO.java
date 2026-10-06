@@ -1,11 +1,13 @@
 package com.project.articket.review.dto;
 
+import com.project.articket.review.entity.Review;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -13,11 +15,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class ReviewDTO {
     private Long reviewId;
-    private String memberName;
+    private String memberNickname;
     private String exhibitionTitle;
     private String reviewTitle;
     private String reviewBody;
     private LocalDateTime reviewCreatedAt;
     private LocalDateTime reviewModifiedAt;
     private Integer reviewHits;
+    private List<ReviewImageDTO> images;
 }
