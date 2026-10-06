@@ -35,12 +35,16 @@ public class ReviewReplyController {
     }
 
     @PutMapping("/reviews/{reviewId}/replies/{reviewReplyId}")
-    public void reviewReplyUpdate(@PathVariable Long reviewReplyId, @Valid @RequestBody ReviewReplyUpdateDTO reviewReplyUpdateDTO) {
-        reviewReplyService.reviewReplyUpdate(reviewReplyId, reviewReplyUpdateDTO);
+    public void reviewReplyUpdate(@PathVariable Long reviewReplyId, Authentication authentication, @Valid @RequestBody ReviewReplyUpdateDTO reviewReplyUpdateDTO) {
+        Long memberId = (Long) authentication.getPrincipal();
+
+        reviewReplyService.reviewReplyUpdate(memberId, reviewReplyId, reviewReplyUpdateDTO
+        );
     }
 
     @DeleteMapping("/reviews/{reviewId}/replies/{reviewReplyId}")
-    public void reviewReplyDelete(@PathVariable Long reviewReplyId) {
-        reviewReplyService.reviewReplyDelete(reviewReplyId);
+    public void reviewReplyDelete(@PathVariable Long reviewReplyId, Authentication authentication) {
+        Long memberId = (Long) authentication.getPrincipal();
+        reviewReplyService.reviewReplyDelete(memberId, reviewReplyId);
     }
 }
