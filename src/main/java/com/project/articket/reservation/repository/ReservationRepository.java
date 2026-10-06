@@ -1,6 +1,7 @@
 package com.project.articket.reservation.repository;
 
 import com.project.articket.reservation.entity.Reservation;
+import com.project.articket.reservation.entity.ReservationStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,4 +13,9 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     Optional<Reservation> findByReservationOrderId(String reservationOrderId);
 
+    Optional<Reservation> findByMemberMemberIdAndExhibitionExhibitionIdAndReservationStatus(
+            Long memberId,
+            Long exhibitionId,
+            ReservationStatus reservationStatus
+    );
 }
