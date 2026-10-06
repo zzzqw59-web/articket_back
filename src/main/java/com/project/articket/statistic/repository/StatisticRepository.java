@@ -2,8 +2,7 @@ package com.project.articket.statistic.repository;
 
 
 import com.project.articket.exhibition.entity.Exhibition;
-import com.project.articket.reservation.entity.Reservation;
-import com.project.articket.statistic.dto.CalProfitDTO;
+import com.project.articket.statistic.dto.ProfitResponseDTO;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
@@ -31,18 +30,25 @@ public class StatisticRepository {
         return em.createNativeQuery(sql, Exhibition.class).getResultList();
     }
 
-    public Long findProfit(Long exhibitionId, LocalDateTime startDate, LocalDateTime endDate){
+    public List<Object[]> findProfit(Long exhibitionId, LocalDateTime startDate, LocalDateTime endDate){
         StringBuilder sql = new StringBuilder("""
-                SELECT NVL(SUM(reservation_amount), 0) as profit 
+                SELECT 
+                TRUNC(reservation_created_at) AS anchor_date,
+                SUM(reservation_amount) as profit 
                         FROM reservation 
                         WHERE reservation_status = 'RESERVED' 
-                          AND RESERVATION_CREATED_AT >= :startDate 
-                          AND RESERVATION_CREATED_AT < :endDate + INTERVAL '1' DAY 
+                          AND reservation_created_at >= :startDate 
+                          AND reservation_created_at < :endDate + INTERVAL '1' DAY 
                 """);
 
         if (exhibitionId != null){
             sql.append(" AND exhibition_id = :exhibitionId ");
         }
+
+        sql.append("""
+                       GROUP BY TRUNC(reservation_created_at)
+                       ORDER BY anchor_date
+                       """);
 
         var query = em.createNativeQuery(sql.toString())
                 .setParameter("startDate", startDate)
@@ -52,22 +58,28 @@ public class StatisticRepository {
             query.setParameter("exhibitionId", exhibitionId);
         }
 
-        Number result = (Number) query.getSingleResult();
-        return result.longValue();
+        return query.getResultList();
     }
 
-    public Long findReservation(Long exhibitionId, LocalDateTime startDate, LocalDateTime endDate){
+    public List<Object[]> findReservation(Long exhibitionId, LocalDateTime startDate, LocalDateTime endDate){
         StringBuilder sql = new StringBuilder("""
-                SELECT NVL(SUM(reservation_person), 0) as reserved 
+                SELECT 
+                TRUNC(reservation_created_at) AS anchor_date,
+                COUNT(*) as reserved 
                 FROM reservation 
                 WHERE reservation_status = 'RESERVED' 
-                 AND RESERVATION_CREATED_AT >= :startDate 
-                AND RESERVATION_CREATED_AT < :endDate + INTERVAL '1' DAY 
+                AND reservation_created_at >= :startDate 
+                AND reservation_created_at < :endDate + INTERVAL '1' DAY 
                 """);
 
         if (exhibitionId != null){
             sql.append(" AND exhibition_id = :exhibitionId ");
         }
+
+        sql.append("""
+                        GROUP BY TRUNC(reservation_created_at) 
+                       ORDER BY anchor_date 
+                       """);
 
         var query = em.createNativeQuery(sql.toString())
                 .setParameter("startDate", startDate)
@@ -77,23 +89,29 @@ public class StatisticRepository {
             query.setParameter("exhibitionId", exhibitionId);
         }
 
-        Number result = (Number) query.getSingleResult();
-        return result.longValue();
+        return query.getResultList();
     }
 
-    public Long findVisitor(Long exhibitionId, LocalDateTime startDate, LocalDateTime endDate){
+    public List<Object[]> findVisitor(Long exhibitionId, LocalDateTime startDate, LocalDateTime endDate){
         StringBuilder sql = new StringBuilder("""
-                SELECT NVL(SUM(reservation_person), 0) as visitor 
+                SELECT 
+                TRUNC(reservation_day) AS anchor_date,
+                SUM(reservation_person) as visitor 
                 FROM reservation 
                 WHERE reservation_status = 'RESERVED' 
-                AND RESERVATION_DAY < TRUNC(SYSDATE) 
-                 AND RESERVATION_CREATED_AT >= :startDate 
-                AND RESERVATION_CREATED_AT < :endDate + INTERVAL '1' DAY 
+                AND reservation_day < TRUNC(SYSDATE) 
+                AND reservation_day >= :startDate 
+                AND reservation_day < :endDate + INTERVAL '1' DAY 
                 """);
 
         if (exhibitionId != null){
             sql.append(" AND exhibition_id = :exhibitionId ");
         }
+
+        sql.append("""
+                        GROUP BY TRUNC(reservation_day) 
+                       ORDER BY anchor_date 
+                       """);
 
         var query = em.createNativeQuery(sql.toString())
                 .setParameter("startDate", startDate)
@@ -103,8 +121,7 @@ public class StatisticRepository {
             query.setParameter("exhibitionId", exhibitionId);
         }
 
-        Number result = (Number) query.getSingleResult();
-        return result.longValue();
+        return query.getResultList();
     }
 
 }

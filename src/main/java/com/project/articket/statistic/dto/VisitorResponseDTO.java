@@ -5,15 +5,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-public class CalVisitorDTO {
-    private Long exhibitionId;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
+@AllArgsConstructor
+public class VisitorResponseDTO {
+    private LocalDate anchorDate;
     private Long visitor;
 }
