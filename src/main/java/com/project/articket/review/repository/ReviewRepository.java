@@ -13,14 +13,14 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     Page<Review> findByReviewTitleContaining(String keyword, Pageable pageable);
 
-    Page<Review> findByMemberMemberNameContaining(String keyword, Pageable pageable);
+    Page<Review> findByMemberMemberNicknameContaining(String keyword, Pageable pageable);
 
     Page<Review> findByExhibitionExhibitionTitleContaining(String keyword, Pageable pageable);
 
-    Page<Review> findByReviewTitleContainingOrReviewBodyContainingOrMemberMemberNameContainingOrExhibitionExhibitionTitleContaining(
+    Page<Review> findByReviewTitleContainingOrReviewBodyContainingOrMemberMemberNicknameContainingOrExhibitionExhibitionTitleContaining(
             String reviewTitle,
             String reviewBody,
-            String memberName,
+            String memberNickname,
             String exhibitionTitle,
             Pageable pageable
     );
