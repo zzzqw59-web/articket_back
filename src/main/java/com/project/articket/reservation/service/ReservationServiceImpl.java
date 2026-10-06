@@ -6,9 +6,11 @@ import com.project.articket.exhibition.entity.Exhibition;
 import com.project.articket.exhibition.repository.ExhibitionRepository;
 import com.project.articket.member.entity.Member;
 import com.project.articket.member.repository.MemberRepository;
+import com.project.articket.reservation.dto.ReservationCancelDTO;
 import com.project.articket.reservation.dto.ReservationCreateDTO;
 import com.project.articket.reservation.dto.ReservationDTO;
 import com.project.articket.reservation.entity.Reservation;
+import com.project.articket.reservation.entity.ReservationCancelReason;
 import com.project.articket.reservation.entity.ReservationStatus;
 import com.project.articket.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +36,7 @@ public class ReservationServiceImpl implements ReservationService {
         List<ReservationDTO> dtolist = page.getContent().stream().map(reservation -> {
             ReservationDTO dto = new ReservationDTO();
             dto.setReservationId(reservation.getReservationId());
+            dto.setReservationOrderId(reservation.getReservationOrderId());
             dto.setExhibitionTitle(reservation.getExhibition().getExhibitionTitle());
             dto.setExhibitionArea(reservation.getExhibition().getExhibitionArea());
             dto.setReservationAmount(reservation.getReservationAmount());
@@ -54,6 +58,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         ReservationDTO reservationDTO = new ReservationDTO();
         reservationDTO.setReservationId(reservation.getReservationId());
+        reservationDTO.setReservationOrderId(reservation.getReservationOrderId());
         reservationDTO.setExhibitionTitle(reservation.getExhibition().getExhibitionTitle());
         reservationDTO.setExhibitionArea(reservation.getExhibition().getExhibitionArea());
         reservationDTO.setReservationDay(reservation.getReservationDay());
@@ -89,18 +94,19 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         Long totalPrice = (long) reservationCreateDTO.getReservationPerson() * exhibition.getExhibitionTicketPrice();
+        String orderId = "Articket-" + UUID.randomUUID();
 
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new IllegalArgumentException("해당 멤버는 존재하지 않습니다."));
-        Reservation reservation = new Reservation(member, exhibition, reservationCreateDTO.getReservationPerson(), reservationCreateDTO.getReservationDay(), ReservationStatus.PENDING, totalPrice);
+        Reservation reservation = new Reservation(member, exhibition, orderId, reservationCreateDTO.getReservationPerson(), reservationCreateDTO.getReservationDay(), ReservationStatus.PENDING, totalPrice);
 
         reservationRepository.save(reservation);
     }
 
     @Transactional
     @Override
-    public void reservationCancel(Long memberId, Long reservationId) {
+    public void reservationCancel(Long memberId, Long reservationId, ReservationCancelDTO reservationCancelDTO) {
+        // 회원이 직접 예약을 취소
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new IllegalArgumentException("해당 예약이 존재하지 않습니다."));
-
         if (!reservation.getMember().getMemberId().equals(memberId)) {
             throw new IllegalArgumentException("본인의 예약만 취소할 수 있습니다.");
         }
@@ -108,6 +114,27 @@ public class ReservationServiceImpl implements ReservationService {
         if (reservation.getReservationStatus() == ReservationStatus.CANCELED) {
             throw new IllegalArgumentException("이미 취소된 예약은 취소할 수 없습니다.");
         }
-        reservation.cancel();
+
+        if (reservationCancelDTO.getCancelReason() == ReservationCancelReason.OTHER && (reservationCancelDTO.getCancelDetail() == null || reservationCancelDTO.getCancelDetail().isBlank())) {
+            throw new IllegalArgumentException("기타 취소 사유를 입력해주세요.");
+        }
+
+        reservation.cancel(reservationCancelDTO.getCancelReason(), reservation.getReservationCancelDetail());
+    }
+
+    @Transactional
+    @Override
+    public void reserveReservation(Long reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new IllegalArgumentException("해당 예약이 존재하지 않습니다."));
+        reservation.reserve();
+
+    }
+
+    @Transactional
+    @Override
+    public void cancelReservation(Long reservationId, ReservationCancelReason reason, String detail) {
+        // 다른 서비스에서 예약 상태를 취소로 변경
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new IllegalArgumentException("해당 예약이 존재하지 않습니다."));
+        reservation.cancel(reason, detail);
     }
 }
