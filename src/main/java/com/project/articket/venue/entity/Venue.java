@@ -35,10 +35,10 @@ public class Venue {
     @Lob
     private String venueDescription;
 
-    @Column(name = "VENUE_IMG_URL")
+    @Column(name = "VENUE_IMG_URL", length = 1000)
     private  String venueImgUrl;
 
-    @Column(name = "VENUE_URL")
+    @Column(name = "VENUE_URL", length = 1000)
     private String venueUrl;
 
     @Column(name = "VENUE_LONGITUDE")

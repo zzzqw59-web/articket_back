@@ -24,9 +24,11 @@ import com.project.articket.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -111,38 +113,50 @@ public class AskServiceImpl implements AskService {
 
     // 2. 문의글 목록 조회
     @Override
-    public PageResponseDTO<AskListResponseDTO> getAskList(String searchType, String keyword, Integer askType, Long loginMemberId, String loginMemberType, String sort, PageRequestDTO pageRequestDTO) {
+    public PageResponseDTO<AskListResponseDTO> getAskList(String searchType, String keyword, Integer askType, Long loginMemberId, String sort, PageRequestDTO pageRequestDTO) {
         Pageable pageable = pageRequestDTO.getPageable("askId");
 
-        Page<Ask> askPage = askRepository.searchAsks(searchType, keyword, askType, loginMemberId, loginMemberType, sort, pageable);
+        // DB에서 안전하게 회원 권한 조회
+        String resolvedMemberType = null;
+        if (loginMemberId != null) {
+            Member loginMember = memberRepository.findById(loginMemberId).orElse(null);
+            if (loginMember != null) {
+                resolvedMemberType = loginMember.getMemberType();
+            }
+        }
+
+        Page<Ask> askPage = askRepository.searchAsks(searchType, keyword, askType, loginMemberId, resolvedMemberType, sort, pageable);
 
         List<AskListResponseDTO> dtoList = askPage.getContent().stream()
-                .map(AskListResponseDTO::from) // 단일 인자 from 메서드 호출로 정상화
+                .map(AskListResponseDTO::from)
                 .toList();
 
         return new PageResponseDTO<>(dtoList, pageRequestDTO, askPage.getTotalElements());
     }
 
-    // 3. 문의글 상세 조회 (MemberRole Enum 적용 및 TODO 보완)
+    // 3. 문의글 상세 조회
     @Override
     @Transactional
-    public AskResponseDTO getAskDetail(Long askId, Long loginMemberId, String loginMemberType) {
+    public AskResponseDTO getAskDetail(Long askId, Long loginMemberId) {
+        // 1. 존재하지 않는 글일 경우 404 Not Found 예외 던지기
         Ask ask = askRepository.findById(askId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 문의글입니다. askId=" + askId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 문의글입니다. askId=" + askId));
+        // DB에서 안전하게 회원 권한 조회
+        String loginMemberType = null;
+        if (loginMemberId != null) {
+            Member loginMember = memberRepository.findById(loginMemberId).orElse(null);
+            if (loginMember != null) {
+                loginMemberType = loginMember.getMemberType();
+            }
+            // TODO 전시 관계자 권한 관련 업데이트 필요
+        }
 
-        // 비밀글 권한 체크
+        // 비밀글 권한 체크 로직
         if (ask.getAskSecret() != null && ask.getAskSecret() == 1) {
             boolean isOwner = loginMemberId != null && loginMemberId.equals(ask.getMemberId().getMemberId());
             boolean isAdmin = MemberRole.ADMIN.equalsKey(loginMemberType);
             boolean isExhibitionManager = false;
-
-            /*
-             * TODO: [전시 담당자 상세 조회 권한 연동]
-             * if (ask.getExhibitionId() != null) {
-             *     isExhibitionManager = exhibitionManagerRepository
-             *             .existsByExhibition_ExhibitionIdAndMember_MemberId(ask.getExhibitionId().getExhibitionId(), loginMemberId);
-             * }
-             */
+            // TODO 전시 관계자 권한 관련 업데이트 필요
 
             if (!isOwner && !isAdmin && !isExhibitionManager) {
                 throw new IllegalStateException("해당 비밀글을 열람할 권한이 없습니다.");
@@ -150,7 +164,6 @@ public class AskServiceImpl implements AskService {
         }
 
         ask.increaseHits();
-
         List<AskImage> images = askImageRepository.findByAskId_AskId(askId);
 
         return AskResponseDTO.from(ask, images);
@@ -160,10 +173,22 @@ public class AskServiceImpl implements AskService {
     @Override
     @Transactional
     public Long updateAsk(Long askId, Long memberId, AskUpdateRequestDTO requestDto, List<MultipartFile> newFiles) {
+        // 1. 문의글 조회
         Ask ask = askRepository.findById(askId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 문의글입니다. askId=" + askId));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 문의글입니다."));
 
-        if (!ask.getMemberId().getMemberId().equals(memberId)) {
+        // 2. 요청한 회원 조회
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        // 3. 글 작성자 본인인지 확인 (엔티티 연관관계 구조에 맞게 조절)
+        boolean isWriter = ask.getMemberId().getMemberId().equals(memberId);
+
+        // 4. 회원의 권한이 ADMIN(또는 관리자 권한 enum/문자열)인지 확인
+        boolean isAdmin = MemberRole.ADMIN.equalsKey((member.getMemberType()));
+
+        // 5. 작성자도 아니고 관리자도 아니면 차단
+        if (!isWriter && !isAdmin) {
             throw new IllegalStateException("수정 권한이 없습니다.");
         }
 
@@ -220,10 +245,22 @@ public class AskServiceImpl implements AskService {
     @Override
     @Transactional
     public void deleteAsk(Long askId, Long memberId) {
+        // 1. 문의글 조회
         Ask ask = askRepository.findById(askId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 문의글입니다. askId=" + askId));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 문의글입니다."));
 
-        if (!ask.getMemberId().getMemberId().equals(memberId)) {
+        // 2. 요청한 회원 조회
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        // 3. 글 작성자 본인인지 확인 (엔티티 연관관계 구조에 맞게 조절)
+        boolean isWriter = ask.getMemberId().getMemberId().equals(memberId);
+
+        // 4. 회원의 권한이 ADMIN(또는 관리자 권한 enum/문자열)인지 확인
+        boolean isAdmin = MemberRole.ADMIN.equalsKey((member.getMemberType()));
+
+        // 5. 작성자도 아니고 관리자도 아니면 차단
+        if (!isWriter && !isAdmin) {
             throw new IllegalStateException("삭제 권한이 없습니다.");
         }
 
@@ -233,5 +270,19 @@ public class AskServiceImpl implements AskService {
         }
 
         askRepository.delete(ask);
+    }
+
+    // 6. 마이페이지 문의글 목록 조회
+    @Override
+    public PageResponseDTO<AskListResponseDTO> getMyAskList(Long memberId, String searchType, String keyword, Integer askType, PageRequestDTO pageRequestDTO) {
+        Pageable pageable = pageRequestDTO.getPageable("askId");
+
+        Page<Ask> askPage = askRepository.searchMyAsks(memberId, searchType, keyword, askType, pageable);
+
+        List<AskListResponseDTO> dtoList = askPage.getContent().stream()
+                .map(AskListResponseDTO::from) // 단일 인자 from 메서드 호출로 정상화
+                .toList();
+
+        return new PageResponseDTO<>(dtoList, pageRequestDTO, askPage.getTotalElements());
     }
 }
