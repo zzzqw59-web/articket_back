@@ -52,6 +52,13 @@ public class Reservation {
     @Column(name = "RESERVATION_CANCELED_AT")
     private LocalDateTime reservationCanceledAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "RESERVATION_CANCEL_REASON", length = 50)
+    private ReservationCancelReason reservationCancelReason;
+
+    @Column(name = "RESERVATION_CANCEL_DETAIL", length = 500)
+    private String reservationCancelDetail;
+
     @Column(name = "RESERVATION_AMOUNT", nullable = false)
     private Long reservationAmount;
 
@@ -69,8 +76,10 @@ public class Reservation {
         this.reservationStatus = ReservationStatus.RESERVED;
     }
 
-    public void cancel() {
+    public void cancel(ReservationCancelReason reason, String detail) {
         this.reservationStatus = ReservationStatus.CANCELED;
         this.reservationCanceledAt = LocalDateTime.now();
+        this.reservationCancelReason = reason;
+        this.reservationCancelDetail = detail;
     }
 }

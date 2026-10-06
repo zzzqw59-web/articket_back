@@ -1,5 +1,6 @@
 package com.project.articket.payment.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.project.articket.payment.entity.PaymentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,10 +14,20 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PaymentConfirmResponseDTO {
-    private Long paymentId;
+    private String paymentKey;
+
+    @JsonProperty("orderId")
     private String paymentOrderId;
+
+    @JsonProperty("totalAmount")
     private Long paymentAmount;
+
+    @JsonProperty("status")
     private PaymentStatus paymentStatus;
+
+    @JsonProperty("method")
     private String paymentMethod;
+
+    @JsonProperty("approvedAt")
     private LocalDateTime paymentApprovedAt;
 }
