@@ -87,7 +87,8 @@ public class CustomSecurityConfig {
                                 "/api/venues/**",
                                 "/api/reviews/**",
                                 "/api/asks/**",
-                                "/api/images/**"
+                                "/api/images/**",
+                                "/upload/review/**"
                         ).permitAll()
 
                         .anyRequest()
