@@ -24,4 +24,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             String exhibitionTitle,
             Pageable pageable
     );
+
+    boolean existsByMemberMemberIdAndExhibitionExhibitionId(Long memberId, Long exhibitionId);
 }

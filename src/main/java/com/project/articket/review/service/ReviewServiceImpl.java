@@ -112,6 +112,16 @@ public class ReviewServiceImpl implements ReviewService {
     public void reviewCreate(Long memberId, ReviewCreateDTO reviewCreateDTO) {
         List<MultipartFile> images = reviewCreateDTO.getImages();
 
+
+        boolean exists = repository.existsByMemberMemberIdAndExhibitionExhibitionId(
+                memberId,
+                reviewCreateDTO.getExhibitionId()
+        );
+
+        if (exists) {
+            throw new IllegalArgumentException("이미 해당 전시에 대한 리뷰를 작성했습니다.");
+        }
+
         // 이미지 갯수 검증
         if (images != null && images.size() > 3) {
             throw new IllegalArgumentException("리뷰 이미지는 최대 3개까지 등록 가능합니다.");
