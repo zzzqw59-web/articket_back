@@ -76,18 +76,26 @@ public class ReviewReplyServiceImpl implements ReviewReplyService {
 
     @Transactional
     @Override
-    public void reviewReplyUpdate(Long reviewReplyId, ReviewReplyUpdateDTO reviewReplyUpdateDTO) {
+    public void reviewReplyUpdate(Long memberId, Long reviewReplyId, ReviewReplyUpdateDTO reviewReplyUpdateDTO) {
         ReviewReply reviewReply = reviewReplyRepository.findById(reviewReplyId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 리뷰 댓글이 존재하지 않습니다."));
+
+        if (!reviewReply.getMember().getMemberId().equals(memberId)) {
+            throw new IllegalArgumentException("댓글을 수정할 권한이 없습니다.");
+        }
 
         reviewReply.setReviewReplyBody(reviewReplyUpdateDTO.getReviewReplyBody());
     }
 
     @Transactional
     @Override
-    public void reviewReplyDelete(Long reviewReplyId) {
+    public void reviewReplyDelete(Long memberId, Long reviewReplyId) {
         ReviewReply reviewReply = reviewReplyRepository.findById(reviewReplyId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 리뷰 댓글이 존재하지 않습니다."));
+
+        if (!reviewReply.getMember().getMemberId().equals(memberId)) {
+            throw new IllegalArgumentException("댓글을 삭제할 권한이 없습니다.");
+        }
 
         reviewReplyRepository.delete(reviewReply);
     }

@@ -9,7 +9,7 @@ public interface ReviewReplyService {
 
     void reviewReplyCreate(Long reviewId, Long memberId, ReviewReplyCreateDTO reviewReplyCreateDTO);
 
-    void reviewReplyUpdate(Long reviewReplyId, ReviewReplyUpdateDTO reviewReplyUpdateDTO);
+    void reviewReplyUpdate(Long memberId, Long reviewReplyId, ReviewReplyUpdateDTO reviewReplyUpdateDTO);
 
-    void reviewReplyDelete(Long reviewReplyId);
+    void reviewReplyDelete(Long memberId, Long reviewReplyId);
 }

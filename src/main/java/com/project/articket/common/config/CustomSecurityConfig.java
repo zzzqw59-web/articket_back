@@ -1,12 +1,15 @@
 package com.project.articket.common.config;
 
+import com.project.articket.common.filter.DeactiveAccessFilter;
 import com.project.articket.common.filter.JWTCheckFilter;
+import com.project.articket.common.filter.WithdrawAccessFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -16,6 +19,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@EnableMethodSecurity
 public class CustomSecurityConfig {
 
     @Bean
@@ -47,7 +51,9 @@ public class CustomSecurityConfig {
     @Bean
     SecurityFilterChain filterChain(
             HttpSecurity http,
-            JWTCheckFilter jwtCheckFilter
+            JWTCheckFilter jwtCheckFilter,
+            WithdrawAccessFilter withdrawAccessFilter,
+            DeactiveAccessFilter deactiveAccessFilter
     ) throws Exception {
 
         http
@@ -74,7 +80,8 @@ public class CustomSecurityConfig {
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/api/**"
                         ).permitAll()
 
                         .requestMatchers(
@@ -88,8 +95,17 @@ public class CustomSecurityConfig {
                                 "/api/reviews/**",
                                 "/api/asks/**",
                                 "/api/images/**",
+                                "/upload/review/**",
                                 "/api/wishes/**"
                         ).permitAll()
+
+                        .requestMatchers(
+                                "/api/admin/**"
+                        ).hasRole("ADMIN")
+
+                        .requestMatchers(
+                                "/api/staff/**"
+                        ).hasRole("STAFF")
 
                         .anyRequest()
                         .authenticated()
@@ -98,6 +114,16 @@ public class CustomSecurityConfig {
                 .addFilterBefore(
                         jwtCheckFilter,
                         UsernamePasswordAuthenticationFilter.class
+                )
+
+                .addFilterAfter(
+                        withdrawAccessFilter,
+                        JWTCheckFilter.class
+                )
+
+                .addFilterAfter(
+                        deactiveAccessFilter,
+                        WithdrawAccessFilter.class
                 );
 
         return http.build();
