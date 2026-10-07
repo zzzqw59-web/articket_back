@@ -75,7 +75,7 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Transactional
     @Override
-    public void reservationCreate(Long memberId, ReservationCreateDTO reservationCreateDTO) {
+    public ReservationDTO reservationCreate(Long memberId, ReservationCreateDTO reservationCreateDTO) {
         Exhibition exhibition = exhibitionRepository.findById(reservationCreateDTO.getExhibitionId()).orElseThrow(() -> new IllegalArgumentException("해당 전시가 존재하지 않습니다."));
         LocalDate today = LocalDate.now();
 
@@ -102,6 +102,16 @@ public class ReservationServiceImpl implements ReservationService {
         Reservation reservation = new Reservation(member, exhibition, orderId, reservationCreateDTO.getReservationPerson(), reservationCreateDTO.getReservationDay(), ReservationStatus.PENDING, totalPrice);
 
         reservationRepository.save(reservation);
+
+        ReservationDTO dto = new ReservationDTO();
+        dto.setReservationOrderId(reservation.getReservationOrderId());
+        dto.setReservationId(reservation.getReservationId());
+        dto.setReservationAmount(reservation.getReservationAmount());
+        dto.setReservationDay(reservation.getReservationDay());
+        dto.setReservationPerson(reservation.getReservationPerson());
+        dto.setExhibitionId(reservation.getExhibition().getExhibitionId());
+
+        return dto;
     }
 
     @Transactional

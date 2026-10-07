@@ -118,11 +118,18 @@ public class PaymentServiceImpl implements PaymentService {
                 .header("Authorization", "Basic " + Base64.getEncoder().encodeToString(auth.getBytes()))
                 .bodyValue(paymentConfirmRequestDTO)
                 .retrieve()
-                .onStatus(status -> status.isError(), clientResponse -> clientResponse.bodyToMono(String.class).map(message -> new IllegalArgumentException("Toss 결제 승인 실패: " + message)))
+                .onStatus(status -> status.isError(), clientResponse -> clientResponse.bodyToMono(String.class)
+                        .map(message -> new IllegalArgumentException("Toss 결제 승인 실패: " + message)))
                 .bodyToMono(PaymentConfirmResponseDTO.class)
                 .block();
 
-        Payment payment = new Payment(reservation, response.getPaymentOrderId(), response.getPaymentKey(), response.getPaymentAmount(), response.getPaymentStatus(), response.getPaymentMethod(), response.getPaymentApprovedAt());
+        Payment payment = new Payment(reservation,
+                response.getPaymentOrderId(),
+                response.getPaymentKey(),
+                response.getPaymentAmount(),
+                response.getPaymentStatus(),
+                response.getPaymentMethod(),
+                response.getPaymentApprovedAt());
         reservation.setReservationStatus(ReservationStatus.RESERVED);
         paymentRepository.save(payment);
 
