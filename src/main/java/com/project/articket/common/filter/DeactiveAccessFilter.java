@@ -17,7 +17,8 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class DeactiveAccessFilter extends OncePerRequestFilter {
+public class DeactiveAccessFilter
+        extends OncePerRequestFilter {
 
     private final MemberRepository memberRepository;
 
@@ -35,7 +36,8 @@ public class DeactiveAccessFilter extends OncePerRequestFilter {
 
         if (authentication == null
                 || !authentication.isAuthenticated()
-                || !(authentication.getPrincipal() instanceof Long)) {
+                || !(authentication.getPrincipal()
+                instanceof Long)) {
 
             filterChain.doFilter(
                     request,
@@ -46,10 +48,13 @@ public class DeactiveAccessFilter extends OncePerRequestFilter {
         }
 
         Long memberId =
-                (Long) authentication.getPrincipal();
+                (Long) authentication
+                        .getPrincipal();
 
         Optional<Member> memberOptional =
-                memberRepository.findById(memberId);
+                memberRepository.findById(
+                        memberId
+                );
 
         if (memberOptional.isEmpty()) {
 
@@ -75,7 +80,9 @@ public class DeactiveAccessFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (isAllowedDuringDeactivation(request)) {
+        if (isAllowedDuringDeactivation(
+                request
+        )) {
 
             filterChain.doFilter(
                     request,
@@ -89,7 +96,9 @@ public class DeactiveAccessFilter extends OncePerRequestFilter {
                 HttpServletResponse.SC_FORBIDDEN
         );
 
-        response.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding(
+                "UTF-8"
+        );
 
         response.setContentType(
                 "application/json;charset=UTF-8"
@@ -111,7 +120,9 @@ public class DeactiveAccessFilter extends OncePerRequestFilter {
                 request.getMethod();
 
         if ("GET".equalsIgnoreCase(method)
-                && path.equals("/api/members/me")) {
+                && path.equals(
+                "/api/members/me"
+        )) {
             return true;
         }
 
@@ -133,17 +144,27 @@ public class DeactiveAccessFilter extends OncePerRequestFilter {
                 "/api/members/me/withdraw"
         )) {
 
-            return "POST".equalsIgnoreCase(method)
-                    || "GET".equalsIgnoreCase(method)
-                    || "DELETE".equalsIgnoreCase(method);
+            return "POST".equalsIgnoreCase(
+                    method
+            )
+                    || "GET".equalsIgnoreCase(
+                    method
+            )
+                    || "DELETE".equalsIgnoreCase(
+                    method
+            );
         }
 
-        if (path.startsWith("/api/asks")) {
+        if (path.startsWith(
+                "/api/asks"
+        )) {
             return true;
         }
 
         if ("GET".equalsIgnoreCase(method)
-                && path.equals("/api/my/replies")) {
+                && path.equals(
+                "/api/my/replies"
+        )) {
             return true;
         }
 
@@ -161,11 +182,15 @@ public class DeactiveAccessFilter extends OncePerRequestFilter {
         String method =
                 request.getMethod();
 
-        if ("OPTIONS".equalsIgnoreCase(method)) {
+        if ("OPTIONS".equalsIgnoreCase(
+                method
+        )) {
             return true;
         }
 
-        if (path.startsWith("/api/auth/")) {
+        if (path.startsWith(
+                "/api/auth/"
+        )) {
             return true;
         }
 
@@ -206,19 +231,23 @@ public class DeactiveAccessFilter extends OncePerRequestFilter {
 
         if ("GET".equalsIgnoreCase(method)
                 && path.startsWith(
-                "/api/wishes"
+                "/api/wishes/count/"
         )) {
             return true;
         }
 
-        if (path.startsWith("/swagger-ui")
+        if (path.startsWith(
+                "/swagger-ui"
+        )
                 || path.startsWith(
                 "/v3/api-docs"
         )) {
             return true;
         }
 
-        if (path.equals("/error")) {
+        if (path.equals(
+                "/error"
+        )) {
             return true;
         }
 

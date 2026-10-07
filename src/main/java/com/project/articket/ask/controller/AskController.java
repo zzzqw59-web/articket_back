@@ -140,7 +140,14 @@ public class AskController {
             return null;
         }
 
-        return (Long) authentication.getPrincipal();
+        Object principal =
+                authentication.getPrincipal();
+
+        if (!(principal instanceof Long)) {
+            return null;
+        }
+
+        return (Long) principal;
     }
 
     private String getMemberType(

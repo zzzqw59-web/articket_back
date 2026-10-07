@@ -25,8 +25,10 @@ public class AskReplyController {
             Authentication authentication,
             @Valid @RequestBody AskReplyRequestDTO requestDto
     ) {
+
         Long memberId =
-                (Long) authentication.getPrincipal();
+                (Long) authentication
+                        .getPrincipal();
 
         Long replyId =
                 askReplyService.createReply(
@@ -35,7 +37,9 @@ public class AskReplyController {
                         requestDto
                 );
 
-        return ResponseEntity.ok(replyId);
+        return ResponseEntity.ok(
+                replyId
+        );
     }
 
     // ASK-COM-002: 특정 문의글의 댓글 목록 조회
@@ -43,15 +47,25 @@ public class AskReplyController {
     @GetMapping("/api/asks/{askId}/replies")
     public ResponseEntity<PageResponseDTO<AskReplyDTO>> getReplyList(
             @PathVariable("askId") Long askId,
-            @ModelAttribute PageRequestDTO pageRequestDTO
+            @ModelAttribute PageRequestDTO pageRequestDTO,
+            Authentication authentication
     ) {
+
+        Long loginMemberId =
+                getMemberId(
+                        authentication
+                );
+
         PageResponseDTO<AskReplyDTO> response =
                 askReplyService.getReplyList(
                         askId,
+                        loginMemberId,
                         pageRequestDTO
                 );
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                response
+        );
     }
 
     // ASK-COM-003: 문의 댓글 수정
@@ -62,8 +76,10 @@ public class AskReplyController {
             Authentication authentication,
             @RequestBody AskReplyRequestDTO requestDto
     ) {
+
         Long memberId =
-                (Long) authentication.getPrincipal();
+                (Long) authentication
+                        .getPrincipal();
 
         askReplyService.updateReply(
                 replyId,
@@ -71,7 +87,8 @@ public class AskReplyController {
                 requestDto
         );
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok()
+                .build();
     }
 
     // ASK-COM-004: 문의 댓글 삭제
@@ -82,15 +99,19 @@ public class AskReplyController {
             @PathVariable("replyId") Long replyId,
             Authentication authentication
     ) {
+
         Long memberId =
-                (Long) authentication.getPrincipal();
+                (Long) authentication
+                        .getPrincipal();
 
         askReplyService.deleteReply(
                 replyId,
                 memberId
         );
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity
+                .noContent()
+                .build();
     }
 
     // ASK-COM-005 (마이페이지): 내가 작성한 댓글 목록 페이징 조회
@@ -100,15 +121,40 @@ public class AskReplyController {
             Authentication authentication,
             PageRequestDTO pageRequestDTO
     ) {
+
         Long memberId =
-                (Long) authentication.getPrincipal();
+                (Long) authentication
+                        .getPrincipal();
 
         PageResponseDTO<AskReplyDTO> response =
-                askReplyService.getMyReplyList(
-                        memberId,
-                        pageRequestDTO
-                );
+                askReplyService
+                        .getMyReplyList(
+                                memberId,
+                                pageRequestDTO
+                        );
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                response
+        );
+    }
+
+    private Long getMemberId(
+            Authentication authentication
+    ) {
+
+        if (authentication == null
+                || !authentication.isAuthenticated()) {
+
+            return null;
+        }
+
+        Object principal =
+                authentication.getPrincipal();
+
+        if (!(principal instanceof Long)) {
+            return null;
+        }
+
+        return (Long) principal;
     }
 }

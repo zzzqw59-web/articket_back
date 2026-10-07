@@ -23,8 +23,10 @@ public class WishController {
             @PathVariable Long exhibitionId,
             Authentication authentication
     ) {
+
         Long memberId =
-                (Long) authentication.getPrincipal();
+                (Long) authentication
+                        .getPrincipal();
 
         WishToggleResponseDTO response =
                 wishService.toggleWish(
@@ -32,17 +34,22 @@ public class WishController {
                         exhibitionId
                 );
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                response
+        );
     }
 
     // WISH-002: 마이페이지 - 내 위시리스트 목록 조회
     @GetMapping("/me")
-    public ResponseEntity<PageResponseDTO<WishListResponseDTO>> getMyWishList(
+    public ResponseEntity<PageResponseDTO<WishListResponseDTO>>
+    getMyWishList(
             Authentication authentication,
             PageRequestDTO pageRequestDTO
     ) {
+
         Long memberId =
-                (Long) authentication.getPrincipal();
+                (Long) authentication
+                        .getPrincipal();
 
         PageResponseDTO<WishListResponseDTO> response =
                 wishService.getWishList(
@@ -50,7 +57,9 @@ public class WishController {
                         pageRequestDTO
                 );
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                response
+        );
     }
 
     // WISH-003: 마이페이지 - 종료된 전시 위시 일괄 삭제
@@ -58,15 +67,19 @@ public class WishController {
     public ResponseEntity<Integer> deleteExpiredWishes(
             Authentication authentication
     ) {
+
         Long memberId =
-                (Long) authentication.getPrincipal();
+                (Long) authentication
+                        .getPrincipal();
 
         int deletedCount =
                 wishService.deleteExpiredWishes(
                         memberId
                 );
 
-        return ResponseEntity.ok(deletedCount);
+        return ResponseEntity.ok(
+                deletedCount
+        );
     }
 
     // WISH-004: 마이페이지 - 전시 위시 전체 일괄 삭제
@@ -74,20 +87,47 @@ public class WishController {
     public ResponseEntity<Void> deleteAllWishes(
             Authentication authentication
     ) {
+
         Long memberId =
-                (Long) authentication.getPrincipal();
+                (Long) authentication
+                        .getPrincipal();
 
         wishService.deleteAllWishes(
                 memberId
         );
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity
+                .noContent()
+                .build();
     }
-    // 추가 기능: WISH-005: 특정 전시의 총 위시리스트 카운트 조회 + 현재 회원이 찜했는가를 조회
+
+    // WISH-005: 특정 전시 총 위시 수 + 현재 로그인 회원 찜 여부
     @GetMapping("/count/{exhibitionId}")
-    public ResponseEntity<WishToggleResponseDTO> getWishCount(@PathVariable Long exhibitionId,
-                                                              @RequestParam Long memberId){
-        WishToggleResponseDTO response = wishService.getWishCountByExhibition(memberId, exhibitionId);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<WishToggleResponseDTO> getWishCount(
+            @PathVariable Long exhibitionId,
+            Authentication authentication
+    ) {
+
+        Long memberId = null;
+
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getPrincipal()
+                instanceof Long) {
+
+            memberId =
+                    (Long) authentication
+                            .getPrincipal();
+        }
+
+        WishToggleResponseDTO response =
+                wishService.getWishCountByExhibition(
+                        memberId,
+                        exhibitionId
+                );
+
+        return ResponseEntity.ok(
+                response
+        );
     }
 }

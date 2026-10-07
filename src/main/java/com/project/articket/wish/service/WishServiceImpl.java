@@ -32,74 +32,164 @@ public class WishServiceImpl implements WishService {
     // 위시 토글 (추가 / 취소)
     @Override
     @Transactional
-    public WishToggleResponseDTO toggleWish(Long memberId, Long exhibitionId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다. id=" + memberId));
+    public WishToggleResponseDTO toggleWish(
+            Long memberId,
+            Long exhibitionId
+    ) {
 
-        Exhibition exhibition = exhibitionRepository.findById(exhibitionId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 전시입니다. id=" + exhibitionId));
+        Member member =
+                memberRepository.findById(memberId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "존재하지 않는 회원입니다. id="
+                                                + memberId
+                                )
+                        );
 
-        Optional<Wish> existingWish = wishRepository.findByMemberId_MemberIdAndExhibitionId_ExhibitionId(memberId, exhibitionId);
+        Exhibition exhibition =
+                exhibitionRepository.findById(exhibitionId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "존재하지 않는 전시입니다. id="
+                                                + exhibitionId
+                                )
+                        );
+
+        Optional<Wish> existingWish =
+                wishRepository
+                        .findByMemberId_MemberIdAndExhibitionId_ExhibitionId(
+                                memberId,
+                                exhibitionId
+                        );
 
         boolean isWished;
+
         if (existingWish.isPresent()) {
-            wishRepository.delete(existingWish.get());
+
+            wishRepository.delete(
+                    existingWish.get()
+            );
+
             isWished = false;
+
         } else {
-            Wish newWish = Wish.builder()
-                    .memberId(member)
-                    .exhibitionId(exhibition)
-                    .build();
-            wishRepository.save(newWish);
+
+            Wish newWish =
+                    Wish.builder()
+                            .memberId(member)
+                            .exhibitionId(exhibition)
+                            .build();
+
+            wishRepository.save(
+                    newWish
+            );
+
             isWished = true;
         }
 
-        long totalWishCount = wishRepository.countByExhibitionId_ExhibitionId(exhibitionId);
+        long totalWishCount =
+                wishRepository
+                        .countByExhibitionId_ExhibitionId(
+                                exhibitionId
+                        );
 
-        return WishToggleResponseDTO.of(exhibitionId, isWished, totalWishCount);
+        return WishToggleResponseDTO.of(
+                exhibitionId,
+                isWished,
+                totalWishCount
+        );
     }
 
     // 마이페이지 - 특정 회원의 위시리스트 목록 조회
     @Override
-    public PageResponseDTO<WishListResponseDTO> getWishList(Long memberId, PageRequestDTO pageRequestDTO) {
-        // PageRequestDTO로부터 정렬 필드("wishId") 기준 Pageable 생성
-        Pageable pageable = pageRequestDTO.getPageable("wishId");
+    public PageResponseDTO<WishListResponseDTO> getWishList(
+            Long memberId,
+            PageRequestDTO pageRequestDTO
+    ) {
 
-        // DB 페이징 조회
-        Page<Wish> wishPage = wishRepository.findWishListByMemberId(memberId, pageable);
+        Pageable pageable =
+                pageRequestDTO.getPageable(
+                        "wishId"
+                );
 
-        // Entity -> DTO 변환
-        List<WishListResponseDTO> dtoList = wishPage.getContent()
-                .stream()
-                .map(WishListResponseDTO::from)
-                .toList();
+        Page<Wish> wishPage =
+                wishRepository
+                        .findWishListByMemberId(
+                                memberId,
+                                pageable
+                        );
 
-        // 공통 PageResponseDTO로 포장하여 반환
-        return new PageResponseDTO<>(dtoList, pageRequestDTO, wishPage.getTotalElements());
+        List<WishListResponseDTO> dtoList =
+                wishPage
+                        .getContent()
+                        .stream()
+                        .map(
+                                WishListResponseDTO::from
+                        )
+                        .toList();
+
+        return new PageResponseDTO<>(
+                dtoList,
+                pageRequestDTO,
+                wishPage.getTotalElements()
+        );
     }
 
     // 특정 회원의 종료된 전시 위시 일괄 삭제
     @Override
     @Transactional
-    public int deleteExpiredWishes(Long memberId) {
-        LocalDate today = LocalDate.now();
-        return wishRepository.deleteExpiredWishesByMemberId(memberId, today);
+    public int deleteExpiredWishes(
+            Long memberId
+    ) {
+
+        LocalDate today =
+                LocalDate.now();
+
+        return wishRepository
+                .deleteExpiredWishesByMemberId(
+                        memberId,
+                        today
+                );
     }
 
-    //기능 추가: 특정 전시회의 총 위시리스트 수 조회 구현 + 현재 회원이 해당 전시를 찜했는지 확인
+    // 특정 전시 총 위시 수 + 현재 로그인 회원의 찜 여부
+    @Override
     @Transactional(readOnly = true)
-    public WishToggleResponseDTO getWishCountByExhibition(Long memberId, Long exhibitionId) {
-        // 해당 전시의 전체 찜 개수
-        long totalWishCount  = wishRepository.countByExhibitionId_ExhibitionId(exhibitionId);
-        // 현재 회원이 해당 전시를 찜했는지 확인
-        boolean isWished = wishRepository.existsByMemberId_MemberIdAndExhibitionId_ExhibitionId(memberId, exhibitionId);
-        return WishToggleResponseDTO.of(exhibitionId, isWished, totalWishCount);
-    }
+    public WishToggleResponseDTO getWishCountByExhibition(
+            Long memberId,
+            Long exhibitionId
+    ) {
 
+        long totalWishCount =
+                wishRepository
+                        .countByExhibitionId_ExhibitionId(
+                                exhibitionId
+                        );
+
+        boolean isWished =
+                memberId != null
+                        && wishRepository
+                        .existsByMemberId_MemberIdAndExhibitionId_ExhibitionId(
+                                memberId,
+                                exhibitionId
+                        );
+
+        return WishToggleResponseDTO.of(
+                exhibitionId,
+                isWished,
+                totalWishCount
+        );
+    }
 
     @Override
     @Transactional
-    public void deleteAllWishes(Long memberId) {
-        wishRepository.deleteByMemberId_MemberId(memberId);
+    public void deleteAllWishes(
+            Long memberId
+    ) {
+
+        wishRepository
+                .deleteByMemberId_MemberId(
+                        memberId
+                );
     }
 }

@@ -8,15 +8,35 @@ import com.project.articket.reservation.dto.ReservationDTO;
 import com.project.articket.reservation.entity.ReservationCancelReason;
 
 public interface ReservationService {
-    void reservationCreate(Long memberId, ReservationCreateDTO reservationCreateDTO);
 
-    PageResponseDTO<ReservationDTO> reservationList(Long memberId, PageRequestDTO pageRequestDTO);
+    void reservationCreate(
+            Long memberId,
+            ReservationCreateDTO reservationCreateDTO
+    );
 
-    ReservationDTO reservationDetail(Long reservationId);
+    PageResponseDTO<ReservationDTO> reservationList(
+            Long memberId,
+            PageRequestDTO pageRequestDTO
+    );
 
-    void reservationCancel(Long memberId, Long reservationId, ReservationCancelDTO reservationCancelDTO);
+    ReservationDTO reservationDetail(
+            Long memberId,
+            Long reservationId
+    );
 
-    void reserveReservation(Long reservationId);
+    void reservationCancel(
+            Long memberId,
+            Long reservationId,
+            ReservationCancelDTO reservationCancelDTO
+    );
 
-    void cancelReservation(Long reservationId, ReservationCancelReason reason, String detail);
+    void reserveReservation(
+            Long reservationId
+    );
+
+    void cancelReservation(
+            Long reservationId,
+            ReservationCancelReason reason,
+            String detail
+    );
 }

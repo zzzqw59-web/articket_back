@@ -94,7 +94,7 @@ public class CustomSecurityConfig {
                                 "/api/reviews/**",
                                 "/api/asks/**",
                                 "/api/images/**",
-                                "/api/wishes/**"
+                                "/api/wishes/count/**"
                         ).permitAll()
 
                         .requestMatchers(
