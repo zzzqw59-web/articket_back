@@ -1,15 +1,15 @@
 package com.project.articket.review.service;
 
-import com.project.articket.common.crypto.PersonalDataCrypto;
 import com.project.articket.common.dto.PageRequestDTO;
 import com.project.articket.common.dto.PageResponseDTO;
 import com.project.articket.exhibition.entity.Exhibition;
 import com.project.articket.exhibition.repository.ExhibitionRepository;
 import com.project.articket.member.entity.Member;
 import com.project.articket.member.repository.MemberRepository;
-import com.project.articket.review.dto.ReviewCreateDTO;
-import com.project.articket.review.dto.ReviewDTO;
-import com.project.articket.review.dto.ReviewUpdateDTO;
+import com.project.articket.reservation.entity.Reservation;
+import com.project.articket.reservation.entity.ReservationStatus;
+import com.project.articket.reservation.repository.ReservationRepository;
+import com.project.articket.review.dto.*;
 import com.project.articket.review.entity.Review;
 import com.project.articket.review.entity.ReviewImage;
 import com.project.articket.review.entity.ReviewReply;
@@ -19,6 +19,7 @@ import com.project.articket.review.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +28,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,7 +40,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final ExhibitionRepository exhibitionRepository;
     private final ReviewImageRepository reviewImageRepository;
     private final ReviewReplyRepository reviewReplyRepository;
-    private final PersonalDataCrypto personalDataCrypto;
+    private final ReservationRepository reservationRepository;
 
     @Value("${com.spring.website.upload.path}")
     private String fileDir;
@@ -50,10 +52,8 @@ public class ReviewServiceImpl implements ReviewService {
         List<ReviewDTO> dtoList = page.getContent().stream().map(review -> {
             ReviewDTO dto = new ReviewDTO();
             dto.setReviewId(review.getReviewId());
-            dto.setMemberName(
-                    personalDataCrypto.decryptName(
-                            review.getMember().getMemberName()
-                    )
+            dto.setMemberNickname(
+                    review.getMember().getMemberNickname()
             );
             dto.setExhibitionTitle(review.getExhibition().getExhibitionTitle());
             dto.setReviewTitle(review.getReviewTitle());
@@ -73,27 +73,45 @@ public class ReviewServiceImpl implements ReviewService {
         Page<Review> page;
 
         if ("title".equals(searchType)) {
-            page = repository.findByReviewTitleContaining(keyword, pageRequestDTO.getPageable("reviewCreatedAt"));
+            page = repository.findByReviewTitleContaining(
+                    keyword,
+                    pageRequestDTO.getPageable("reviewCreatedAt")
+            );
+
         } else if ("all".equals(searchType)) {
-            page = repository.findByReviewTitleContainingOrReviewBodyContainingOrMemberMemberNameContainingOrExhibitionExhibitionTitleContaining(keyword, keyword, keyword, keyword, pageRequestDTO.getPageable("reviewCreatedAt"));
+            page = repository.findByReviewTitleContainingOrReviewBodyContainingOrMemberMemberNicknameContainingOrExhibitionExhibitionTitleContaining(
+                    keyword,
+                    keyword,
+                    keyword,
+                    keyword,
+                    pageRequestDTO.getPageable("reviewCreatedAt")
+            );
+
         } else if ("exhibition".equals(searchType)) {
-            page = repository.findByExhibitionExhibitionTitleContaining(keyword, pageRequestDTO.getPageable("reviewCreatedAt"));
+            page = repository.findByExhibitionExhibitionTitleContaining(
+                    keyword,
+                    pageRequestDTO.getPageable("reviewCreatedAt")
+            );
+
         } else if ("writer".equals(searchType)) {
-            page = repository.findByMemberMemberNameContaining(keyword, pageRequestDTO.getPageable("reviewCreatedAt"));
+            page = repository.findByMemberMemberNicknameContaining(
+                    keyword,
+                    pageRequestDTO.getPageable("reviewCreatedAt")
+            );
+
         } else {
             page = repository.findByReviewTitleContainingOrReviewBodyContaining(
                     keyword,
                     keyword,
-                    pageRequestDTO.getPageable("reviewCreatedAt"));
+                    pageRequestDTO.getPageable("reviewCreatedAt")
+            );
         }
 
         List<ReviewDTO> dtoList = page.getContent().stream().map(review -> {
             ReviewDTO dto = new ReviewDTO();
             dto.setReviewId(review.getReviewId());
-            dto.setMemberName(
-                    personalDataCrypto.decryptName(
-                            review.getMember().getMemberName()
-                    )
+            dto.setMemberNickname(
+                    review.getMember().getMemberNickname()
             );
             dto.setExhibitionTitle(review.getExhibition().getExhibitionTitle());
             dto.setReviewTitle(review.getReviewTitle());
@@ -111,6 +129,24 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public void reviewCreate(Long memberId, ReviewCreateDTO reviewCreateDTO) {
         List<MultipartFile> images = reviewCreateDTO.getImages();
+
+
+        boolean exists = repository.existsByMemberMemberIdAndExhibitionExhibitionId(
+                memberId,
+                reviewCreateDTO.getExhibitionId()
+        );
+
+        List<Reservation> reservations = reservationRepository
+                .findByMemberMemberIdAndExhibitionExhibitionIdAndReservationStatus(memberId, reviewCreateDTO.getExhibitionId(), ReservationStatus.RESERVED);
+
+        boolean canWriteReview = reservations.stream().anyMatch(reservation -> !reservation.getReservationDay().isAfter(LocalDate.now()));
+        if (!canWriteReview) {
+            throw new IllegalArgumentException("관람일 이후에 리뷰를 작성할 수 있습니다.");
+        }
+
+        if (exists) {
+            throw new IllegalArgumentException("이미 해당 전시에 대한 리뷰를 작성했습니다.");
+        }
 
         // 이미지 갯수 검증
         if (images != null && images.size() > 3) {
@@ -383,10 +419,8 @@ public class ReviewServiceImpl implements ReviewService {
 
         ReviewDTO dto = new ReviewDTO();
         dto.setReviewId(reviewId);
-        dto.setMemberName(
-                personalDataCrypto.decryptName(
-                        review.getMember().getMemberName()
-                )
+        dto.setMemberNickname(
+                review.getMember().getMemberNickname()
         );
         dto.setReviewTitle(review.getReviewTitle());
         dto.setReviewBody(review.getReviewBody());
@@ -397,6 +431,45 @@ public class ReviewServiceImpl implements ReviewService {
         );
         dto.setReviewHits(review.getReviewHits());
 
+        List<ReviewImageDTO> images = reviewImageRepository
+                .findByReviewReviewIdOrderByReviewImageOrderAsc(reviewId)
+                .stream()
+                .map(image -> {
+                    ReviewImageDTO imageDTO = new ReviewImageDTO();
+
+                    imageDTO.setReviewImageId(image.getReviewImageId());
+                    imageDTO.setReviewImageOrigin(image.getReviewImageOrigin());
+                    imageDTO.setReviewImageUrl(image.getReviewImageUrl());
+                    imageDTO.setReviewImageOrder(image.getReviewImageOrder());
+
+                    return imageDTO;
+                })
+                .toList();
+
+        dto.setImages(images);
+
         return dto;
+    }
+
+    // 마이페이지 조회용
+    @Transactional(readOnly = true)
+    @Override
+    public PageResponseDTO<MyReviewListResponseDTO> getMyReviews(Long memberId, PageRequestDTO pageRequestDTO) {
+
+        Pageable pageable = pageRequestDTO.getPageable("reviewCreatedAt");
+
+        // PageRequestDTO 내의 searchType과 keyword를 넘겨줍니다.
+        Page<MyReviewListResponseDTO> result = repository.searchMyReviews(
+                memberId,
+                pageRequestDTO.getSearchType(),
+                pageRequestDTO.getKeyword(),
+                pageable
+        );
+
+        return new PageResponseDTO<>(
+                result.getContent(),
+                pageRequestDTO,
+                result.getTotalElements()
+        );
     }
 }

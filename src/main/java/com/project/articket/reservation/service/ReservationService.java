@@ -10,7 +10,7 @@ import com.project.articket.reservation.entity.ReservationCancelReason;
 public interface ReservationService {
     void reservationCreate(Long memberId, ReservationCreateDTO reservationCreateDTO);
 
-    PageResponseDTO<ReservationDTO> reservationPage(Long memberId, PageRequestDTO pageRequestDTO);
+    PageResponseDTO<ReservationDTO> reservationList(Long memberId, PageRequestDTO pageRequestDTO);
 
     ReservationDTO reservationDetail(Long reservationId);
 

@@ -38,7 +38,11 @@ public class ExhibitionController {
     }
 
     @PutMapping(value = "/{exhibitionId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    //@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    @PreAuthorize(
+            "hasRole('ADMIN') or " +
+                    "(hasRole('STAFF') and " +
+                    "@staffAuthorizationService.hasExhibitionAuthority(authentication.principal, #exhibitionId))"
+    )
     public ExhibitionDetailResponseDTO update(
             @PathVariable("exhibitionId") Long exhibitionId,
             @Valid @RequestPart("data")ExhibitionUpdateRequest request,
@@ -47,7 +51,7 @@ public class ExhibitionController {
     }
 
     @DeleteMapping("/{exhibitionId}")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public void delete(@PathVariable Long exhibitionId) {
         exhibitionCommandService.delete(exhibitionId);
     }
