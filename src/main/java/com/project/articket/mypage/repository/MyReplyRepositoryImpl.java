@@ -6,6 +6,7 @@ import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
@@ -43,8 +44,19 @@ public class MyReplyRepositoryImpl implements MyReplyRepositoryCustom {
                         ") combined " +
                         "WHERE 1=1 " + searchSql;
 
-        // 2. 데이터 목록 조회 (최신 작성/수정일 순 정렬 및 LIMIT/OFFSET 페이징)
-        String selectSql = unionSql + " ORDER BY GREATEST(combined.created_at, combined.modified_at) DESC LIMIT :limit OFFSET :offset";
+        // 동적 정렬 방향 결정 (기본값 DESC, pageable에 ASC가 넘어오면 ASC 적용)
+        String sortDirection = "DESC";
+        if (pageable.getSort().isSorted()) {
+            for (Sort.Order order : pageable.getSort()) {
+                if (order.isAscending()) {
+                    sortDirection = "ASC";
+                    break;
+                }
+            }
+        }
+
+        // 2. 데이터 목록 조회 (정렬 방향 동적 반영 및 LIMIT/OFFSET 페이징)
+        String selectSql = unionSql + " ORDER BY GREATEST(combined.created_at, combined.modified_at) " + sortDirection + " LIMIT :limit OFFSET :offset";
         Query dataQuery = em.createNativeQuery(selectSql)
                 .setParameter("memberId", memberId)
                 .setParameter("limit", pageable.getPageSize())
