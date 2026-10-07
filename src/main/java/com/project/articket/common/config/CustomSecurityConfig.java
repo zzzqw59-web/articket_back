@@ -51,6 +51,7 @@ public class CustomSecurityConfig {
     ) throws Exception {
 
         http
+                .cors(cors -> {})
                 .csrf(csrf ->
                         csrf.disable()
                 )
@@ -66,6 +67,11 @@ public class CustomSecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
+
+                        .requestMatchers(
+                                HttpMethod.OPTIONS,
+                                "/**"
+                        ).permitAll()
 
                         .requestMatchers(
                                 "/api/auth/**"

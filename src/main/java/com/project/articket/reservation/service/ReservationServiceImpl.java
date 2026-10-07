@@ -75,8 +75,10 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Transactional
     @Override
-    public void reservationCreate(Long memberId, ReservationCreateDTO reservationCreateDTO) {
-        Exhibition exhibition = exhibitionRepository.findById(reservationCreateDTO.getExhibitionId()).orElseThrow(() -> new IllegalArgumentException("해당 전시가 존재하지 않습니다."));
+    public ReservationDTO reservationCreate(Long memberId, ReservationCreateDTO reservationCreateDTO) {
+        Exhibition exhibition = exhibitionRepository.findById(reservationCreateDTO.getExhibitionId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 전시가 존재하지 않습니다."));
+
         LocalDate today = LocalDate.now();
 
         if (exhibition.getStartDate().minusDays(14).isAfter(today)) {
@@ -87,7 +89,8 @@ public class ReservationServiceImpl implements ReservationService {
             throw new IllegalArgumentException("예약이 종료된 전시는 예약이 불가능합니다.");
         }
 
-        if (reservationCreateDTO.getReservationDay().isBefore(exhibition.getStartDate()) || reservationCreateDTO.getReservationDay().isAfter(exhibition.getEndDate())) {
+        if (reservationCreateDTO.getReservationDay().isBefore(exhibition.getStartDate())
+                || reservationCreateDTO.getReservationDay().isAfter(exhibition.getEndDate())) {
             throw new IllegalArgumentException("예약은 전시 기간 내에 설정 가능합니다.");
         }
 
@@ -95,13 +98,36 @@ public class ReservationServiceImpl implements ReservationService {
             throw new IllegalArgumentException("무료 전시는 예약이 불가능합니다.");
         }
 
-        Long totalPrice = (long) reservationCreateDTO.getReservationPerson() * exhibition.getExhibitionTicketPrice();
+        Long totalPrice =
+                (long) reservationCreateDTO.getReservationPerson()
+                        * exhibition.getExhibitionTicketPrice();
+
         String orderId = "Articket-" + UUID.randomUUID();
 
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new IllegalArgumentException("해당 멤버는 존재하지 않습니다."));
-        Reservation reservation = new Reservation(member, exhibition, orderId, reservationCreateDTO.getReservationPerson(), reservationCreateDTO.getReservationDay(), ReservationStatus.PENDING, totalPrice);
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 멤버는 존재하지 않습니다."));
+
+        Reservation reservation = new Reservation(
+                member,
+                exhibition,
+                orderId,
+                reservationCreateDTO.getReservationPerson(),
+                reservationCreateDTO.getReservationDay(),
+                ReservationStatus.PENDING,
+                totalPrice
+        );
 
         reservationRepository.save(reservation);
+
+        ReservationDTO dto = new ReservationDTO();
+        dto.setReservationOrderId(reservation.getReservationOrderId());
+        dto.setReservationId(reservation.getReservationId());
+        dto.setReservationAmount(reservation.getReservationAmount());
+        dto.setReservationDay(reservation.getReservationDay());
+        dto.setReservationPerson(reservation.getReservationPerson());
+        dto.setExhibitionId(reservation.getExhibition().getExhibitionId());
+
+        return dto;
     }
 
     @Transactional
