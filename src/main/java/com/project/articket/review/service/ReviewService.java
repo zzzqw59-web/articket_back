@@ -21,4 +21,6 @@ public interface ReviewService {
 
     // 마이페이지 조회용
     PageResponseDTO<MyReviewListResponseDTO> getMyReviews(Long memberId, PageRequestDTO pageRequestDTO);
+
+    PageResponseDTO<ReviewDTO> reviewHitsPage(PageRequestDTO pageRequestDTO);
 }
