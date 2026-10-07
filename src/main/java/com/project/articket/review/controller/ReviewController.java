@@ -30,6 +30,13 @@ public class ReviewController {
         }
     }
 
+    @GetMapping("/reviews/hits")
+    public PageResponseDTO<ReviewDTO> reviewHitsList(
+            PageRequestDTO pageRequestDTO
+    ) {
+        return reviewService.reviewHitsPage(pageRequestDTO);
+    }
+
     @PostMapping(value = "/reviews", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void reviewCreate(
             Authentication authentication,
