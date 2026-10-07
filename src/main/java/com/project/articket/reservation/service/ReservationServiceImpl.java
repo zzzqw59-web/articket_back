@@ -30,7 +30,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final MemberRepository memberRepository;
 
     @Override
-    public PageResponseDTO<ReservationDTO> reservationPage(Long memberId, PageRequestDTO pageRequestDTO) {
+    public PageResponseDTO<ReservationDTO> reservationList(Long memberId, PageRequestDTO pageRequestDTO) {
         Page<Reservation> page = reservationRepository.findByMemberMemberId(memberId, pageRequestDTO.getPageable("reservationCreatedAt"));
 
         List<ReservationDTO> dtolist = page.getContent().stream().map(reservation -> {
@@ -45,6 +45,7 @@ public class ReservationServiceImpl implements ReservationService {
             dto.setReservationCreatedAt(reservation.getReservationCreatedAt());
             dto.setReservationPerson(reservation.getReservationPerson());
             dto.setReservationStatus(reservation.getReservationStatus().name());
+            dto.setExhibitionId(reservation.getExhibition().getExhibitionId());
 
             return dto;
         }).toList();
@@ -67,6 +68,7 @@ public class ReservationServiceImpl implements ReservationService {
         reservationDTO.setReservationCreatedAt(reservation.getReservationCreatedAt());
         reservationDTO.setReservationStatus(reservation.getReservationStatus().name());
         reservationDTO.setReservationCanceledAt(reservation.getReservationCanceledAt());
+        reservationDTO.setExhibitionId(reservation.getExhibition().getExhibitionId());
 
         return reservationDTO;
     }
