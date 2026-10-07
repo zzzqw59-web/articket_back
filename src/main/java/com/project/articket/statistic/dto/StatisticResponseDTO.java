@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class VisitorResponseDTO {
+public class StatisticResponseDTO {
     private LocalDate anchorDate;
-    private Long visitor;
+    private Long value;
 }

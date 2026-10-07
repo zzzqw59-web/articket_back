@@ -2,12 +2,11 @@ package com.project.articket.statistic.repository;
 
 
 import com.project.articket.exhibition.entity.Exhibition;
-import com.project.articket.statistic.dto.ProfitResponseDTO;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -30,7 +29,7 @@ public class StatisticRepository {
         return em.createNativeQuery(sql, Exhibition.class).getResultList();
     }
 
-    public List<Object[]> findProfit(Long exhibitionId, LocalDateTime startDate, LocalDateTime endDate){
+    public List<Object[]> findProfit(Long exhibitionId, LocalDate startDate, LocalDate endDate){
         StringBuilder sql = new StringBuilder("""
                 SELECT 
                 TRUNC(reservation_created_at) AS anchor_date,
@@ -38,7 +37,7 @@ public class StatisticRepository {
                         FROM reservation 
                         WHERE reservation_status = 'RESERVED' 
                           AND reservation_created_at >= :startDate 
-                          AND reservation_created_at < :endDate + INTERVAL '1' DAY 
+                          AND reservation_created_at < :endDate
                 """);
 
         if (exhibitionId != null){
@@ -52,7 +51,7 @@ public class StatisticRepository {
 
         var query = em.createNativeQuery(sql.toString())
                 .setParameter("startDate", startDate)
-                .setParameter("endDate", endDate);
+                .setParameter("endDate", endDate.plusDays(1));
 
         if (exhibitionId != null){
             query.setParameter("exhibitionId", exhibitionId);
@@ -61,7 +60,7 @@ public class StatisticRepository {
         return query.getResultList();
     }
 
-    public List<Object[]> findReservation(Long exhibitionId, LocalDateTime startDate, LocalDateTime endDate){
+    public List<Object[]> findReservation(Long exhibitionId, LocalDate startDate, LocalDate endDate){
         StringBuilder sql = new StringBuilder("""
                 SELECT 
                 TRUNC(reservation_created_at) AS anchor_date,
@@ -69,7 +68,7 @@ public class StatisticRepository {
                 FROM reservation 
                 WHERE reservation_status = 'RESERVED' 
                 AND reservation_created_at >= :startDate 
-                AND reservation_created_at < :endDate + INTERVAL '1' DAY 
+                AND reservation_created_at < :endDate
                 """);
 
         if (exhibitionId != null){
@@ -83,7 +82,7 @@ public class StatisticRepository {
 
         var query = em.createNativeQuery(sql.toString())
                 .setParameter("startDate", startDate)
-                .setParameter("endDate", endDate);
+                .setParameter("endDate", endDate.plusDays(1));
 
         if (exhibitionId != null){
             query.setParameter("exhibitionId", exhibitionId);
@@ -92,7 +91,7 @@ public class StatisticRepository {
         return query.getResultList();
     }
 
-    public List<Object[]> findVisitor(Long exhibitionId, LocalDateTime startDate, LocalDateTime endDate){
+    public List<Object[]> findVisitor(Long exhibitionId, LocalDate startDate, LocalDate endDate){
         StringBuilder sql = new StringBuilder("""
                 SELECT 
                 TRUNC(reservation_day) AS anchor_date,
@@ -101,7 +100,7 @@ public class StatisticRepository {
                 WHERE reservation_status = 'RESERVED' 
                 AND reservation_day < TRUNC(SYSDATE) 
                 AND reservation_day >= :startDate 
-                AND reservation_day < :endDate + INTERVAL '1' DAY 
+                AND reservation_day < :endDate
                 """);
 
         if (exhibitionId != null){
@@ -115,7 +114,7 @@ public class StatisticRepository {
 
         var query = em.createNativeQuery(sql.toString())
                 .setParameter("startDate", startDate)
-                .setParameter("endDate", endDate);
+                .setParameter("endDate", endDate.plusDays(1));
 
         if (exhibitionId != null){
             query.setParameter("exhibitionId", exhibitionId);
