@@ -27,7 +27,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
     @Override
     public Page<MyReviewListResponseDTO> searchMyReviews(Long memberId, String searchType, String keyword, Pageable pageable) {
 
-        // 1. DTO 직접 조회 (이미지 존재 여부 & 댓글 수 서브쿼리 연산)
+        // 1. DTO 직접 조회 (검색 조건 적용)
         List<MyReviewListResponseDTO> content = queryFactory
                 .select(Projections.constructor(
                         MyReviewListResponseDTO.class,
@@ -35,12 +35,12 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                         exhibition.exhibitionTitle,
                         review.reviewTitle,
                         review.reviewHits,
-                        // 댓글 수 서브쿼리
+                        // 댓글 수
                         JPAExpressions
                                 .select(reviewReply.count().intValue())
                                 .from(reviewReply)
                                 .where(reviewReply.review.eq(review)),
-                        // 이미지 존재 여부 서브쿼리 (개수가 0보다 크면 true)
+                        // 이미지 존재 여부 (0개 초과시 true)
                         JPAExpressions
                                 .select(reviewImage.count())
                                 .from(reviewImage)
@@ -52,47 +52,52 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                 .from(review)
                 .leftJoin(review.exhibition, exhibition)
                 .where(
-                        review.member.memberId.eq(memberId), // 본인 글 조건
-                        searchCondition(searchType, keyword)
+                        review.member.memberId.eq(memberId), // [필수] 본인 작성글 조건
+                        searchCondition(searchType, keyword) // 👈 검색 조건 적용
                 )
                 .orderBy(review.reviewCreatedAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        // 2. 카운트 쿼리
+        // 2. 카운트 쿼리 (동일한 검색 조건 적용)
         JPAQuery<Long> countQuery = queryFactory
                 .select(review.count())
                 .from(review)
+                .leftJoin(review.exhibition, exhibition)
                 .where(
                         review.member.memberId.eq(memberId),
-                        searchCondition(searchType, keyword)
+                        searchCondition(searchType, keyword) // 👈 검색 조건 적용
                 );
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
 
+    /**
+     * 프론트엔드 postSearchOptions에 맞춘 검색 조건 분기
+     * @param searchType : title(제목), content(내용), all 등
+     * @param keyword    : 검색어
+     */
     private BooleanExpression searchCondition(String searchType, String keyword) {
         if (!StringUtils.hasText(keyword)) {
-            return null;
+            return null; // 검색어가 없으면 조건 미적용
         }
 
         if (!StringUtils.hasText(searchType)) {
-            searchType = "all";
+            searchType = "title";
         }
 
         switch (searchType.toLowerCase()) {
             case "title":
                 return review.reviewTitle.contains(keyword);
 
-            case "exhibition":
-                return review.exhibition.isNotNull().and(review.exhibition.exhibitionTitle.contains(keyword));
+            case "content":
+                return review.reviewBody.contains(keyword);
 
             case "all":
             default:
-                BooleanExpression titleCond = review.reviewTitle.contains(keyword);
-                BooleanExpression exhibitionCond = review.exhibition.isNotNull().and(review.exhibition.exhibitionTitle.contains(keyword));
-                return titleCond.or(exhibitionCond);
+                // 제목 OR 내용 중 하나라도 포함
+                return review.reviewTitle.contains(keyword).or(review.reviewBody.contains(keyword));
         }
     }
 }
