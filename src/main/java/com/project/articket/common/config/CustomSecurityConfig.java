@@ -80,7 +80,8 @@ public class CustomSecurityConfig {
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/api/**"
                         ).permitAll()
 
                         .requestMatchers(
@@ -94,6 +95,7 @@ public class CustomSecurityConfig {
                                 "/api/reviews/**",
                                 "/api/asks/**",
                                 "/api/images/**",
+                                "/upload/review/**",
                                 "/api/wishes/**"
                         ).permitAll()
 
