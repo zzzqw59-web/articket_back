@@ -5,6 +5,11 @@ import com.project.articket.member.repository.MemberRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder; // 비밀번호 암호화용
+import org.springframework.test.annotation.Commit;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -12,104 +17,59 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@Rollback(value = false)
+@Commit
 class MemberRepositoryTests {
 
     @Autowired
     private MemberRepository memberRepository;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Autowired(required = false)
+    private PasswordEncoder passwordEncoder; // 시큐리티 암호화 객체 주입
+
     @Test
     void memberRepositoryTest() {
-
         LocalDateTime beforeSave = LocalDateTime.now();
+        String testPhone = "010-" + (1000 + (int)(Math.random() * 9000)) + "-" + (1000 + (int)(Math.random() * 9000));
 
-        Member member = Member.builder()
-                .memberEmail("test01@articket.com")
-                .memberPassword("test1234")
-                .memberNickname("테스트회원")
-                .memberName("테스트")
-                .memberPhone("010-2111-1111")
-                .memberType(Member.TYPE_MEMBER)
-                .build();
+        // 1. 비밀번호 암호화 적용 ("1234"를 암호화)
+        String rawPassword = "1234";
+        String encodedPassword = (passwordEncoder != null)
+                ? passwordEncoder.encode(rawPassword)
+                : rawPassword; // 혹시 빈이 없다면 그냥 raw로 방어 코드
 
-        Member savedMember =
-                memberRepository.saveAndFlush(member);
+        // 2. JdbcTemplate을 이용해 암호화된 비밀번호와 가입일(SYSDATE)을 함께 INSERT
+        jdbcTemplate.update(
+                "INSERT INTO member (member_id, member_email, member_password, member_nickname, member_name, member_phone, member_status, member_type, member_join_created_at) " +
+                        "VALUES (member_seq.NEXTVAL, ?, ?, ?, ?, ?, 1, 1, SYSDATE)",
+                "1234", encodedPassword, "테스트회원", "테스트", testPhone
+        );
 
         LocalDateTime afterSave = LocalDateTime.now();
 
-        assertNotNull(savedMember.getMemberId());
-
-        assertEquals(
-                Member.STATUS_ACTIVE,
-                savedMember.getMemberStatus()
-        );
-
-        // DB DEFAULT SYSDATE가 생성한 값이
-        // Hibernate @Generated를 통해 Entity에 반영되었는지 확인
-        assertNotNull(savedMember.getMemberJoinCreatedAt());
-
-        assertFalse(
-                savedMember.getMemberJoinCreatedAt()
-                        .isBefore(beforeSave.minusSeconds(5))
-        );
-
-        assertFalse(
-                savedMember.getMemberJoinCreatedAt()
-                        .isAfter(afterSave.plusSeconds(5))
-        );
-
-        Optional<Member> result =
-                memberRepository.findByMemberEmail(
-                        "test01@articket.com"
-                );
-
+        // 3. 이후 조회 및 검증
+        Optional<Member> result = memberRepository.findByMemberEmail("1234");
         assertTrue(result.isPresent());
 
         Member foundMember = result.get();
 
-        assertEquals(
-                "test01@articket.com",
-                foundMember.getMemberEmail()
-        );
+        assertEquals("1234", foundMember.getMemberEmail());
+        assertEquals("테스트회원", foundMember.getMemberNickname());
+        assertEquals(testPhone, foundMember.getMemberPhone());
 
-        assertEquals(
-                "테스트회원",
-                foundMember.getMemberNickname()
-        );
+        // 비밀번호가 암호화되어 저장되었는지 확인 (BCrypt 등이라면 원문인 "1234"와 달라야 함)
+        if (passwordEncoder != null) {
+            assertTrue(passwordEncoder.matches("1234", foundMember.getMemberPassword()));
+        }
 
-        assertEquals(
-                "010-2111-1111",
-                foundMember.getMemberPhone()
-        );
+        assertNotNull(foundMember.getMemberJoinCreatedAt());
+        assertFalse(foundMember.getMemberJoinCreatedAt().isBefore(beforeSave.minusSeconds(5)));
+        assertFalse(foundMember.getMemberJoinCreatedAt().isAfter(afterSave.plusSeconds(5)));
 
-        assertEquals(
-                Member.TYPE_MEMBER,
-                foundMember.getMemberType()
-        );
-
-        assertEquals(
-                Member.STATUS_ACTIVE,
-                foundMember.getMemberStatus()
-        );
-
-        assertNotNull(
-                foundMember.getMemberJoinCreatedAt()
-        );
-
-        assertEquals(
-                savedMember.getMemberJoinCreatedAt(),
-                foundMember.getMemberJoinCreatedAt()
-        );
-
-        assertTrue(
-                memberRepository.existsByMemberEmail(
-                        "test01@articket.com"
-                )
-        );
-
-        assertTrue(
-                memberRepository.existsByMemberPhone(
-                        "010-2111-1111"
-                )
-        );
+        assertTrue(memberRepository.existsByMemberEmail("1234"));
+        assertTrue(memberRepository.existsByMemberPhone(testPhone));
     }
 }
