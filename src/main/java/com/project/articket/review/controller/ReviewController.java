@@ -2,6 +2,7 @@ package com.project.articket.review.controller;
 
 import com.project.articket.common.dto.PageRequestDTO;
 import com.project.articket.common.dto.PageResponseDTO;
+import com.project.articket.review.dto.MyReviewListResponseDTO;
 import com.project.articket.review.dto.ReviewCreateDTO;
 import com.project.articket.review.dto.ReviewDTO;
 import com.project.articket.review.dto.ReviewUpdateDTO;
@@ -56,4 +57,15 @@ public class ReviewController {
         ReviewDTO dto = reviewService.reviewDetail(reviewId);
         return dto;
     }
+
+    // 마이페이지 조회용
+    @GetMapping("/reviews/me")
+    public PageResponseDTO<MyReviewListResponseDTO> getMyReviews(
+            Authentication authentication,
+            PageRequestDTO pageRequestDTO // page, size, searchType, keyword가 쿼리스트링으로 바인딩됨
+    ) {
+        Long memberId = (Long) authentication.getPrincipal();
+        return reviewService.getMyReviews(memberId, pageRequestDTO);
+    }
+
 }

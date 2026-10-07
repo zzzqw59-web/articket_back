@@ -9,10 +9,7 @@ import com.project.articket.member.repository.MemberRepository;
 import com.project.articket.reservation.entity.Reservation;
 import com.project.articket.reservation.entity.ReservationStatus;
 import com.project.articket.reservation.repository.ReservationRepository;
-import com.project.articket.review.dto.ReviewCreateDTO;
-import com.project.articket.review.dto.ReviewDTO;
-import com.project.articket.review.dto.ReviewImageDTO;
-import com.project.articket.review.dto.ReviewUpdateDTO;
+import com.project.articket.review.dto.*;
 import com.project.articket.review.entity.Review;
 import com.project.articket.review.entity.ReviewImage;
 import com.project.articket.review.entity.ReviewReply;
@@ -22,6 +19,7 @@ import com.project.articket.review.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -451,5 +449,29 @@ public class ReviewServiceImpl implements ReviewService {
         dto.setImages(images);
 
         return dto;
+    }
+
+    // 마이페이지 조회용
+    @Transactional(readOnly = true)
+    @Override
+    public PageResponseDTO<MyReviewListResponseDTO> getMyReviews(Long memberId, PageRequestDTO pageRequestDTO) {
+
+        // 1. PageRequestDTO 내부의 getPageable 메서드로 Pageable 객체 생성
+        Pageable pageable = pageRequestDTO.getPageable("reviewCreatedAt");
+
+        // 2. QueryDSL Custom Repository 호출
+        Page<MyReviewListResponseDTO> result = repository.searchMyReviews(
+                memberId,
+                pageRequestDTO.getSearchType(),
+                pageRequestDTO.getKeyword(),
+                pageable
+        );
+
+        // 3. 제공해주신 PageResponseDTO 생성자 호출 (List, PageRequestDTO, totalCount)
+        return new PageResponseDTO<>(
+                result.getContent(),
+                pageRequestDTO,
+                result.getTotalElements()
+        );
     }
 }
