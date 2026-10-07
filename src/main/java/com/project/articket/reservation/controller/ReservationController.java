@@ -20,7 +20,7 @@ public class ReservationController {
     @GetMapping("/me")
     public PageResponseDTO<ReservationDTO> reservationList(Authentication authentication, PageRequestDTO pageRequestDTO) {
         Long memberId = (Long) authentication.getPrincipal();
-        PageResponseDTO<ReservationDTO> dto = reservationService.reservationPage(memberId, pageRequestDTO);
+        PageResponseDTO<ReservationDTO> dto = reservationService.reservationList(memberId, pageRequestDTO);
         return dto;
     }
 
