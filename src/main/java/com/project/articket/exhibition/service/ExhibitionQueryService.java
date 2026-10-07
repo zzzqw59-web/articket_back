@@ -7,6 +7,7 @@ import com.project.articket.exhibition.repository.ExhibitionRepository;
 import com.project.articket.venue.dto.VenueSummaryDTO;
 import com.project.articket.venue.entity.Venue;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.data.autoconfigure.web.DataWebProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,15 +24,25 @@ public class ExhibitionQueryService {
 
     public Page<ExhibitionListItemDTO> searchExhibitions(
             String keyword, String sortOption, boolean isFree, int page, int size) {
+        Page<Exhibition> exhibitionPage;
 
-        Sort sort = "oldest".equals(sortOption)
-                ? Sort.by("startDate").ascending()
-                : Sort.by("startDate").descending();
+        // 찜 많은 순 정렬.
+        if("wishCount".equalsIgnoreCase(sortOption)) {
+            Pageable pageable = PageRequest.of(page, size);
+            exhibitionPage = exhibitionRepository.searchByFreeOrderByWishCountDesc(isFree, keyword, pageable);
+        }
+        // 오랜된 순 정렬.
+        else if ("oldest".equalsIgnoreCase(sortOption)) {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("startDate").ascending());
+            exhibitionPage = exhibitionRepository.searchByFree(isFree, keyword, pageable);
+        }
+        // 최신 순 (기본값)
+        else {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("startDate").descending());
+            exhibitionPage = exhibitionRepository.searchByFree(isFree, keyword, pageable);
+        }
 
-        Pageable pageable = PageRequest.of(page, size, sort);
-
-        return exhibitionRepository.searchByFree(isFree, keyword, pageable)
-                .map(e -> ExhibitionListItemDTO.builder()
+        return exhibitionPage.map(e -> ExhibitionListItemDTO.builder()
                         .id(e.getExhibitionId())
                         .title(e.getExhibitionTitle())
                         .imgUrl(e.getExhibitionImgUrl())

@@ -1,6 +1,7 @@
 package com.project.articket.review.service;
 import com.project.articket.common.dto.PageRequestDTO;
 import com.project.articket.common.dto.PageResponseDTO;
+import com.project.articket.review.dto.MyReviewListResponseDTO;
 import com.project.articket.review.dto.ReviewCreateDTO;
 import com.project.articket.review.dto.ReviewDTO;
 import com.project.articket.review.dto.ReviewUpdateDTO;
@@ -17,4 +18,9 @@ public interface ReviewService {
     ReviewDTO reviewDetail(Long reviewId);
 
     PageResponseDTO<ReviewDTO> reviewSearch(String searchType, String keyword, PageRequestDTO pageRequestDTO);
+
+    // 마이페이지 조회용
+    PageResponseDTO<MyReviewListResponseDTO> getMyReviews(Long memberId, PageRequestDTO pageRequestDTO);
+
+    PageResponseDTO<ReviewDTO> reviewHitsPage(PageRequestDTO pageRequestDTO);
 }

@@ -14,8 +14,13 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class PaymentDetailResponseDTO {
     private Long paymentId;
+    private String paymentOrderId;
     private Long reservationId;
     private Long paymentAmount;
     private PaymentStatus paymentStatus;
     private LocalDateTime paymentApprovedAt;
+    private String paymentMethod;
+    private Long paymentRefundAmount;
+    private LocalDateTime paymentCreatedAt;
+    private LocalDateTime paymentCanceledAt;
 }

@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface ReviewImageRepository extends JpaRepository<ReviewImage, Long> {
     List<ReviewImage> findByReviewReviewIdOrderByReviewImageOrder(Long reviewId);
+    List<ReviewImage> findByReviewReviewIdOrderByReviewImageOrderAsc(Long reviewId);
 }

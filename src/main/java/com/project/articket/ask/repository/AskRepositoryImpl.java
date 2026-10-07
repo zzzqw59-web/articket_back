@@ -9,6 +9,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.util.StringUtils;
 
@@ -66,7 +67,7 @@ public class AskRepositoryImpl implements AskRepositoryCustom {
                         searchCondition(searchType, keyword),
                         askTypeEq(askType)
                 )
-                .orderBy(ask.askCreatedAt.desc()) // 마이페이지는 보통 최신순 고정
+                .orderBy(getSortOrder(pageable)) // 👈 Pageable을 이용한 동적 정렬 적용
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -81,6 +82,20 @@ public class AskRepositoryImpl implements AskRepositoryCustom {
                 );
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+    }
+
+    /**
+     * Pageable의 Sort 정보를 바탕으로 내 문의 목록 동적 정렬 반환
+     */
+    private OrderSpecifier<?> getSortOrder(Pageable pageable) {
+        if (pageable.getSort().isSorted()) {
+            for (Sort.Order order : pageable.getSort()) {
+                if (order.isAscending()) {
+                    return ask.askCreatedAt.asc(); // 오래된 순
+                }
+            }
+        }
+        return ask.askCreatedAt.desc(); // 최신순 (기본값)
     }
 
     private OrderSpecifier<?> getSortOrder(String sort) {
