@@ -2,10 +2,7 @@ package com.project.articket.review.controller;
 
 import com.project.articket.common.dto.PageRequestDTO;
 import com.project.articket.common.dto.PageResponseDTO;
-import com.project.articket.review.dto.MyReviewListResponseDTO;
-import com.project.articket.review.dto.ReviewCreateDTO;
-import com.project.articket.review.dto.ReviewDTO;
-import com.project.articket.review.dto.ReviewUpdateDTO;
+import com.project.articket.review.dto.*;
 import com.project.articket.review.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +10,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -43,9 +42,17 @@ public class ReviewController {
             Authentication authentication,
             @Valid @ModelAttribute ReviewCreateDTO reviewCreateDTO
     ) {
+
         Long memberId = (Long) authentication.getPrincipal();
 
         reviewService.reviewCreate(memberId, reviewCreateDTO);
+    }
+
+    @GetMapping("/reviews/my-exhibitions")
+    public ResponseEntity<List<ReviewAvailableExhibitionDTO>> getAvailableExhibitionsForReview(Authentication authentication) {
+        Long memberId = (Long) authentication.getPrincipal();
+        List<ReviewAvailableExhibitionDTO> response = reviewService.getAvailableExhibitionsForReview(memberId);
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping(value = "/reviews/{reviewId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
