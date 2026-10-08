@@ -9,7 +9,7 @@ import com.project.articket.askReply.repository.AskReplyRepository;
 import com.project.articket.common.dto.PageRequestDTO;
 import com.project.articket.common.dto.PageResponseDTO;
 import com.project.articket.common.enums.MemberRole;
-import com.project.articket.common.util.NotificationManger;
+import com.project.articket.common.util.NotificationManager;
 import com.project.articket.member.entity.Member;
 import com.project.articket.member.repository.MemberRepository;
 import com.project.articket.staff.repository.StaffRepository; // 💡 StaffRepository 주입
@@ -30,7 +30,7 @@ public class AskReplyServiceImpl implements AskReplyService {
     private final AskRepository askRepository;
     private final MemberRepository memberRepository;
     private final StaffRepository staffRepository; // 💡 추가: 전시 담당자 권한 검증용 Repository
-    private final NotificationManger notificationManager;
+    private final NotificationManager notificationManager;
 
     // 1. 댓글 등록
     // [권한 제어]

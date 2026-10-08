@@ -140,7 +140,7 @@ public class AskController {
             @RequestParam(value = "searchType", required = false) String searchType,
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "askType", required = false) Integer askType,
-            @RequestParam(value = "sort", required = false) String sort,
+            @RequestParam(value = "sort", required = false, defaultValue = "desc") String sort,
             PageRequestDTO pageRequestDTO,
             Authentication authentication
     ) {

@@ -12,15 +12,12 @@ import com.project.articket.common.dto.PageRequestDTO;
 import com.project.articket.common.dto.PageResponseDTO;
 import com.project.articket.common.enums.MemberRole;
 import com.project.articket.common.util.CustomFileUtil;
-import com.project.articket.common.util.NotificationManger;
+import com.project.articket.common.util.NotificationManager;
 import com.project.articket.exhibition.entity.Exhibition;
 import com.project.articket.exhibition.repository.ExhibitionRepository;
-
 import com.project.articket.member.entity.Member;
 import com.project.articket.member.repository.MemberRepository;
-import com.project.articket.notification.dto.NotificationCreateDTO;
 import com.project.articket.notification.service.NotificationService;
-import com.project.articket.staff.entity.Staff;
 import com.project.articket.staff.repository.StaffRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -44,8 +41,7 @@ public class AskServiceImpl implements AskService {
     private final ExhibitionRepository exhibitionRepository;
     private final StaffRepository staffRepository;
     private final CustomFileUtil fileUtil;
-    private final NotificationManger notificationManger;
-    private final NotificationService notificationService; // 💡 추가: STAFF 알림 생성용 Service
+    private final NotificationManager notificationManager;
 
 
     // 1. 문의글 작성 (파일 업로드, 관리자 & STAFF 알림 발송 포함)
@@ -83,27 +79,16 @@ public class AskServiceImpl implements AskService {
         }
 
         // --- [1. 관리자 대상 새 문의 등록 알림 발송] ---
-        notificationManger.notifyAllAdmins(0, savedAsk.getAskId());
+        notificationManager.notifyAllAdmins(0, savedAsk.getAskId());
 
 
         // --- [2. 전시 관계자(STAFF) 대상 알림 발송] ---
         if (savedAsk.getExhibitionId() != null) {
-            Long exhibitionId = savedAsk.getExhibitionId().getExhibitionId();
-
-            // 해당 전시를 담당하는 STAFF 회원 리스트 조회
-            List<Staff> staffList = staffRepository.findByExhibitionExhibitionId(exhibitionId);
-
-            for (Staff staff : staffList) {
-                if (staff.getMember() != null) {
-                    notificationService.createNotification(
-                            NotificationCreateDTO.builder()
-                                    .receiver(staff.getMember())
-                                    .notificationType(0) // 새 문의 등록 알림
-                                    .notificationTargetId(savedAsk.getAskId())
-                                    .build()
-                    );
-                }
-            }
+            notificationManager.notifyExhibitionStaffs(
+                    savedAsk.getExhibitionId().getExhibitionId(),
+                    0, // 알림 타입 (새 문의 등록)
+                    savedAsk.getAskId()
+            );
         }
 
         return savedAsk.getAskId();
@@ -267,7 +252,7 @@ public class AskServiceImpl implements AskService {
     public PageResponseDTO<AskListResponseDTO> getMyAskList(Long memberId, String searchType, String keyword, Integer askType, String sort, PageRequestDTO pageRequestDTO) {
         Pageable pageable = pageRequestDTO.getPageable("askId");
 
-        Page<Ask> askPage = askRepository.searchMyAsks(memberId, searchType, keyword, askType, pageable);
+        Page<Ask> askPage = askRepository.searchMyAsks(memberId, searchType, keyword, sort, askType, pageable);
 
         List<AskListResponseDTO> dtoList = askPage.getContent().stream()
                 .map(AskListResponseDTO::from)

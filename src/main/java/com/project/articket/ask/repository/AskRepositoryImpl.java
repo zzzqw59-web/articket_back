@@ -32,7 +32,7 @@ public class AskRepositoryImpl implements AskRepositoryCustom {
                 .leftJoin(ask.memberId, member).fetchJoin()
                 .leftJoin(ask.exhibitionId, exhibition).fetchJoin()
                 .where(
-                        searchCondition(searchType, keyword), // 확장된 검색 조건 적용
+                        searchCondition(searchType, keyword),
                         askTypeEq(askType),
                         canAccessAsk(loginMemberId, loginMemberType)
                 )
@@ -57,7 +57,7 @@ public class AskRepositoryImpl implements AskRepositoryCustom {
     }
 
     @Override
-    public Page<Ask> searchMyAsks(Long memberId, String searchType, String keyword, Integer askType, Pageable pageable) {
+    public Page<Ask> searchMyAsks(Long memberId, String searchType, String keyword, String sort, Integer askType, Pageable pageable) {
         List<Ask> content = queryFactory
                 .selectFrom(ask)
                 .leftJoin(ask.memberId, member).fetchJoin()
@@ -67,14 +67,17 @@ public class AskRepositoryImpl implements AskRepositoryCustom {
                         searchCondition(searchType, keyword),
                         askTypeEq(askType)
                 )
-                .orderBy(getSortOrder(pageable)) // 👈 Pageable을 이용한 동적 정렬 적용
+                .orderBy(getSortOrder(sort))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
+        // 👈 [수정] searchCondition에서 member, exhibition 필드를 참조하므로 leftJoin 추가 필수
         JPAQuery<Long> countQuery = queryFactory
                 .select(ask.count())
                 .from(ask)
+                .leftJoin(ask.memberId, member)
+                .leftJoin(ask.exhibitionId, exhibition)
                 .where(
                         ask.memberId.memberId.eq(memberId),
                         searchCondition(searchType, keyword),
@@ -84,23 +87,20 @@ public class AskRepositoryImpl implements AskRepositoryCustom {
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
 
-    /**
-     * Pageable의 Sort 정보를 바탕으로 내 문의 목록 동적 정렬 반환
-     */
     private OrderSpecifier<?> getSortOrder(Pageable pageable) {
         if (pageable.getSort().isSorted()) {
             for (Sort.Order order : pageable.getSort()) {
                 if (order.isAscending()) {
-                    return ask.askCreatedAt.asc(); // 오래된 순
+                    return ask.askCreatedAt.asc();
                 }
             }
         }
-        return ask.askCreatedAt.desc(); // 최신순 (기본값)
+        return ask.askCreatedAt.desc();
     }
 
     private OrderSpecifier<?> getSortOrder(String sort) {
-        if ("hits".equals(sort)) {
-            return ask.askHits.desc();
+        if ("asc".equalsIgnoreCase(sort)) {
+            return ask.askCreatedAt.asc();
         }
         return ask.askCreatedAt.desc();
     }
@@ -111,41 +111,40 @@ public class AskRepositoryImpl implements AskRepositoryCustom {
 
     /**
      * 동적 검색 조건 분기 처리
-     * @param searchType : title, writer, exhibition, all 등
-     * @param keyword    : 검색어
      */
     private BooleanExpression searchCondition(String searchType, String keyword) {
         if (!StringUtils.hasText(keyword)) {
-            return null; // 검색어가 없으면 조건 미적용
+            return null;
         }
 
         if (!StringUtils.hasText(searchType)) {
-            searchType = "all"; // 검색 유형이 지정되지 않으면 기본값 전체 검색
+            searchType = "all";
         }
 
         switch (searchType.toLowerCase()) {
             case "title":
                 return ask.askTitle.contains(keyword);
 
+            case "content":
+                return ask.askBody.contains(keyword);
+
             case "writer":
                 return ask.memberId.memberNickname.contains(keyword);
 
             case "exhibition":
-                // 연관된 전시가 존재하는 경우 전시 제목으로 검색
-                return ask.exhibitionId.isNotNull().and(ask.exhibitionId.exhibitionTitle.contains(keyword));
+                return ask.exhibitionId.exhibitionTitle.contains(keyword);
 
             case "all":
             default:
-                // 제목 OR 작성자 닉네임 OR 전시 제목 중 하나라도 일치하는 경우
                 BooleanExpression titleCond = ask.askTitle.contains(keyword);
+                BooleanExpression bodyCond = ask.askBody.contains(keyword);
                 BooleanExpression writerCond = ask.memberId.memberNickname.contains(keyword);
-                BooleanExpression exhibitionCond = ask.exhibitionId.isNotNull().and(ask.exhibitionId.exhibitionTitle.contains(keyword));
+                BooleanExpression exhibitionCond = ask.exhibitionId.exhibitionTitle.contains(keyword);
 
-                return titleCond.or(writerCond).or(exhibitionCond);
+                return titleCond.or(bodyCond).or(writerCond).or(exhibitionCond);
         }
     }
 
-    // 비밀글 목록 접근 권한 판단 로직
     private BooleanExpression canAccessAsk(Long loginMemberId, String loginMemberType) {
         if (MemberRole.ADMIN.equalsKey(loginMemberType)) {
             return null;
@@ -160,5 +159,4 @@ public class AskRepositoryImpl implements AskRepositoryCustom {
 
         return isPublic;
     }
-
 }
