@@ -1,3 +1,4 @@
+
 package com.project.articket.common.config;
 
 import com.project.articket.common.filter.DeactiveAccessFilter;
@@ -86,8 +87,7 @@ public class CustomSecurityConfig {
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/v3/api-docs/**",
-                                "/api/**"
+                                "/v3/api-docs/**"
                         ).permitAll()
 
                         .requestMatchers(
@@ -96,13 +96,20 @@ public class CustomSecurityConfig {
 
                         .requestMatchers(
                                 HttpMethod.GET,
+                                "/api/reviews/me"
+                        ).authenticated()
+
+                        .requestMatchers(
+                                HttpMethod.GET,
                                 "/api/exhibitions/**",
                                 "/api/venues/**",
-                                "/api/reviews/**",
+                                "/api/reviews",
+                                "/api/reviews/hits",
+                                "/api/reviews/{reviewId}",
+                                "/api/reviews/{reviewId}/replies",
                                 "/api/asks/**",
                                 "/api/images/**",
                                 "/upload/review/**",
-                                "/api/wishes/**",
                                 "/api/wishes/count/**"
                         ).permitAll()
 

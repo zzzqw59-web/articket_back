@@ -1,3 +1,4 @@
+
 package com.project.articket.reservation.service;
 
 import com.project.articket.common.dto.PageRequestDTO;
@@ -57,8 +58,23 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public ReservationDTO reservationDetail(Long reservationId) {
+    public ReservationDTO reservationDetail(Long memberId, Long reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않습니다."));
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 멤버는 존재하지 않습니다."));
+
+        boolean isOwner = reservation.getMember().getMemberId().equals(memberId);
+        boolean isAdmin = MemberRole.ADMIN.equalsKey(member.getMemberType());
+        boolean isAssignedStaff = MemberRole.STAFF.equalsKey(member.getMemberType())
+                && staffAuthorizationService.hasExhibitionAuthority(
+                memberId,
+                reservation.getExhibition().getExhibitionId()
+        );
+
+        if (!isOwner && !isAdmin && !isAssignedStaff) {
+            throw new IllegalArgumentException("해당 예약을 조회할 권한이 없습니다.");
+        }
 
         ReservationDTO reservationDTO = new ReservationDTO();
         reservationDTO.setReservationId(reservation.getReservationId());

@@ -12,7 +12,7 @@ public interface ReservationService {
 
     PageResponseDTO<ReservationDTO> reservationList(Long memberId, PageRequestDTO pageRequestDTO);
 
-    ReservationDTO reservationDetail(Long reservationId);
+    ReservationDTO reservationDetail(Long memberId, Long reservationId);
 
     void reservationCancel(Long memberId, Long reservationId, ReservationCancelDTO reservationCancelDTO);
 

@@ -26,7 +26,8 @@ public class ReservationController {
     }
 
     @GetMapping("/{reservationId}")
-    public ReservationDTO reservationDetail(@PathVariable Long reservationId) {
+    public ReservationDTO reservationDetail(@PathVariable Long reservationId, Authentication authentication) {
+        Long memberId = (Long) authentication.getPrincipal();
         ReservationDTO reservationDTO = reservationService.reservationDetail(reservationId);
         return reservationDTO;
     }

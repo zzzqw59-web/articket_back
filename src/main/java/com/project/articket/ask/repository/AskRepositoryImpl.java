@@ -1,3 +1,4 @@
+
 package com.project.articket.ask.repository;
 
 import com.project.articket.ask.entity.Ask;
@@ -75,7 +76,7 @@ public class AskRepositoryImpl implements AskRepositoryCustom {
                         searchCondition(searchType, keyword),
                         askTypeEq(askType)
                 )
-                .orderBy(getSortOrder(pageable)) // 👈 Pageable을 이용한 동적 정렬 적용
+                .orderBy(getSortOrder(pageable)) // Pageable을 이용한 동적 정렬 적용
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -119,6 +120,7 @@ public class AskRepositoryImpl implements AskRepositoryCustom {
 
     /**
      * 동적 검색 조건 분기 처리
+     *
      * @param searchType : title, writer, exhibition, all 등
      * @param keyword    : 검색어
      */
@@ -200,5 +202,20 @@ public class AskRepositoryImpl implements AskRepositoryCustom {
 
         // 일반 회원 또는 담당 전시가 없는 STAFF
         return isPublic.or(isMySecret);
+    }
+
+    private List<Long> getStaffExhibitionIds(
+            Long loginMemberId,
+            String loginMemberType
+    ) {
+        if (loginMemberId == null || !MemberRole.STAFF.equalsKey(loginMemberType)) {
+            return List.of();
+        }
+
+        return staffRepository
+                .findByMemberMemberIdOrderByStaffCreatedAtDesc(loginMemberId)
+                .stream()
+                .map(staff -> staff.getExhibition().getExhibitionId())
+                .toList();
     }
 }
