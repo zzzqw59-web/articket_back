@@ -164,4 +164,25 @@ public class ReservationServiceImpl implements ReservationService {
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new IllegalArgumentException("해당 예약이 존재하지 않습니다."));
         reservation.cancel(reason, detail);
     }
+
+    @Override
+    public ReservationDTO reservationDetailByOrderId(String orderId) {
+        Reservation reservation = reservationRepository.findByReservationOrderId(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않습니다."));
+
+        ReservationDTO reservationDTO = new ReservationDTO();
+        reservationDTO.setReservationId(reservation.getReservationId());
+        reservationDTO.setReservationOrderId(reservation.getReservationOrderId());
+        reservationDTO.setExhibitionTitle(reservation.getExhibition().getExhibitionTitle());
+        reservationDTO.setExhibitionArea(reservation.getExhibition().getExhibitionArea());
+        reservationDTO.setReservationDay(reservation.getReservationDay());
+        reservationDTO.setReservationPerson(reservation.getReservationPerson());
+        reservationDTO.setReservationAmount(reservation.getReservationAmount());
+        reservationDTO.setReservationCreatedAt(reservation.getReservationCreatedAt());
+        reservationDTO.setReservationStatus(reservation.getReservationStatus().name());
+        reservationDTO.setReservationCanceledAt(reservation.getReservationCanceledAt());
+        reservationDTO.setExhibitionId(reservation.getExhibition().getExhibitionId());
+
+        return reservationDTO;
+    }
 }

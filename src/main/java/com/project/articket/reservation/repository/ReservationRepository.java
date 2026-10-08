@@ -19,4 +19,5 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             Long exhibitionId,
             ReservationStatus reservationStatus
     );
+
 }
