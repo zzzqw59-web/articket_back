@@ -501,13 +501,15 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public PageResponseDTO<MyReviewListResponseDTO> getMyReviews(Long memberId, PageRequestDTO pageRequestDTO) {
 
+        // 💡 pageRequestDTO 내부의 sort 값을 기반으로 Pageable 생성
         Pageable pageable = pageRequestDTO.getPageable("reviewCreatedAt");
 
-        // PageRequestDTO 내의 searchType과 keyword를 넘겨줍니다.
+        // 💡 DTO에서 searchType, keyword, sort 값을 추출하여 리포지토리에 전달
         Page<MyReviewListResponseDTO> result = repository.searchMyReviews(
                 memberId,
                 pageRequestDTO.getSearchType(),
                 pageRequestDTO.getKeyword(),
+                pageRequestDTO.getSort(), // 💡 정렬 파라미터 추가 전달
                 pageable
         );
 

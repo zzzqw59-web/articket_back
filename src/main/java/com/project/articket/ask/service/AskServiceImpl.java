@@ -249,10 +249,19 @@ public class AskServiceImpl implements AskService {
 
     // 6. 마이페이지 문의글 목록 조회
     @Override
-    public PageResponseDTO<AskListResponseDTO> getMyAskList(Long memberId, String searchType, String keyword, Integer askType, String sort, PageRequestDTO pageRequestDTO) {
+    public PageResponseDTO<AskListResponseDTO> getMyAskList(Long memberId, Integer askType, PageRequestDTO pageRequestDTO) {
+        // 💡 DTO 내부의 sort 값을 활용해 Pageable 생성 (필요에 따라 sortField 지정)
         Pageable pageable = pageRequestDTO.getPageable("askId");
 
-        Page<Ask> askPage = askRepository.searchMyAsks(memberId, searchType, keyword, sort, askType, pageable);
+        // 💡 DTO에서 searchType, keyword, sort 값을 직접 추출하여 Repository에 전달
+        Page<Ask> askPage = askRepository.searchMyAsks(
+                memberId,
+                pageRequestDTO.getSearchType(),
+                pageRequestDTO.getKeyword(),
+                pageRequestDTO.getSort(),
+                askType,
+                pageable
+        );
 
         List<AskListResponseDTO> dtoList = askPage.getContent().stream()
                 .map(AskListResponseDTO::from)

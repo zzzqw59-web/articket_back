@@ -21,7 +21,7 @@ public class MyReplyRepositoryImpl implements MyReplyRepositoryCustom {
 
     @Override
     @SuppressWarnings("unchecked")
-    public Page<MyReplyListResponseDTO> searchMyReplies(Long memberId, String searchType, String keyword, Pageable pageable) {
+    public Page<MyReplyListResponseDTO> searchMyReplies(Long memberId, String searchType, String keyword, String sort, Pageable pageable) {
 
         // 검색 조건 처리 (댓글 내용 검색 기준)
         String searchSql = "";
