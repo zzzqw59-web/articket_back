@@ -5,9 +5,11 @@ import com.project.articket.common.dto.PageResponseDTO;
 import com.project.articket.mypage.dto.MyReplyListResponseDTO;
 import com.project.articket.mypage.service.MyReplyService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -22,11 +24,16 @@ public class MyPageController {
      * GET /api/mypage/replies
      */
     @GetMapping("/replies")
-    public PageResponseDTO<MyReplyListResponseDTO> getMyReplies(
-            Authentication authentication,
-            PageRequestDTO pageRequestDTO
+    public ResponseEntity<PageResponseDTO<MyReplyListResponseDTO>> getMyReplies(
+            PageRequestDTO pageRequestDTO,
+            Authentication authentication
     ) {
         Long memberId = (Long) authentication.getPrincipal();
-        return myReplyService.getMyReplies(memberId, pageRequestDTO);
+
+        // PageRequestDTO 하나로 검색 조건(searchType, keyword) 및 정렬(sort)이 모두 전달됨
+        PageResponseDTO<MyReplyListResponseDTO> response =
+                myReplyService.getMyReplies(memberId, pageRequestDTO);
+
+        return ResponseEntity.ok(response);
     }
 }

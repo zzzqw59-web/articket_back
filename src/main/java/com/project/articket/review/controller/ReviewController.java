@@ -10,6 +10,7 @@ import com.project.articket.review.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -66,13 +67,19 @@ public class ReviewController {
     }
 
     // 마이페이지 조회용
+    // 마이페이지 조회용
     @GetMapping("/reviews/me")
-    public PageResponseDTO<MyReviewListResponseDTO> getMyReviews(
-            Authentication authentication,
-            PageRequestDTO pageRequestDTO // page, size, searchType, keyword가 쿼리스트링으로 바인딩됨
+    public ResponseEntity<PageResponseDTO<MyReviewListResponseDTO>> getMyReviews(
+            PageRequestDTO pageRequestDTO,
+            Authentication authentication
     ) {
         Long memberId = (Long) authentication.getPrincipal();
-        return reviewService.getMyReviews(memberId, pageRequestDTO);
+
+        // PageRequestDTO 하나로 검색 조건(searchType, keyword) 및 정렬(sort)이 모두 전달됨
+        PageResponseDTO<MyReviewListResponseDTO> response =
+                reviewService.getMyReviews(memberId, pageRequestDTO);
+
+        return ResponseEntity.ok(response);
     }
 
 }

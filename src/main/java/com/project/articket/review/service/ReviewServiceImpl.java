@@ -2,6 +2,7 @@ package com.project.articket.review.service;
 
 import com.project.articket.common.dto.PageRequestDTO;
 import com.project.articket.common.dto.PageResponseDTO;
+import com.project.articket.common.util.NotificationManager;
 import com.project.articket.exhibition.entity.Exhibition;
 import com.project.articket.exhibition.repository.ExhibitionRepository;
 import com.project.articket.member.entity.Member;
@@ -16,6 +17,7 @@ import com.project.articket.review.entity.ReviewReply;
 import com.project.articket.review.repository.ReviewImageRepository;
 import com.project.articket.review.repository.ReviewReplyRepository;
 import com.project.articket.review.repository.ReviewRepository;
+import com.project.articket.staff.repository.StaffRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -37,10 +39,12 @@ import java.util.UUID;
 public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository repository;
     private final MemberRepository memberRepository;
+    private final StaffRepository staffRepository;
     private final ExhibitionRepository exhibitionRepository;
     private final ReviewImageRepository reviewImageRepository;
     private final ReviewReplyRepository reviewReplyRepository;
     private final ReservationRepository reservationRepository;
+    private final NotificationManager notificationManager;
 
     @Value("${com.spring.website.upload.path}")
     private String fileDir;
@@ -213,7 +217,7 @@ public class ReviewServiceImpl implements ReviewService {
                 reviewCreateDTO.getReviewBody()
         );
 
-        repository.save(review);
+        Review savedReview = repository.save(review);
 
         // 이미지가 있을 경우에만 파일 저장
         if (images != null && !images.isEmpty()) {
@@ -250,6 +254,15 @@ public class ReviewServiceImpl implements ReviewService {
             } catch (IOException e) {
                 throw new RuntimeException("파일 저장 경로 생성에 실패하였습니다.", e);
             }
+        }
+
+        // 전시 관계자 대상 알림 발송
+        if (savedReview.getExhibition() != null) {
+            notificationManager.notifyExhibitionStaffs(
+                    savedReview.getExhibition().getExhibitionId(),
+                    0, // 리뷰 알림 타입 번호 재확인 필요
+                    savedReview.getReviewId()
+            );
         }
     }
 
@@ -488,13 +501,15 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public PageResponseDTO<MyReviewListResponseDTO> getMyReviews(Long memberId, PageRequestDTO pageRequestDTO) {
 
+        // 💡 pageRequestDTO 내부의 sort 값을 기반으로 Pageable 생성
         Pageable pageable = pageRequestDTO.getPageable("reviewCreatedAt");
 
-        // PageRequestDTO 내의 searchType과 keyword를 넘겨줍니다.
+        // 💡 DTO에서 searchType, keyword, sort 값을 추출하여 리포지토리에 전달
         Page<MyReviewListResponseDTO> result = repository.searchMyReviews(
                 memberId,
                 pageRequestDTO.getSearchType(),
                 pageRequestDTO.getKeyword(),
+                pageRequestDTO.getSort(), // 💡 정렬 파라미터 추가 전달
                 pageable
         );
 

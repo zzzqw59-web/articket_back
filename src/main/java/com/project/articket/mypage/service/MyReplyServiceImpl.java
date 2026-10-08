@@ -19,12 +19,15 @@ public class MyReplyServiceImpl implements MyReplyService {
 
     @Override
     public PageResponseDTO<MyReplyListResponseDTO> getMyReplies(Long memberId, PageRequestDTO pageRequestDTO) {
+        // Pageable 객체 생성 시 DTO의 sort 값이 반영되도록 처리
         Pageable pageable = pageRequestDTO.getPageable("createdAt");
 
+        // searchMyReplies 호출 시 pageRequestDTO에서 sort 값을 함께 전달
         Page<MyReplyListResponseDTO> result = myReplyRepositoryCustom.searchMyReplies(
                 memberId,
                 pageRequestDTO.getSearchType(),
                 pageRequestDTO.getKeyword(),
+                pageRequestDTO.getSort(), // 💡 sort 파라미터 추가 전달
                 pageable
         );
 
