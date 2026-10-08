@@ -12,8 +12,7 @@ import com.project.articket.common.enums.MemberRole;
 import com.project.articket.common.util.NotificationManger;
 import com.project.articket.member.entity.Member;
 import com.project.articket.member.repository.MemberRepository;
-import com.project.articket.notification.dto.NotificationCreateDTO;
-import com.project.articket.notification.service.NotificationService;
+import com.project.articket.staff.repository.StaffRepository; // 💡 StaffRepository 주입
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,12 +29,13 @@ public class AskReplyServiceImpl implements AskReplyService {
     private final AskReplyRepository askReplyRepository;
     private final AskRepository askRepository;
     private final MemberRepository memberRepository;
+    private final StaffRepository staffRepository; // 💡 추가: 전시 담당자 권한 검증용 Repository
     private final NotificationManger notificationManager;
 
     // 1. 댓글 등록
     // [권한 제어]
     // - 관리자(ADMIN)
-    // - 또는 문의글에 exhibitionId가 존재할 때, 해당 전시의 담당자(STAFF)
+    // - 또는 문의글에 exhibition이 존재할 때, 해당 전시의 담당자(STAFF)
     @Override
     @Transactional
     public Long createReply(Long askId, Long memberId, AskReplyRequestDTO requestDto) {
@@ -49,19 +49,14 @@ public class AskReplyServiceImpl implements AskReplyService {
         boolean isAdmin = MemberRole.ADMIN.equalsKey(member.getMemberType());
         boolean isExhibitionManager = false;
 
-        /*
-         * TODO: [전시 담당자 권한 검증 연동]
-         * - 문의글에 전시 정보(ask.getExhibitionId())가 존재하는지 확인
-         * - 팀원의 '전시 담당자(ExhibitionManager)' 엔티티/Repository 구현 완료 후
-         *   해당 전시의 담당자 목록에 현재 memberId가 포함되어 있는지 검증 logic 연결
-         *
-         * 예시 코드:
-         * if (ask.getExhibitionId() != null) {
-         *     Long exhibitionId = ask.getExhibitionId().getExhibitionId();
-         *     isExhibitionManager = exhibitionManagerRepository
-         *             .existsByExhibition_ExhibitionIdAndMember_MemberId(exhibitionId, memberId);
-         * }
-         */
+        // 💡 [전시 담당자 권한 검증 연동 완료]
+        if (ask.getExhibitionId() != null) {
+            Long exhibitionId = ask.getExhibitionId().getExhibitionId();
+            isExhibitionManager = staffRepository.existsByMemberMemberIdAndExhibitionExhibitionId(
+                    memberId,
+                    exhibitionId
+            );
+        }
 
         if (!isAdmin && !isExhibitionManager) {
             throw new IllegalStateException("답변(댓글) 작성 권한이 없습니다. 관리자 또는 해당 전시 담당자만 작성 가능합니다.");
@@ -80,10 +75,7 @@ public class AskReplyServiceImpl implements AskReplyService {
     // 2. 댓글 조회
     @Override
     public PageResponseDTO<AskReplyDTO> getReplyList(Long askId, PageRequestDTO pageRequestDTO) {
-        // 정렬 기준 필드 "askReplyId" 기준 DESC 정렬 (PageRequestDTO 활용)
         Pageable pageable = pageRequestDTO.getPageable("askReplyId");
-
-        // Spring Data JPA의 findByAskId_AskId(askId, pageable) 레포지토리 메서드 호출
         Page<AskReply> replyPage = askReplyRepository.findByAskId_AskId(askId, pageable);
 
         List<AskReplyDTO> dtoList = replyPage.getContent().stream()
@@ -115,15 +107,12 @@ public class AskReplyServiceImpl implements AskReplyService {
     @Override
     @Transactional
     public void deleteReply(Long replyId, Long memberId) {
-        // 1. 댓글 존재 여부 확인
         AskReply askReply = askReplyRepository.findById(replyId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 댓글입니다. replyId=" + replyId));
 
-        // 2. 요청 회원 존재 여부 확인
         Member requester = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다. memberId=" + memberId));
 
-        // 3. 권한 검증 (댓글 작성자 본인 여부 OR 관리자 여부)
         boolean isWriter = askReply.getMemberId().getMemberId().equals(memberId);
         boolean isAdmin = MemberRole.ADMIN.equalsKey(requester.getMemberType());
 
@@ -131,7 +120,6 @@ public class AskReplyServiceImpl implements AskReplyService {
             throw new IllegalStateException("댓글 삭제 권한이 없습니다. 작성자 본인 또는 관리자만 삭제 가능합니다.");
         }
 
-        // 4. 삭제 수행
         askReplyRepository.delete(askReply);
     }
 
