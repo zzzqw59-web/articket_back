@@ -15,6 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 public class ReviewDTO {
     private Long reviewId;
+    private Long exhibitionId;
     private String memberNickname;
     private String exhibitionTitle;
     private String reviewTitle;

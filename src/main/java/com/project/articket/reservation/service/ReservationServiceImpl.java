@@ -13,6 +13,7 @@ import com.project.articket.reservation.entity.Reservation;
 import com.project.articket.reservation.entity.ReservationCancelReason;
 import com.project.articket.reservation.entity.ReservationStatus;
 import com.project.articket.reservation.repository.ReservationRepository;
+import com.project.articket.review.dto.ReviewAvailableExhibitionDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -71,6 +72,11 @@ public class ReservationServiceImpl implements ReservationService {
         reservationDTO.setExhibitionId(reservation.getExhibition().getExhibitionId());
 
         return reservationDTO;
+    }
+
+    @Override
+    public List<ReviewAvailableExhibitionDTO> getAvailableExhibitionsForReview(Long memberId) {
+        return reservationRepository.findAvailableExhibitionsForReview(memberId, LocalDate.now());
     }
 
     @Transactional
