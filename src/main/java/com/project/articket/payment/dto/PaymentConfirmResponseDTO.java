@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class PaymentConfirmResponseDTO {
     private String paymentKey;
+    private Long reservationId;
 
     @JsonProperty("orderId")
     private String paymentOrderId;

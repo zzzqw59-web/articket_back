@@ -26,4 +26,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long>, ReviewRep
     );
 
     boolean existsByMemberMemberIdAndExhibitionExhibitionId(Long memberId, Long exhibitionId);
+
+    Page<Review> findAllByOrderByReviewHitsDesc(Pageable pageable);
 }

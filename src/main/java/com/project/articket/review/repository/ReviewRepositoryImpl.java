@@ -81,8 +81,16 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
     private OrderSpecifier<?> getOrderSpecifier(Pageable pageable) {
         if (pageable.getSort().isSorted()) {
             for (Sort.Order order : pageable.getSort()) {
-                if (order.isAscending()) {
-                    return review.reviewCreatedAt.asc(); // 오래된 순
+                if (order.getProperty().equals("reviewHits")) {
+                    return order.isAscending()
+                            ? review.reviewHits.asc()
+                            : review.reviewHits.desc();
+                }
+
+                if (order.getProperty().equals("reviewCreatedAt")) {
+                    return order.isAscending()
+                            ? review.reviewCreatedAt.asc()
+                            : review.reviewCreatedAt.desc();
                 }
             }
         }
