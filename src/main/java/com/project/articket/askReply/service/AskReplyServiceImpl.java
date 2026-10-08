@@ -1,3 +1,4 @@
+
 package com.project.articket.askReply.service;
 
 import com.project.articket.ask.entity.Ask;
@@ -12,8 +13,6 @@ import com.project.articket.common.enums.MemberRole;
 import com.project.articket.common.util.NotificationManger;
 import com.project.articket.member.entity.Member;
 import com.project.articket.member.repository.MemberRepository;
-import com.project.articket.notification.dto.NotificationCreateDTO;
-import com.project.articket.notification.service.NotificationService;
 import com.project.articket.staff.service.StaffAuthorizationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,241 +25,116 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class AskReplyServiceImpl
-        implements AskReplyService {
+public class AskReplyServiceImpl implements AskReplyService {
 
     private final AskReplyRepository askReplyRepository;
     private final AskRepository askRepository;
     private final MemberRepository memberRepository;
-    private final NotificationManger notificationManager;
     private final StaffAuthorizationService staffAuthorizationService;
+    private final NotificationManger notificationManager;
 
     // 1. 댓글 등록
     // [권한 제어]
     // - 관리자(ADMIN)
-    // - 또는 문의글에 exhibitionId가 존재할 때, 해당 전시의 담당자(STAFF)
+    // - 또는 문의글에 exhibition이 존재할 때, 해당 전시의 담당자(STAFF)
     @Override
     @Transactional
-    public Long createReply(
-            Long askId,
-            Long memberId,
-            AskReplyRequestDTO requestDto
-    ) {
+    public Long createReply(Long askId, Long memberId, AskReplyRequestDTO requestDto) {
+        Ask ask = askRepository.findById(askId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 문의글입니다. askId=" + askId));
 
-        Ask ask =
-                askRepository.findById(askId)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "존재하지 않는 문의글입니다. askId="
-                                                + askId
-                                )
-                        );
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다. memberId=" + memberId));
 
-        Member member =
-                memberRepository.findById(memberId)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "존재하지 않는 회원입니다. memberId="
-                                                + memberId
-                                )
-                        );
+        // --- 권한 검증 (DB에서 조회한 member.getMemberType() 활용) ---
+        boolean isAdmin = MemberRole.ADMIN.equalsKey(member.getMemberType());
+        boolean isExhibitionManager = false;
 
-        boolean isAdmin =
-                MemberRole.ADMIN.equalsKey(
-                        member.getMemberType()
-                );
-
-        boolean isExhibitionManager =
-                false;
-
-        if (MemberRole.STAFF.equalsKey(
-                member.getMemberType()
-        )
-                && ask.getExhibitionId()
-                != null) {
-
-            isExhibitionManager =
-                    staffAuthorizationService
-                            .hasExhibitionAuthority(
-                                    memberId,
-                                    ask.getExhibitionId()
-                                            .getExhibitionId()
-                            );
-        }
-
-        if (!isAdmin
-                && !isExhibitionManager) {
-
-            throw new IllegalStateException(
-                    "답변(댓글) 작성 권한이 없습니다. 관리자 또는 해당 전시 담당자만 작성 가능합니다."
+        // STAFF 역할과 해당 전시의 담당 권한을 모두 확인
+        if (MemberRole.STAFF.equalsKey(member.getMemberType()) && ask.getExhibitionId() != null) {
+            Long exhibitionId = ask.getExhibitionId().getExhibitionId();
+            isExhibitionManager = staffAuthorizationService.hasExhibitionAuthority(
+                    memberId,
+                    exhibitionId
             );
         }
 
-        AskReply askReply =
-                requestDto.toEntity(
-                        ask,
-                        member
-                );
+        if (!isAdmin && !isExhibitionManager) {
+            throw new IllegalStateException("답변(댓글) 작성 권한이 없습니다. 관리자 또는 해당 전시 담당자만 작성 가능합니다.");
+        }
 
-        AskReply savedReply =
-                askReplyRepository.save(
-                        askReply
-                );
+        AskReply askReply = requestDto.toEntity(ask, member);
+        AskReply savedReply = askReplyRepository.save(askReply);
 
-        notificationManager.notifyUser(
-                ask.getMemberId(),
-                2,
-                askId,
-                memberId
-        );
+        // --- [알림 발송] ---
+        // 문의글 작성자 본인이 댓글을 단 경우가 아닐 때만 질문자(ask.getMemberId())에게 알림 생성
+        notificationManager.notifyUser(ask.getMemberId(), 2, askId, memberId);
 
-        return savedReply
-                .getAskReplyId();
+        return savedReply.getAskReplyId();
     }
 
     // 2. 댓글 조회
     @Override
-    public PageResponseDTO<AskReplyDTO> getReplyList(
-            Long askId,
-            Long loginMemberId,
-            PageRequestDTO pageRequestDTO
-    ) {
+    public PageResponseDTO<AskReplyDTO> getReplyList(Long askId, Long loginMemberId, PageRequestDTO pageRequestDTO) {
+        Ask ask = askRepository.findById(askId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 문의글입니다. askId=" + askId));
 
-        Ask ask =
-                askRepository.findById(askId)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "존재하지 않는 문의글입니다. askId="
-                                                + askId
-                                )
-                        );
-
-        if (ask.getAskSecret() != null
-                && ask.getAskSecret() == 1) {
-
-            String loginMemberType =
-                    null;
+        // 비밀글의 댓글은 작성자, 관리자, 해당 전시 담당 STAFF만 조회 가능
+        if (ask.getAskSecret() != null && ask.getAskSecret() == 1) {
+            String loginMemberType = null;
 
             if (loginMemberId != null) {
-
-                Member loginMember =
-                        memberRepository
-                                .findById(
-                                        loginMemberId
-                                )
-                                .orElse(null);
+                Member loginMember = memberRepository.findById(loginMemberId).orElse(null);
 
                 if (loginMember != null) {
-                    loginMemberType =
-                            loginMember
-                                    .getMemberType();
+                    loginMemberType = loginMember.getMemberType();
                 }
             }
 
-            boolean isOwner =
-                    loginMemberId != null
-                            && loginMemberId.equals(
-                            ask.getMemberId()
-                                    .getMemberId()
-                    );
+            boolean isOwner = loginMemberId != null
+                    && loginMemberId.equals(ask.getMemberId().getMemberId());
 
-            boolean isAdmin =
-                    MemberRole.ADMIN.equalsKey(
-                            loginMemberType
-                    );
-
-            boolean isExhibitionManager =
-                    false;
+            boolean isAdmin = MemberRole.ADMIN.equalsKey(loginMemberType);
+            boolean isExhibitionManager = false;
 
             if (loginMemberId != null
-                    && MemberRole.STAFF.equalsKey(
-                    loginMemberType
-            )
-                    && ask.getExhibitionId()
-                    != null) {
+                    && MemberRole.STAFF.equalsKey(loginMemberType)
+                    && ask.getExhibitionId() != null) {
 
-                isExhibitionManager =
-                        staffAuthorizationService
-                                .hasExhibitionAuthority(
-                                        loginMemberId,
-                                        ask.getExhibitionId()
-                                                .getExhibitionId()
-                                );
+                isExhibitionManager = staffAuthorizationService.hasExhibitionAuthority(
+                        loginMemberId,
+                        ask.getExhibitionId().getExhibitionId()
+                );
             }
 
-            if (!isOwner
-                    && !isAdmin
-                    && !isExhibitionManager) {
-
-                throw new IllegalStateException(
-                        "해당 비밀글의 댓글을 열람할 권한이 없습니다."
-                );
+            if (!isOwner && !isAdmin && !isExhibitionManager) {
+                throw new IllegalStateException("해당 비밀글의 댓글을 열람할 권한이 없습니다.");
             }
         }
 
-        Pageable pageable =
-                pageRequestDTO
-                        .getPageable(
-                                "askReplyId"
-                        );
+        Pageable pageable = pageRequestDTO.getPageable("askReplyId");
+        Page<AskReply> replyPage = askReplyRepository.findByAskId_AskId(askId, pageable);
 
-        Page<AskReply> replyPage =
-                askReplyRepository
-                        .findByAskId_AskId(
-                                askId,
-                                pageable
-                        );
+        List<AskReplyDTO> dtoList = replyPage.getContent().stream()
+                .map(AskReplyDTO::from)
+                .toList();
 
-        List<AskReplyDTO> dtoList =
-                replyPage
-                        .getContent()
-                        .stream()
-                        .map(
-                                AskReplyDTO::from
-                        )
-                        .toList();
-
-        return new PageResponseDTO<>(
-                dtoList,
-                pageRequestDTO,
-                replyPage.getTotalElements()
-        );
+        return new PageResponseDTO<>(dtoList, pageRequestDTO, replyPage.getTotalElements());
     }
 
     // 3. 댓글/답변 수정
     @Override
     @Transactional
-    public void updateReply(
-            Long askReplyId,
-            Long memberId,
-            AskReplyRequestDTO requestDto
-    ) {
+    public void updateReply(Long askReplyId, Long memberId, AskReplyRequestDTO requestDto) {
+        AskReply askReply = askReplyRepository.findById(askReplyId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 댓글입니다. askReplyId=" + askReplyId));
 
-        AskReply askReply =
-                askReplyRepository
-                        .findById(
-                                askReplyId
-                        )
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "존재하지 않는 댓글입니다. askReplyId="
-                                                + askReplyId
-                                )
-                        );
-
-        if (!askReply
-                .getMemberId()
-                .getMemberId()
-                .equals(memberId)) {
-
-            throw new IllegalStateException(
-                    "댓글 수정 권한이 없습니다."
-            );
+        // 본인이 작성한 댓글/답변만 수정 가능
+        if (!askReply.getMemberId().getMemberId().equals(memberId)) {
+            throw new IllegalStateException("댓글 수정 권한이 없습니다.");
         }
 
-        askReply.updateReplyBody(
-                requestDto.getAskReplyBody()
-        );
+        askReply.updateReplyBody(requestDto.getAskReplyBody());
     }
 
     // 4. 문의 댓글 삭제
@@ -269,86 +143,33 @@ public class AskReplyServiceImpl
     // - 또는 관리자(ADMIN)
     @Override
     @Transactional
-    public void deleteReply(
-            Long replyId,
-            Long memberId
-    ) {
+    public void deleteReply(Long replyId, Long memberId) {
+        AskReply askReply = askReplyRepository.findById(replyId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 댓글입니다. replyId=" + replyId));
 
-        AskReply askReply =
-                askReplyRepository
-                        .findById(replyId)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "존재하지 않는 댓글입니다. replyId="
-                                                + replyId
-                                )
-                        );
+        Member requester = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다. memberId=" + memberId));
 
-        Member requester =
-                memberRepository
-                        .findById(memberId)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "존재하지 않는 회원입니다. memberId="
-                                                + memberId
-                                )
-                        );
+        boolean isWriter = askReply.getMemberId().getMemberId().equals(memberId);
+        boolean isAdmin = MemberRole.ADMIN.equalsKey(requester.getMemberType());
 
-        boolean isWriter =
-                askReply.getMemberId()
-                        .getMemberId()
-                        .equals(memberId);
-
-        boolean isAdmin =
-                MemberRole.ADMIN.equalsKey(
-                        requester.getMemberType()
-                );
-
-        if (!isWriter
-                && !isAdmin) {
-
-            throw new IllegalStateException(
-                    "댓글 삭제 권한이 없습니다. 작성자 본인 또는 관리자만 삭제 가능합니다."
-            );
+        if (!isWriter && !isAdmin) {
+            throw new IllegalStateException("댓글 삭제 권한이 없습니다. 작성자 본인 또는 관리자만 삭제 가능합니다.");
         }
 
-        askReplyRepository.delete(
-                askReply
-        );
+        askReplyRepository.delete(askReply);
     }
 
     // 5. 마이페이지에서 내 댓글 전체 조회
     @Override
-    public PageResponseDTO<AskReplyDTO> getMyReplyList(
-            Long memberId,
-            PageRequestDTO pageRequestDTO
-    ) {
+    public PageResponseDTO<AskReplyDTO> getMyReplyList(Long memberId, PageRequestDTO pageRequestDTO) {
+        Pageable pageable = pageRequestDTO.getPageable("askReplyId");
+        Page<AskReply> replyPage = askReplyRepository.findMyReplies(memberId, pageable);
 
-        Pageable pageable =
-                pageRequestDTO.getPageable(
-                        "askReplyId"
-                );
+        List<AskReplyDTO> dtoList = replyPage.getContent().stream()
+                .map(AskReplyDTO::from)
+                .toList();
 
-        Page<AskReply> replyPage =
-                askReplyRepository
-                        .findMyReplies(
-                                memberId,
-                                pageable
-                        );
-
-        List<AskReplyDTO> dtoList =
-                replyPage
-                        .getContent()
-                        .stream()
-                        .map(
-                                AskReplyDTO::from
-                        )
-                        .toList();
-
-        return new PageResponseDTO<>(
-                dtoList,
-                pageRequestDTO,
-                replyPage.getTotalElements()
-        );
+        return new PageResponseDTO<>(dtoList, pageRequestDTO, replyPage.getTotalElements());
     }
 }

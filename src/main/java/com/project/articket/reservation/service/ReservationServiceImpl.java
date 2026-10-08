@@ -174,7 +174,6 @@ public class ReservationServiceImpl implements ReservationService {
     public void reserveReservation(Long reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new IllegalArgumentException("해당 예약이 존재하지 않습니다."));
         reservation.reserve();
-
     }
 
     @Transactional
