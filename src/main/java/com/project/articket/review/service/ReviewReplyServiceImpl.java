@@ -3,6 +3,7 @@ package com.project.articket.review.service;
 import com.project.articket.common.crypto.PersonalDataCrypto;
 import com.project.articket.common.dto.PageRequestDTO;
 import com.project.articket.common.dto.PageResponseDTO;
+import com.project.articket.common.util.NotificationManager;
 import com.project.articket.member.entity.Member;
 import com.project.articket.member.repository.MemberRepository;
 import com.project.articket.review.dto.ReviewReplyCreateDTO;
@@ -26,6 +27,7 @@ public class ReviewReplyServiceImpl implements ReviewReplyService {
     private final MemberRepository memberRepository;
     private final ReviewRepository reviewRepository;
     private final PersonalDataCrypto personalDataCrypto;
+    private final NotificationManager notificationManager;
 
     @Override
     public PageResponseDTO<ReviewReplyDTO> reviewReplyPage(Long reviewId, PageRequestDTO pageRequestDTO) {
@@ -70,6 +72,10 @@ public class ReviewReplyServiceImpl implements ReviewReplyService {
                 reviewReplyCreateDTO.getReviewReplyBody(),
                 member
         );
+
+        // 알림발송
+        // 리뷰글 작성자 본인이 댓글을 단 경우가 아닐 때만 작정사에게 알림 생성
+        notificationManager.notifyUser(review.getMember(), 2, reviewId, memberId);
 
         reviewReplyRepository.save(reviewReply);
     }
