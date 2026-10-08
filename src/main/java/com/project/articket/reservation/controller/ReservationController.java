@@ -31,9 +31,11 @@ public class ReservationController {
     }
 
     @PostMapping
-    void reservationCreate(@Valid @RequestBody ReservationCreateDTO reservationCreateDTO, Authentication authentication) {
+    public ReservationDTO reservationCreate(@Valid @RequestBody ReservationCreateDTO reservationCreateDTO, Authentication authentication) {
         Long memberId = (Long) authentication.getPrincipal();
         reservationService.reservationCreate(memberId, reservationCreateDTO);
+
+        return reservationService.reservationCreate(memberId, reservationCreateDTO);
     }
 
     @DeleteMapping("/{reservationId}/cancel")
