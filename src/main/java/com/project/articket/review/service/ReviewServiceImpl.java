@@ -471,10 +471,9 @@ public class ReviewServiceImpl implements ReviewService {
         dto.setReviewBody(review.getReviewBody());
         dto.setReviewCreatedAt(review.getReviewCreatedAt());
         dto.setReviewModifiedAt(review.getReviewModifiedAt());
-        dto.setExhibitionTitle(
-                review.getExhibition().getExhibitionTitle()
-        );
+        dto.setExhibitionTitle(review.getExhibition().getExhibitionTitle());
         dto.setReviewHits(review.getReviewHits());
+        dto.setExhibitionId(review.getExhibition().getExhibitionId());
 
         List<ReviewImageDTO> images = reviewImageRepository
                 .findByReviewReviewIdOrderByReviewImageOrderAsc(reviewId)
@@ -517,6 +516,12 @@ public class ReviewServiceImpl implements ReviewService {
                 result.getContent(),
                 pageRequestDTO,
                 result.getTotalElements()
+        );
+    }
+
+    @Override
+    public List<ReviewAvailableExhibitionDTO> getAvailableExhibitionsForReview(Long memberId) {
+        return reservationRepository.findAvailableExhibitionsForReview(memberId, LocalDate.now()
         );
     }
 }
