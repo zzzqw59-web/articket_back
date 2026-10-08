@@ -14,5 +14,5 @@ public interface PaymentService {
 
     PageResponseDTO<PaymentListResponseDTO> getMyPaymentList(Long memberId, PageRequestDTO pageRequestDTO);
 
-    PaymentDetailResponseDTO getPaymentDetail(Long reservationId);
+    PaymentDetailResponseDTO getPaymentDetail(Long paymentId);
 }

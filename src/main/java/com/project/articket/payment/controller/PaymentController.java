@@ -38,10 +38,10 @@ public class PaymentController {
         return ResponseEntity.ok(response);
     }
 
-    // 특정 예약 ID에 대한 결제 상세 조회
-    @GetMapping("/reservation/{reservationId}")
-    public ResponseEntity<PaymentDetailResponseDTO> getPaymentDetail(@PathVariable("reservationId") Long reservationId) {
-        PaymentDetailResponseDTO response = paymentService.getPaymentDetail(reservationId);
+    // 특정 결제 ID에 대한 결제 상세 조회
+    @GetMapping("/{paymentId}")
+    public ResponseEntity<PaymentDetailResponseDTO> getPaymentDetail(@PathVariable("paymentId") Long paymentId) {
+        PaymentDetailResponseDTO response = paymentService.getPaymentDetail(paymentId);
         return ResponseEntity.ok(response);
     }
 }

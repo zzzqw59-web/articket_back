@@ -236,16 +236,18 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     /**
-     * 결제 단건 상세 조회 (reservationId 기반)
+     * 결제 단건 상세 조회 (paymentId 기반)
      */
-    public PaymentDetailResponseDTO getPaymentDetail(Long reservationId) {
-        Payment payment = paymentRepository.findByReservation_ReservationId(reservationId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 예약에 대한 결제 내역이 존재하지 않습니다. ID: " + reservationId));
+    @Override
+    public PaymentDetailResponseDTO getPaymentDetail(Long paymentId) {
+        // 💡 reservationId가 아닌 paymentId(PK)로 조회
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 결제 내역이 존재하지 않습니다. ID: " + paymentId));
 
         return new PaymentDetailResponseDTO(
                 payment.getPaymentId(),
                 payment.getPaymentOrderId(),
-                payment.getReservation().getReservationId(),
+                payment.getReservation().getReservationId(), // 💡 상세 DTO에 reservationId 정상 포함
                 payment.getPaymentAmount(),
                 payment.getPaymentStatus(),
                 payment.getPaymentApprovedAt(),
