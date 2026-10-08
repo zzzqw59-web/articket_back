@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -156,13 +158,53 @@ public class ReservationServiceImpl implements ReservationService {
             throw new IllegalArgumentException("이미 취소된 예약은 취소할 수 없습니다.");
         }
 
+        if (reservation.getReservationStatus() != ReservationStatus.RESERVED) {
+            throw new IllegalArgumentException("취소할 수 없는 예약입니다.");
+        }
+
         if (reservationCancelDTO.getCancelReason() == ReservationCancelReason.OTHER && (reservationCancelDTO.getCancelDetail() == null || reservationCancelDTO.getCancelDetail().isBlank())) {
             throw new IllegalArgumentException("기타 취소 사유를 입력해주세요.");
         }
 
-        Long refundAmount = reservation.getReservationAmount();
+        long daysUntilReservation = ChronoUnit.DAYS.between(LocalDate.now(), reservation.getReservationDay());
+        LocalDateTime now = LocalDateTime.now();
+
+        Long refundAmount;
+
+        boolean within24Hours = reservation.getReservationCreatedAt().plusHours(24).isAfter(now);
+
+        if (daysUntilReservation >= 3 && within24Hours) {
+            // 관람일 3일 이상 남았고 예약 후 24시간 이내 → 전액 환불
+            refundAmount = reservation.getReservationAmount();
+
+        } else if (daysUntilReservation >= 10) {
+            // 10일 전 이상 → 전액 환불
+            refundAmount = reservation.getReservationAmount();
+
+        } else if (daysUntilReservation >= 7) {
+            // 7~9일 전 → 90% 환불
+            refundAmount = reservation.getReservationAmount() * 90 / 100;
+
+        } else if (daysUntilReservation >= 3) {
+            // 3~6일 전 → 80% 환불
+            refundAmount = reservation.getReservationAmount() * 80 / 100;
+
+        } else if (daysUntilReservation >= 1) {
+            // 1~2일 전 → 70% 환불
+            refundAmount = reservation.getReservationAmount() * 70 / 100;
+
+        } else {
+            // 당일 → 10% 환불
+            refundAmount = reservation.getReservationAmount() * 10 / 100;
+        }
+
+        System.out.println("3. Toss 취소 완료");
+
         paymentService.cancelPayment(reservationId, refundAmount);
+
+        System.out.println("4. paymentService.cancelPayment 완료");
         reservation.cancel(reservationCancelDTO.getCancelReason(), reservationCancelDTO.getCancelDetail());
+        System.out.println("5. reservation.cancel 완료");
     }
 
     @Transactional

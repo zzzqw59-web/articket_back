@@ -158,6 +158,8 @@ public class PaymentServiceImpl implements PaymentService {
 
         String encodedSecretKey = Base64.getEncoder().encodeToString((tossSecretKey + ":").getBytes(StandardCharsets.UTF_8));
 
+        System.out.println("1. 결제 취소 시작");
+
         Map<String, Object> tossResponse = paymentWebClient.post()
                 .uri("/v1/payments/" + payment.getPaymentKey() + "/cancel")
                 .header(
@@ -172,6 +174,8 @@ public class PaymentServiceImpl implements PaymentService {
                 .retrieve()
                 .bodyToMono(Map.class)
                 .block();
+
+        System.out.println("2. Toss 취소 응답 완료");
 
         payment.setPaymentStatus(PaymentStatus.CANCELED);
         payment.setPaymentRefundAmount(refundAmount);
