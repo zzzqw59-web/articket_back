@@ -5,6 +5,7 @@ import com.project.articket.exhibition.entity.Exhibition;
 import com.project.articket.statistic.dto.StatisticResponseDTO;
 import com.project.articket.statistic.repository.StatisticRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 
@@ -45,10 +46,6 @@ public class StatisticService {
         }
 
         return resultList;
-    }
-
-    public List<Exhibition> findExhibitionByWishCount() {
-        return repository.findExhibitionByWishCount();
     }
 
     public List<StatisticResponseDTO> findProfitList(

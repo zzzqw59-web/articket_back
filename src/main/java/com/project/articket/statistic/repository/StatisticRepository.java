@@ -4,6 +4,7 @@ package com.project.articket.statistic.repository;
 import com.project.articket.exhibition.entity.Exhibition;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -13,21 +14,6 @@ import java.util.List;
 public class StatisticRepository {
     @PersistenceContext
     private EntityManager em;
-
-    public List<Exhibition> findExhibitionByWishCount() {
-        String sql = """
-                SELECT e.*, NVL(w.wish_count, 0) AS wish_count 
-                FROM EXHIBITION e 
-                LEFT JOIN (
-                    SELECT exhibition_id, COUNT(*) AS wish_count 
-                    FROM WISH 
-                    GROUP BY exhibition_id 
-                ) w ON e.exhibition_id = w.exhibition_id 
-                WHERE e.exhibition_end_created_at >= TRUNC(SYSDATE) 
-                ORDER BY wish_count DESC, e.exhibition_end_created_at ASC 
-                """;
-        return em.createNativeQuery(sql, Exhibition.class).getResultList();
-    }
 
     public List<Object[]> findProfit(Long exhibitionId, LocalDate startDate, LocalDate endDate){
         StringBuilder sql = new StringBuilder("""

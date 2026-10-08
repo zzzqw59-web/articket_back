@@ -4,6 +4,7 @@ import com.project.articket.exhibition.entity.Exhibition;
 import com.project.articket.statistic.dto.StatisticResponseDTO;
 import com.project.articket.statistic.service.StatisticService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -14,11 +15,6 @@ import java.util.List;
 @RequestMapping("/api/statistic")
 public class StatisticController {
     private final StatisticService statisticService;
-
-    @GetMapping("/exhibitionList")
-    public List<Exhibition> findExhibitionByWishCount() {
-        return statisticService.findExhibitionByWishCount();
-    }
 
     @GetMapping("/profit/total")
     public Long findTotalProfit(@RequestParam(required = false)  Long exhibitionId, @RequestParam LocalDate startDate, @RequestParam LocalDate endDate) {
