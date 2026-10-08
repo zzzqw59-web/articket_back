@@ -69,6 +69,38 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
+    public PageResponseDTO<ReviewDTO> reviewHitsPage(PageRequestDTO pageRequestDTO) {
+        Page<Review> page = repository.findAllByOrderByReviewHitsDesc(
+                pageRequestDTO.getPageable("reviewCreatedAt")
+        );
+
+        List<ReviewDTO> dtoList = page.getContent().stream().map(review -> {
+            ReviewDTO dto = new ReviewDTO();
+
+            dto.setReviewId(review.getReviewId());
+            dto.setMemberNickname(
+                    review.getMember().getMemberNickname()
+            );
+            dto.setExhibitionTitle(
+                    review.getExhibition().getExhibitionTitle()
+            );
+            dto.setReviewTitle(review.getReviewTitle());
+            dto.setReviewBody(review.getReviewBody());
+            dto.setReviewCreatedAt(review.getReviewCreatedAt());
+            dto.setReviewModifiedAt(review.getReviewModifiedAt());
+            dto.setReviewHits(review.getReviewHits());
+
+            return dto;
+        }).toList();
+
+        return new PageResponseDTO<>(
+                dtoList,
+                pageRequestDTO,
+                page.getTotalElements()
+        );
+    }
+
+    @Override
     public PageResponseDTO<ReviewDTO> reviewSearch(String searchType, String keyword, PageRequestDTO pageRequestDTO) {
         Page<Review> page;
 
@@ -456,10 +488,9 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public PageResponseDTO<MyReviewListResponseDTO> getMyReviews(Long memberId, PageRequestDTO pageRequestDTO) {
 
-        // 1. PageRequestDTO 내부의 getPageable 메서드로 Pageable 객체 생성
         Pageable pageable = pageRequestDTO.getPageable("reviewCreatedAt");
 
-        // 2. QueryDSL Custom Repository 호출
+        // PageRequestDTO 내의 searchType과 keyword를 넘겨줍니다.
         Page<MyReviewListResponseDTO> result = repository.searchMyReviews(
                 memberId,
                 pageRequestDTO.getSearchType(),
@@ -467,7 +498,6 @@ public class ReviewServiceImpl implements ReviewService {
                 pageable
         );
 
-        // 3. 제공해주신 PageResponseDTO 생성자 호출 (List, PageRequestDTO, totalCount)
         return new PageResponseDTO<>(
                 result.getContent(),
                 pageRequestDTO,

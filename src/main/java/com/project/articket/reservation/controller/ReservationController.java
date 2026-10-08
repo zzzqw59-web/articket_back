@@ -19,64 +19,28 @@ public class ReservationController {
     private final ReservationService reservationService;
 
     @GetMapping("/me")
-    public PageResponseDTO<ReservationDTO> reservationList(
-            Authentication authentication,
-            PageRequestDTO pageRequestDTO
-    ) {
-
-        Long memberId =
-                (Long) authentication.getPrincipal();
-
-        return reservationService.reservationList(
-                memberId,
-                pageRequestDTO
-        );
+    public PageResponseDTO<ReservationDTO> reservationList(Authentication authentication, PageRequestDTO pageRequestDTO) {
+        Long memberId = (Long) authentication.getPrincipal();
+        PageResponseDTO<ReservationDTO> dto = reservationService.reservationList(memberId, pageRequestDTO);
+        return dto;
     }
 
     @GetMapping("/{reservationId}")
-    public ReservationDTO reservationDetail(
-            @PathVariable Long reservationId,
-            Authentication authentication
-    ) {
-
-        Long memberId =
-                (Long) authentication.getPrincipal();
-
-        return reservationService.reservationDetail(
-                memberId,
-                reservationId
-        );
+    public ReservationDTO reservationDetail(@PathVariable Long reservationId) {
+        ReservationDTO reservationDTO = reservationService.reservationDetail(reservationId);
+        return reservationDTO;
     }
 
     @PostMapping
-    void reservationCreate(
-            @Valid @RequestBody ReservationCreateDTO reservationCreateDTO,
-            Authentication authentication
-    ) {
+    public ReservationDTO reservationCreate(@Valid @RequestBody ReservationCreateDTO reservationCreateDTO, Authentication authentication) {
+        Long memberId = (Long) authentication.getPrincipal();
 
-        Long memberId =
-                (Long) authentication.getPrincipal();
-
-        reservationService.reservationCreate(
-                memberId,
-                reservationCreateDTO
-        );
+        return reservationService.reservationCreate(memberId, reservationCreateDTO);
     }
 
     @DeleteMapping("/{reservationId}/cancel")
-    void reservationCancel(
-            @PathVariable Long reservationId,
-            @Valid @RequestBody ReservationCancelDTO reservationCancelDTO,
-            Authentication authentication
-    ) {
-
-        Long memberId =
-                (Long) authentication.getPrincipal();
-
-        reservationService.reservationCancel(
-                memberId,
-                reservationId,
-                reservationCancelDTO
-        );
+    void reservationCancel(@PathVariable Long reservationId, @Valid @RequestBody ReservationCancelDTO reservationCancelDTO, Authentication authentication) {
+        Long memberId = (Long) authentication.getPrincipal();
+        reservationService.reservationCancel(memberId, reservationId, reservationCancelDTO);
     }
 }
