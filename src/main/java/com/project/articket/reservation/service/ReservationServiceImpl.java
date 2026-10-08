@@ -198,13 +198,10 @@ public class ReservationServiceImpl implements ReservationService {
             refundAmount = reservation.getReservationAmount() * 10 / 100;
         }
 
-        System.out.println("3. Toss 취소 완료");
 
         paymentService.cancelPayment(reservationId, refundAmount);
 
-        System.out.println("4. paymentService.cancelPayment 완료");
         reservation.cancel(reservationCancelDTO.getCancelReason(), reservationCancelDTO.getCancelDetail());
-        System.out.println("5. reservation.cancel 완료");
     }
 
     @Transactional
