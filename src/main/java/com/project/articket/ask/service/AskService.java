@@ -22,5 +22,5 @@ public interface AskService {
     // 문의 삭제
     void deleteAsk(Long askId, Long memberId);
     // 마이페이지 내부 문의 목록 조회
-    PageResponseDTO<AskListResponseDTO> getMyAskList(Long memberId, String searchType, String keyword, Integer askType, PageRequestDTO pageRequestDTO);
+    PageResponseDTO<AskListResponseDTO> getMyAskList(Long memberId, String searchType, String keyword, Integer askType, String sort, PageRequestDTO pageRequestDTO);
 }
