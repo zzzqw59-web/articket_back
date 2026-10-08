@@ -42,4 +42,10 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             @Param("memberId") Long memberId,
             @Param("today") LocalDate today
     );
+
+    // 회원 ID + 전시 제목(키워드 포함) 검색 추가
+    Page<Reservation> findByMemberMemberIdAndExhibitionExhibitionTitleContaining(Long memberId, String exhibitionTitle, Pageable pageable);
+
+    // 회원 ID + 예약/주문 번호(키워드 포함) 검색 추가
+    Page<Reservation> findByMemberMemberIdAndReservationOrderIdContaining(Long memberId, String reservationOrderId, Pageable pageable);
 }

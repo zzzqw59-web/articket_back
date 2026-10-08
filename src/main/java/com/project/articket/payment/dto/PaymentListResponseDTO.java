@@ -1,5 +1,6 @@
 package com.project.articket.payment.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.project.articket.payment.entity.PaymentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,6 +18,8 @@ public class PaymentListResponseDTO {
     private String paymentOrderId;
     private String exhibitionTitle;
     private Long paymentAmount;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private PaymentStatus paymentStatus;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDateTime paymentCreatedAt;
 }
