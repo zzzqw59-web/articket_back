@@ -17,6 +17,8 @@ public interface ReservationService {
 
     ReservationDTO reservationDetail(Long reservationId);
 
+    ReservationDTO reservationDetailByOrderId(String orderId);
+
     void reservationCancel(Long memberId, Long reservationId, ReservationCancelDTO reservationCancelDTO);
 
     void reserveReservation(Long reservationId);

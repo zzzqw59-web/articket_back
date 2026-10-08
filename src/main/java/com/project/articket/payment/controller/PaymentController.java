@@ -7,9 +7,10 @@ import com.project.articket.payment.dto.PaymentConfirmResponseDTO;
 import com.project.articket.payment.dto.PaymentDetailResponseDTO;
 import com.project.articket.payment.dto.PaymentListResponseDTO;
 import com.project.articket.payment.service.PaymentService;
-import com.project.articket.reservation.dto.ReservationCancelDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,26 +19,29 @@ import org.springframework.web.bind.annotation.*;
 public class PaymentController {
     private final PaymentService paymentService;
 
-    @GetMapping("/me")
-    public PageResponseDTO<PaymentListResponseDTO> paymentList(@RequestParam(required = false) String searchType, @RequestParam(required = false) String keyword, PageRequestDTO pageRequestDTO) {
-        return paymentService.paymentList(searchType, keyword, pageRequestDTO);
-    }
-
-    @GetMapping("/{paymentId}")
-    public PaymentDetailResponseDTO paymentDetail(@PathVariable Long paymentId) {
-
-        PaymentDetailResponseDTO paymentDetailResponseDTO = paymentService.paymentDetail(paymentId);
-        return paymentDetailResponseDTO;
-    }
-
     @PostMapping("/confirm")
-    PaymentConfirmResponseDTO paymentApprove(@Valid @RequestBody PaymentConfirmRequestDTO paymentConfirmRequestDTO) {
-        PaymentConfirmResponseDTO paymentConfirmResponseDTO = paymentService.paymentConfirm(paymentConfirmRequestDTO);
-        return paymentConfirmResponseDTO;
+    public PaymentConfirmResponseDTO confirmPayment(@Valid @RequestBody PaymentConfirmRequestDTO paymentConfirmRequestDTO) {
+        return paymentService.confirmPayment(paymentConfirmRequestDTO);
     }
 
-    @DeleteMapping("/{paymentId}/cancel")
-    void paymentRefund(@PathVariable Long paymentId, @Valid @RequestBody ReservationCancelDTO reservationCancelDTO) {
-        paymentService.paymentRefund(paymentId, reservationCancelDTO);
+    // =========================================================
+    // =========================================================
+
+
+    // 내 결제 내역 목록 조회
+    @GetMapping("/me")
+    public ResponseEntity<PageResponseDTO<PaymentListResponseDTO>> getMyPayments(
+            @AuthenticationPrincipal Long memberId, // 로그인한 회원 ID 사용
+            PageRequestDTO pageRequestDTO) {
+
+        PageResponseDTO<PaymentListResponseDTO> response = paymentService.getMyPaymentList(memberId, pageRequestDTO);
+        return ResponseEntity.ok(response);
+    }
+
+    // 특정 결제 ID에 대한 결제 상세 조회
+    @GetMapping("/{paymentId}")
+    public ResponseEntity<PaymentDetailResponseDTO> getPaymentDetail(@PathVariable("paymentId") Long paymentId) {
+        PaymentDetailResponseDTO response = paymentService.getPaymentDetail(paymentId);
+        return ResponseEntity.ok(response);
     }
 }

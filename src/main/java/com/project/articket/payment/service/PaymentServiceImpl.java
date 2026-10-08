@@ -2,203 +2,259 @@ package com.project.articket.payment.service;
 
 import com.project.articket.common.dto.PageRequestDTO;
 import com.project.articket.common.dto.PageResponseDTO;
-import com.project.articket.exhibition.repository.ExhibitionRepository;
-import com.project.articket.payment.dto.*;
+import com.project.articket.payment.dto.PaymentConfirmRequestDTO;
+import com.project.articket.payment.dto.PaymentConfirmResponseDTO;
+import com.project.articket.payment.dto.PaymentDetailResponseDTO;
+import com.project.articket.payment.dto.PaymentListResponseDTO;
 import com.project.articket.payment.entity.Payment;
 import com.project.articket.payment.entity.PaymentStatus;
 import com.project.articket.payment.repository.PaymentRepository;
-import com.project.articket.reservation.dto.ReservationCancelDTO;
 import com.project.articket.reservation.entity.Reservation;
 import com.project.articket.reservation.entity.ReservationStatus;
 import com.project.articket.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.time.LocalDate;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
+
     private final PaymentRepository paymentRepository;
     private final ReservationRepository reservationRepository;
-    private final WebClient webClient;
+    private final WebClient paymentWebClient;
 
     @Value("${toss.secret-key}")
     private String tossSecretKey;
 
-    @Override
-    public PageResponseDTO<PaymentListResponseDTO> paymentList(String searchType, String keyword, PageRequestDTO pageRequestDTO) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Long memberId = (Long) authentication.getPrincipal();
-        Page<Payment> paymentList;
-
-        if ("paymentOrderId".equals(searchType)) {
-            paymentList = paymentRepository.findByReservation_Member_MemberIdAndPaymentOrderIdContaining(memberId, keyword, pageRequestDTO.getPageable("paymentCreatedAt"));
-
-        } else if ("exhibitionTitle".equals(searchType)) {
-            paymentList = paymentRepository.findByReservation_Member_MemberIdAndReservation_Exhibition_ExhibitionTitleContaining(memberId, keyword, pageRequestDTO.getPageable("paymentCreatedAt"));
-        } else {
-            paymentList = paymentRepository.findByReservation_Member_MemberId(memberId, pageRequestDTO.getPageable("paymentCreatedAt"));
-        }
-
-        Page<PaymentListResponseDTO> dtoList = paymentList.map((payment) -> {
-            PaymentListResponseDTO dto = new PaymentListResponseDTO();
-            dto.setPaymentAmount(payment.getPaymentAmount());
-            dto.setPaymentStatus(payment.getPaymentStatus());
-            dto.setExhibitionTitle(payment.getReservation().getExhibition().getExhibitionTitle());
-            dto.setPaymentCreatedAt(payment.getPaymentCreatedAt());
-            dto.setPaymentId(payment.getPaymentId());
-            dto.setPaymentOrderId(payment.getPaymentOrderId());
-            return dto;
-        });
-
-        return new PageResponseDTO<>(dtoList.getContent(), pageRequestDTO, paymentList.getTotalElements());
-    }
-
-    @Override
-    public PaymentDetailResponseDTO paymentDetail(Long paymentId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Long memberId = (Long) authentication.getPrincipal();
-        Payment payment = paymentRepository.findById(paymentId).orElseThrow(() -> new IllegalArgumentException("해당 결제가 존재하지 않습니다."));
-
-        if (!memberId.equals(payment.getReservation().getMember().getMemberId())) {
-            throw new IllegalArgumentException("동일한 회원이 아닙니다.");
-        }
-
-        PaymentDetailResponseDTO dto = new PaymentDetailResponseDTO();
-
-        dto.setPaymentId(payment.getPaymentId());
-        dto.setPaymentAmount(payment.getPaymentAmount());
-        dto.setPaymentStatus(payment.getPaymentStatus());
-        dto.setPaymentApprovedAt(payment.getPaymentApprovedAt());
-        dto.setReservationId(payment.getReservation().getReservationId());
-        dto.setPaymentMethod(payment.getPaymentMethod());
-        dto.setPaymentCanceledAt(payment.getPaymentCanceledAt());
-        dto.setPaymentCreatedAt(payment.getPaymentCreatedAt());
-        dto.setPaymentRefundAmount(payment.getPaymentRefundAmount());
-        dto.setPaymentOrderId(payment.getPaymentOrderId());
-
-        return dto;
-    }
-
     @Transactional
     @Override
-    public PaymentConfirmResponseDTO paymentConfirm(PaymentConfirmRequestDTO paymentConfirmRequestDTO) {
-        Reservation reservation = reservationRepository.findByReservationOrderId(paymentConfirmRequestDTO.getOrderId()).orElseThrow(() -> new IllegalArgumentException("해당 예약이 존재하지 않습니다."));
+    public PaymentConfirmResponseDTO confirmPayment(
+            PaymentConfirmRequestDTO paymentConfirmRequestDTO
+    ) {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // 1. 주문 번호로 예약 조회
+        Reservation reservation = reservationRepository
+                .findByReservationOrderId(
+                        paymentConfirmRequestDTO.getOrderId()
+                )
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "예약 정보를 찾을 수 없습니다."
+                        )
+                );
 
-        Long memberId = (Long) authentication.getPrincipal();
+        // 2. 예약 상태 확인
+        if (reservation.getReservationStatus()
+                != ReservationStatus.PENDING) {
 
-        if (!memberId.equals(reservation.getMember().getMemberId())) {
-            throw new IllegalArgumentException("동일한 회원이 아닙니다.");
+            throw new IllegalArgumentException(
+                    "결제할 수 없는 예약입니다."
+            );
         }
-        if (reservation.getReservationStatus() != ReservationStatus.PENDING) {
-            throw new IllegalArgumentException("결제할 수 없는 예약입니다.");
+
+        // 3. 결제 금액 검증
+        if (!reservation.getReservationAmount()
+                .equals(paymentConfirmRequestDTO.getAmount())) {
+
+            throw new IllegalArgumentException(
+                    "결제 금액이 올바르지 않습니다."
+            );
         }
 
-        if (!reservation.getReservationAmount().equals(paymentConfirmRequestDTO.getAmount())) {
-            throw new IllegalArgumentException("결제 금액이 올바르지 않습니다.");
-        }
+        // 4. Toss Secret Key를 Base64로 인코딩
+        String encodedSecretKey = Base64.getEncoder()
+                .encodeToString(
+                        (tossSecretKey + ":")
+                                .getBytes(StandardCharsets.UTF_8)
+                );
 
-        String auth = tossSecretKey + ":";
-
-        PaymentConfirmResponseDTO response = webClient.post()
-                .uri("https://api.tosspayments.com/v1/payments/confirm")
-                .header("Authorization", "Basic " + Base64.getEncoder().encodeToString(auth.getBytes()))
-                .bodyValue(paymentConfirmRequestDTO)
+        // 5. Toss 결제 승인 요청
+        Map<String, Object> tossResponse = paymentWebClient.post()
+                .uri("/v1/payments/confirm")
+                .header(
+                        HttpHeaders.AUTHORIZATION,
+                        "Basic " + encodedSecretKey
+                )
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(Map.of(
+                        "paymentKey",
+                        paymentConfirmRequestDTO.getPaymentKey(),
+                        "orderId",
+                        paymentConfirmRequestDTO.getOrderId(),
+                        "amount",
+                        paymentConfirmRequestDTO.getAmount()
+                ))
                 .retrieve()
-                .onStatus(status -> status.isError(), clientResponse -> clientResponse.bodyToMono(String.class)
-                        .map(message -> new IllegalArgumentException("Toss 결제 승인 실패: " + message)))
-                .bodyToMono(PaymentConfirmResponseDTO.class)
+                .bodyToMono(Map.class)
                 .block();
 
-        Payment payment = new Payment(reservation,
-                response.getPaymentOrderId(),
-                response.getPaymentKey(),
-                response.getPaymentAmount(),
-                response.getPaymentStatus(),
-                response.getPaymentMethod(),
-                response.getPaymentApprovedAt());
-        reservation.setReservationStatus(ReservationStatus.RESERVED);
+        // 6. Toss 승인 결과에서 필요한 값 추출
+        String paymentKey =
+                (String) tossResponse.get("paymentKey");
+
+        String orderId =
+                (String) tossResponse.get("orderId");
+
+        Number totalAmount =
+                (Number) tossResponse.get("totalAmount");
+
+        String method =
+                (String) tossResponse.get("method");
+
+        String approvedAt =
+                (String) tossResponse.get("approvedAt");
+
+        // 7. Payment 생성
+        LocalDateTime approvedAtTime = null;
+
+        if (approvedAt != null) {
+            approvedAtTime = LocalDateTime.parse(
+                    approvedAt.substring(0, 19)
+            );
+        }
+
+        Payment payment = new Payment(
+                reservation,
+                orderId,
+                paymentKey,
+                totalAmount.longValue(),
+                PaymentStatus.DONE,
+                method,
+                approvedAtTime
+        );
+
+        // 8. Payment 저장
         paymentRepository.save(payment);
 
-        return response;
+        // 9. 예약 상태 변경
+        reservation.reserve();
+
+        // 10. 결제 승인 결과 반환
+        return new PaymentConfirmResponseDTO(
+                payment.getPaymentKey(),
+                reservation.getReservationId(),
+                payment.getPaymentOrderId(),
+                payment.getPaymentAmount(),
+                payment.getPaymentStatus(),
+                payment.getPaymentMethod(),
+                payment.getPaymentApprovedAt()
+        );
     }
 
     @Transactional
     @Override
-    public void paymentRefund(Long paymentId, ReservationCancelDTO reservationCancelDTO) {
-        Payment payment = paymentRepository.findById(paymentId).orElseThrow(() -> new IllegalArgumentException("해당 결제가 존재하지 않습니다."));
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Long memberId = (Long) authentication.getPrincipal();
+    public void cancelPayment(Long reservationId, Long refundAmount) {
+        Payment payment = paymentRepository.findByReservation_ReservationId(reservationId).orElseThrow(() -> new IllegalArgumentException("결제 정보를 찾을 수 없습니다."));
 
-        if (!memberId.equals(payment.getReservation().getMember().getMemberId())) {
-            throw new IllegalArgumentException("동일한 회원이 아닙니다.");
+        if (payment.getPaymentStatus() != PaymentStatus.DONE) {
+            throw new IllegalArgumentException("취소 할 수 없는 결제입니다.");
         }
 
-        if (!payment.getReservation().getReservationStatus().equals(ReservationStatus.RESERVED)) {
-            throw new IllegalArgumentException("환불 할 수 없는 예약입니다.");
-        }
+        String encodedSecretKey = Base64.getEncoder().encodeToString((tossSecretKey + ":").getBytes(StandardCharsets.UTF_8));
 
-        if (!payment.getPaymentStatus().equals(PaymentStatus.DONE)) {
-            throw new IllegalArgumentException("환불이 불가능합니다.");
-        }
 
-        LocalDate today = LocalDate.now();
-        LocalDate reservationDay = payment.getReservation().getReservationDay();
-        LocalDateTime reservationCreatedAt = payment.getReservation().getReservationCreatedAt();
-        boolean within24hours = ChronoUnit.HOURS.between(reservationCreatedAt, LocalDateTime.now()) < 24;
-        long daysUntil = ChronoUnit.DAYS.between(today, reservationDay);
-        int refundRate;
-
-        if (daysUntil <= 0) {
-            throw new IllegalArgumentException("환불 할 수 없는 예약입니다.");
-        }
-
-        if (daysUntil >= 10 || (daysUntil >= 3 && within24hours)) {
-            refundRate = 100;
-        } else if (daysUntil >= 7) {
-            refundRate = 90;
-        } else if (daysUntil >= 3) {
-            refundRate = 80;
-        } else {
-            refundRate = 70;
-        }
-
-        long refundAmount = payment.getPaymentAmount() * refundRate / 100;
-        String auth = tossSecretKey + ":";
-        PaymentCancelRequestDTO request = new PaymentCancelRequestDTO("고객 요청에 의한 예약 취소", refundAmount);
-
-        PaymentCancelResponseDTO response = webClient.post()
-                .uri("https://api.tosspayments.com/v1/payments/{paymentKey}/cancel", payment.getPaymentKey())
-                .header("Authorization", "Basic " + Base64.getEncoder().encodeToString(auth.getBytes()))
-                .bodyValue(request)
+        Map<String, Object> tossResponse = paymentWebClient.post()
+                .uri("/v1/payments/" + payment.getPaymentKey() + "/cancel")
+                .header(
+                        HttpHeaders.AUTHORIZATION,
+                        "Basic " + encodedSecretKey
+                )
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(Map.of(
+                        "cancelReason", "고객 예약 취소",
+                        "cancelAmount", refundAmount
+                ))
                 .retrieve()
-                .onStatus(status -> status.isError(), clientResponse -> clientResponse.bodyToMono(String.class).map(message -> new IllegalArgumentException("Toss 환불 실패: " + message)))
-                .bodyToMono(PaymentCancelResponseDTO.class)
+                .bodyToMono(Map.class)
                 .block();
 
-        if (response.getCancels() == null || response.getCancels().isEmpty() || !"DONE".equals(response.getCancels().get(0).getCancelStatus())) {
-            throw new IllegalArgumentException("환불이 정상적으로 처리되지 않았습니다.");
+
+        payment.setPaymentStatus(PaymentStatus.CANCELED);
+        payment.setPaymentRefundAmount(refundAmount);
+        payment.setPaymentCanceledAt(LocalDateTime.now());
+    }
+
+
+    // ======================================================
+    // ======================================================
+
+
+    // 내 결제 내역 페이징/검색/정렬 조회
+    public PageResponseDTO<PaymentListResponseDTO> getMyPaymentList(Long memberId, PageRequestDTO pageRequestDTO) {
+        // 정렬 조건 설정 (기본값: 최신순 desc)
+        Sort sort = "asc".equalsIgnoreCase(pageRequestDTO.getSort())
+                ? Sort.by("paymentCreatedAt").ascending()
+                : Sort.by("paymentCreatedAt").descending();
+
+        Pageable pageable = PageRequest.of(pageRequestDTO.getPage() - 1, pageRequestDTO.getSize(), sort);
+
+        Page<Payment> result;
+        String searchType = pageRequestDTO.getSearchType();
+        String keyword = pageRequestDTO.getKeyword();
+
+        // 검색 조건 분기 처리
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            if ("orderId".equals(searchType)) {
+                result = paymentRepository.findByReservation_Member_MemberIdAndPaymentOrderIdContaining(memberId, keyword, pageable);
+            } else { // 기본값: 전시명(title) 검색
+                result = paymentRepository.findByReservation_Member_MemberIdAndReservation_Exhibition_ExhibitionTitleContaining(memberId, keyword, pageable);
+            }
+        } else {
+            result = paymentRepository.findByReservation_Member_MemberId(memberId, pageable);
         }
 
+        // DTO 변환
+        List<PaymentListResponseDTO> dtoList = result.getContent().stream()
+                .map(payment -> new PaymentListResponseDTO(
+                        payment.getPaymentId(),
+                        payment.getPaymentOrderId(),
+                        payment.getReservation().getExhibition().getExhibitionTitle(),
+                        payment.getPaymentAmount(),
+                        payment.getPaymentStatus(),
+                        payment.getPaymentCreatedAt()
+                ))
+                .collect(Collectors.toList());
 
+        // 💡 생성자를 직접 호출하여 PageResponseDTO 객체 생성
+        return new PageResponseDTO<>(dtoList, pageRequestDTO, result.getTotalElements());
+    }
 
-        payment.setPaymentCanceledAt(LocalDateTime.now());
-        payment.setPaymentRefundAmount(refundAmount);
-        payment.setPaymentStatus(PaymentStatus.CANCELED);
+    /**
+     * 결제 단건 상세 조회 (paymentId 기반)
+     */
+    @Override
+    public PaymentDetailResponseDTO getPaymentDetail(Long paymentId) {
+        // 💡 reservationId가 아닌 paymentId(PK)로 조회
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 결제 내역이 존재하지 않습니다. ID: " + paymentId));
 
-        payment.getReservation().cancel(reservationCancelDTO.getCancelReason(), reservationCancelDTO.getCancelDetail());
+        return new PaymentDetailResponseDTO(
+                payment.getPaymentId(),
+                payment.getPaymentOrderId(),
+                payment.getReservation().getReservationId(), // 💡 상세 DTO에 reservationId 정상 포함
+                payment.getPaymentAmount(),
+                payment.getPaymentStatus(),
+                payment.getPaymentApprovedAt(),
+                payment.getPaymentMethod(),
+                payment.getPaymentRefundAmount(),
+                payment.getPaymentCreatedAt(),
+                payment.getPaymentCanceledAt()
+        );
     }
 }

@@ -6,6 +6,7 @@ import com.project.articket.exhibition.entity.Exhibition;
 import com.project.articket.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -64,6 +65,7 @@ public class Ask {
     @Builder.Default
     private List<AskImage> images = new ArrayList<>();
 
+    @BatchSize(size = 100)
     @OneToMany(mappedBy = "askId", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Builder.Default
     private List<AskReply> replies = new ArrayList<>();

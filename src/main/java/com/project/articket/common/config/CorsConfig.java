@@ -13,7 +13,7 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
         public void addCorsMappings(CorsRegistry registry) {
             registry.addMapping("/**")
-                    .allowedOrigins("http://localhost:5173","http://localhost:5174", "http://192.168.32.20:5173/")
+                    .allowedOrigins("http://localhost:5173","http://localhost:5174", "http://192.168.32.20:5173")
                     .allowedMethods("GET",
                                     "POST",
                                     "PUT",

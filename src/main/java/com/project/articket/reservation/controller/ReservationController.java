@@ -30,10 +30,16 @@ public class ReservationController {
         return reservationDTO;
     }
 
+    @GetMapping("/order/{orderId}")
+    public ReservationDTO reservationDetailByOrderId(@PathVariable String orderId) {
+        return reservationService.reservationDetailByOrderId(orderId);
+    }
+
     @PostMapping
-    void reservationCreate(@Valid @RequestBody ReservationCreateDTO reservationCreateDTO, Authentication authentication) {
+    public ReservationDTO reservationCreate(@Valid @RequestBody ReservationCreateDTO reservationCreateDTO, Authentication authentication) {
         Long memberId = (Long) authentication.getPrincipal();
-        reservationService.reservationCreate(memberId, reservationCreateDTO);
+
+        return reservationService.reservationCreate(memberId, reservationCreateDTO);
     }
 
     @DeleteMapping("/{reservationId}/cancel")
