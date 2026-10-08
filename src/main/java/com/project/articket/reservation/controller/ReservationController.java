@@ -30,6 +30,11 @@ public class ReservationController {
         return reservationDTO;
     }
 
+    @GetMapping("/order/{orderId}")
+    public ReservationDTO reservationDetailByOrderId(@PathVariable String orderId) {
+        return reservationService.reservationDetailByOrderId(orderId);
+    }
+
     @PostMapping
     public ReservationDTO reservationCreate(@Valid @RequestBody ReservationCreateDTO reservationCreateDTO, Authentication authentication) {
         Long memberId = (Long) authentication.getPrincipal();

@@ -5,4 +5,6 @@ import com.project.articket.payment.dto.PaymentConfirmResponseDTO;
 
 public interface PaymentService {
     PaymentConfirmResponseDTO confirmPayment(PaymentConfirmRequestDTO paymentConfirmRequestDTO);
+
+    void cancelPayment(Long reservationId, Long refundAmount);
 }
