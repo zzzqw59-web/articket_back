@@ -35,8 +35,33 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public PageResponseDTO<ReservationDTO> reservationList(Long memberId, PageRequestDTO pageRequestDTO) {
-        Page<Reservation> page = reservationRepository.findByMemberMemberId(memberId, pageRequestDTO.getPageable("reservationCreatedAt"));
+        // 1. 정렬 조건 설정 (기본값: reservationCreatedAt desc)
+        org.springframework.data.domain.Sort sort = "asc".equalsIgnoreCase(pageRequestDTO.getSort())
+                ? org.springframework.data.domain.Sort.by("reservationCreatedAt").ascending()
+                : org.springframework.data.domain.Sort.by("reservationCreatedAt").descending();
 
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(pageRequestDTO.getPage() - 1, pageRequestDTO.getSize(), sort);
+
+        Page<Reservation> page;
+        String searchType = pageRequestDTO.getSearchType();
+        String keyword = pageRequestDTO.getKeyword();
+
+        // 2. 검색 조건 분기 처리
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            if ("orderId".equals(searchType) || "bookingId".equals(searchType)) {
+                // 주문/예약 번호로 검색
+                page = reservationRepository.findByMemberMemberIdAndReservationOrderIdContaining(memberId, keyword, pageable);
+            } else {
+                // 기본값: 전시 제목(title) 검색
+                page = reservationRepository.findByMemberMemberIdAndExhibitionExhibitionTitleContaining(memberId, keyword, pageable);
+            }
+        } else {
+            // 검색어가 없을 경우 전체 조회
+            page = reservationRepository.findByMemberMemberId(memberId, pageable);
+        }
+
+        // 3. DTO 변환
         List<ReservationDTO> dtolist = page.getContent().stream().map(reservation -> {
             ReservationDTO dto = new ReservationDTO();
             dto.setReservationId(reservation.getReservationId());
