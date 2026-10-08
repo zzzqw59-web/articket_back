@@ -26,7 +26,8 @@ public class MyReplyRepositoryImpl implements MyReplyRepositoryCustom {
         // 검색 조건 처리 (댓글 내용 검색 기준)
         String searchSql = "";
         if (keyword != null && !keyword.trim().isEmpty()) {
-            searchSql = " AND combined.reply_content LIKE CONCAT('%', :keyword, '%') ";
+            // 오라클 문자열 연결은 CONCAT 대신 || 또는 LIKE '%' || :keyword || '%' 사용을 권장
+            searchSql = " AND combined.reply_content LIKE '%' || :keyword || '%' ";
         }
 
         // 1. REVIEW_REPLY와 ASK_REPLY를 UNION ALL로 통합
@@ -55,12 +56,13 @@ public class MyReplyRepositoryImpl implements MyReplyRepositoryCustom {
             }
         }
 
-        // 2. 데이터 목록 조회 (정렬 방향 동적 반영 및 LIMIT/OFFSET 페이징)
-        String selectSql = unionSql + " ORDER BY GREATEST(combined.created_at, combined.modified_at) " + sortDirection + " LIMIT :limit OFFSET :offset";
+        // 2. 데이터 목록 조회 (LIMIT / OFFSET 문자열 제거!)
+        String selectSql = unionSql + " ORDER BY GREATEST(combined.created_at, combined.modified_at) " + sortDirection;
+
         Query dataQuery = em.createNativeQuery(selectSql)
                 .setParameter("memberId", memberId)
-                .setParameter("limit", pageable.getPageSize())
-                .setParameter("offset", pageable.getOffset());
+                .setFirstResult((int) pageable.getOffset()) // 👈 JPA 페이징 API 적용 (OFFSET 대체)
+                .setMaxResults(pageable.getPageSize());    // 👈 JPA 페이징 API 적용 (LIMIT 대체)
 
         if (keyword != null && !keyword.trim().isEmpty()) {
             dataQuery.setParameter("keyword", keyword);
