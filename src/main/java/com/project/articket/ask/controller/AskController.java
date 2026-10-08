@@ -8,11 +8,13 @@ import com.project.articket.ask.service.AskService;
 import com.project.articket.common.dto.PageRequestDTO;
 import com.project.articket.common.dto.PageResponseDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -24,15 +26,16 @@ public class AskController {
     private final AskService askService;
 
     // 1. 문의글 작성 (파일 업로드 포함)
-    // POST /api/asks
-    // - RequestPart로 DTO(JSON)와 MultipartFile 리스트를 전달받음
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Long> createAsk(
             Authentication authentication,
             @RequestPart("requestDto") AskCreateRequestDTO requestDto,
             @RequestPart(value = "files", required = false) List<MultipartFile> files
     ) {
-        Long memberId = (Long) authentication.getPrincipal();
+        Long memberId = getMemberId(authentication);
+        if (memberId == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
 
         Long askId = askService.createAsk(
                 memberId,
@@ -44,7 +47,6 @@ public class AskController {
     }
 
     // 2. 문의글 목록 조회 (검색 + 페이징 + 비밀글 필터링)
-    // GET /api/asks
     @GetMapping
     public ResponseEntity<PageResponseDTO<AskListResponseDTO>> getAskList(
             @RequestParam(value = "searchType", required = false) String searchType,
@@ -70,7 +72,6 @@ public class AskController {
     }
 
     // 3. 문의글 상세 조회
-    // GET /api/asks/{askId}
     @GetMapping("/{askId}")
     public ResponseEntity<AskResponseDTO> getAskDetail(
             @PathVariable("askId") Long askId,
@@ -87,8 +88,7 @@ public class AskController {
         return ResponseEntity.ok(response);
     }
 
-    // 4. 문의글 수정 (기존 이미지 유지 목록 + 새 이미지 파일 첨부)
-    // PUT /api/asks/{askId}
+    // 4. 문의글 수정
     @PutMapping(
             value = "/{askId}",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
@@ -99,8 +99,10 @@ public class AskController {
             @RequestPart("requestDto") AskUpdateRequestDTO requestDto,
             @RequestPart(value = "newFiles", required = false) List<MultipartFile> newFiles
     ) {
-        Long memberId =
-                (Long) authentication.getPrincipal();
+        Long memberId = getMemberId(authentication);
+        if (memberId == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
 
         Long updatedAskId =
                 askService.updateAsk(
@@ -114,14 +116,15 @@ public class AskController {
     }
 
     // 5. 문의글 삭제
-    // DELETE /api/asks/{askId}
     @DeleteMapping("/{askId}")
     public ResponseEntity<Void> deleteAsk(
             @PathVariable("askId") Long askId,
             Authentication authentication
     ) {
-        Long memberId =
-                (Long) authentication.getPrincipal();
+        Long memberId = getMemberId(authentication);
+        if (memberId == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
 
         askService.deleteAsk(
                 askId,
@@ -131,36 +134,44 @@ public class AskController {
         return ResponseEntity.noContent().build();
     }
 
-    private Long getMemberId(
+    // 💡 6. 마이페이지 문의글 조회 (수정 완료)
+    @GetMapping("/my")
+    public ResponseEntity<PageResponseDTO<AskListResponseDTO>> getMyAskList(
+            @RequestParam(value = "searchType", required = false) String searchType,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "askType", required = false) Integer askType,
+            @RequestParam(value = "sort", required = false) String sort,
+            PageRequestDTO pageRequestDTO,
             Authentication authentication
     ) {
-        if (authentication == null
-                || !authentication.isAuthenticated()) {
-
-            return null;
+        Long loginMemberId = getMemberId(authentication);
+        if (loginMemberId == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
         }
 
-        return (Long) authentication.getPrincipal();
+        // 💡 올바른 서비스 메서드(getMyAskList) 호출로 보정
+        PageResponseDTO<AskListResponseDTO> response =
+                askService.getMyAskList(
+                        loginMemberId,
+                        searchType,
+                        keyword,
+                        askType,
+                        sort,
+                        pageRequestDTO
+                );
+
+        return ResponseEntity.ok(response);
     }
 
-    private String getMemberType(
-            Authentication authentication
-    ) {
-        if (authentication == null
-                || !authentication.isAuthenticated()) {
-
+    private Long getMemberId(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
             return null;
         }
 
-        return authentication
-                .getAuthorities()
-                .stream()
-                .findFirst()
-                .map(authority ->
-                        authority
-                                .getAuthority()
-                                .replaceFirst("^ROLE_", "")
-                )
-                .orElse(null);
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof Long) {
+            return (Long) principal;
+        }
+        return null;
     }
 }

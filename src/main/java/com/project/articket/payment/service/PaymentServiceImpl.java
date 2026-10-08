@@ -137,7 +137,8 @@ public class PaymentServiceImpl implements PaymentService {
 
         // 10. 결제 승인 결과 반환
         return new PaymentConfirmResponseDTO(
-                payment.getPaymentId(),
+                payment.getPaymentKey(),
+                reservation.getReservationId(),
                 payment.getPaymentOrderId(),
                 payment.getPaymentAmount(),
                 payment.getPaymentStatus(),
