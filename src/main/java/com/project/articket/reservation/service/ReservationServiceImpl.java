@@ -6,6 +6,7 @@ import com.project.articket.exhibition.entity.Exhibition;
 import com.project.articket.exhibition.repository.ExhibitionRepository;
 import com.project.articket.member.entity.Member;
 import com.project.articket.member.repository.MemberRepository;
+import com.project.articket.payment.service.PaymentService;
 import com.project.articket.reservation.dto.ReservationCancelDTO;
 import com.project.articket.reservation.dto.ReservationCreateDTO;
 import com.project.articket.reservation.dto.ReservationDTO;
@@ -28,6 +29,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final ReservationRepository reservationRepository;
     private final ExhibitionRepository exhibitionRepository;
     private final MemberRepository memberRepository;
+    private final PaymentService paymentService;
 
     @Override
     public PageResponseDTO<ReservationDTO> reservationList(Long memberId, PageRequestDTO pageRequestDTO) {
@@ -145,6 +147,7 @@ public class ReservationServiceImpl implements ReservationService {
     public void reservationCancel(Long memberId, Long reservationId, ReservationCancelDTO reservationCancelDTO) {
         // 회원이 직접 예약을 취소
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new IllegalArgumentException("해당 예약이 존재하지 않습니다."));
+
         if (!reservation.getMember().getMemberId().equals(memberId)) {
             throw new IllegalArgumentException("본인의 예약만 취소할 수 있습니다.");
         }
@@ -157,7 +160,9 @@ public class ReservationServiceImpl implements ReservationService {
             throw new IllegalArgumentException("기타 취소 사유를 입력해주세요.");
         }
 
-        reservation.cancel(reservationCancelDTO.getCancelReason(), reservation.getReservationCancelDetail());
+        Long refundAmount = reservation.getReservationAmount();
+        paymentService.cancelPayment(reservationId, refundAmount);
+        reservation.cancel(reservationCancelDTO.getCancelReason(), reservationCancelDTO.getCancelDetail());
     }
 
     @Transactional

@@ -146,4 +146,35 @@ public class PaymentServiceImpl implements PaymentService {
                 payment.getPaymentApprovedAt()
         );
     }
+
+    @Transactional
+    @Override
+    public void cancelPayment(Long reservationId, Long refundAmount) {
+        Payment payment = paymentRepository.findByReservation_ReservationId(reservationId).orElseThrow(() -> new IllegalArgumentException("결제 정보를 찾을 수 없습니다."));
+
+        if (payment.getPaymentStatus() != PaymentStatus.DONE) {
+            throw new IllegalArgumentException("취소 할 수 없는 결제입니다.");
+        }
+
+        String encodedSecretKey = Base64.getEncoder().encodeToString((tossSecretKey + ":").getBytes(StandardCharsets.UTF_8));
+
+        Map<String, Object> tossResponse = paymentWebClient.post()
+                .uri("/v1/payments/" + payment.getPaymentKey() + "/cancel")
+                .header(
+                        HttpHeaders.AUTHORIZATION,
+                        "Basic " + encodedSecretKey
+                )
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(Map.of(
+                        "cancelReason", "고객 예약 취소",
+                        "cancelAmount", refundAmount
+                ))
+                .retrieve()
+                .bodyToMono(Map.class)
+                .block();
+
+        payment.setPaymentStatus(PaymentStatus.CANCELED);
+        payment.setPaymentRefundAmount(refundAmount);
+        payment.setPaymentCanceledAt(LocalDateTime.now());
+    }
 }
