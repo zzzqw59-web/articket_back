@@ -18,8 +18,6 @@ import com.project.articket.exhibition.repository.ExhibitionRepository;
 
 import com.project.articket.member.entity.Member;
 import com.project.articket.member.repository.MemberRepository;
-import com.project.articket.notification.service.NotificationService;
-import com.project.articket.staff.entity.Staff;
 import com.project.articket.staff.repository.StaffRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -251,7 +249,7 @@ public class AskServiceImpl implements AskService {
 
     // 6. 마이페이지 문의글 목록 조회
     @Override
-    public PageResponseDTO<AskListResponseDTO> getMyAskList(Long memberId, String searchType, String keyword, Integer askType, String sort, PageRequestDTO pageRequestDTO) {
+    public PageResponseDTO<AskListResponseDTO> getMyAskList(Long memberId, Integer askType, PageRequestDTO pageRequestDTO) {
         Pageable pageable = pageRequestDTO.getPageable("askId");
 
         // 💡 DTO에서 searchType, keyword, sort 값을 직접 추출하여 Repository에 전달
