@@ -118,9 +118,17 @@ public class PersonalDataCrypto {
     public String encryptPhone(String phone) {
 
         try {
+            // 실제 휴대폰 번호는 구분기호 없이 암호화하여 중복 조회 기준을 통일한다.
+            // 회원탈퇴 익명화 값(withdrawn_...)은 휴대폰 번호가 아니므로 유지한다.
+            String normalizedPhone = phone.replaceAll("\\D", "");
+            String valueToEncrypt = !phone.startsWith("withdrawn_")
+                    && normalizedPhone.matches("01\\d{8,9}")
+                    ? normalizedPhone
+                    : phone;
+
             byte[] encrypted =
                     phoneDeterministicAead.encryptDeterministically(
-                            phone.getBytes(StandardCharsets.UTF_8),
+                            valueToEncrypt.getBytes(StandardCharsets.UTF_8),
                             PHONE_ASSOCIATED_DATA
                     );
 

@@ -1,3 +1,4 @@
+
 package com.project.articket.reservation.controller;
 
 import com.project.articket.common.dto.PageRequestDTO;
@@ -28,7 +29,7 @@ public class ReservationController {
     @GetMapping("/{reservationId}")
     public ReservationDTO reservationDetail(@PathVariable Long reservationId, Authentication authentication) {
         Long memberId = (Long) authentication.getPrincipal();
-        ReservationDTO reservationDTO = reservationService.reservationDetail(reservationId);
+        ReservationDTO reservationDTO = reservationService.reservationDetail(memberId, reservationId);
         return reservationDTO;
     }
 

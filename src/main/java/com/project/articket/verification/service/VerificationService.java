@@ -1,3 +1,4 @@
+
 package com.project.articket.verification.service;
 
 import com.project.articket.verification.entity.Verification;
@@ -8,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -18,10 +20,23 @@ public class VerificationService {
 
     private final SecureRandom secureRandom = new SecureRandom();
 
+    private void validateVerificationType(String verificationType) {
+        if (!List.of(
+                "SIGNUP",
+                "PASSWORD_RESET",
+                "MEMBER_UPDATE"
+        ).contains(verificationType)) {
+            throw new IllegalArgumentException(
+                    "지원하지 않는 휴대폰 인증 목적입니다."
+            );
+        }
+    }
+
     public void sendVerificationCode(
             String phoneNumber,
             String verificationType
     ) {
+        validateVerificationType(verificationType);
 
         String verificationCode =
                 String.format("%06d", secureRandom.nextInt(1000000));
@@ -51,6 +66,7 @@ public class VerificationService {
             String verificationCode,
             String verificationType
     ) {
+        validateVerificationType(verificationType);
 
         Verification verification = verificationRepository
                 .findTopByPhoneNumberAndVerificationTypeOrderByVerificationCreatedAtDescVerificationIdDesc(
@@ -88,6 +104,7 @@ public class VerificationService {
             String phoneNumber,
             String verificationType
     ) {
+        validateVerificationType(verificationType);
 
         Verification verification = verificationRepository
                 .findTopByPhoneNumberAndVerificationTypeOrderByVerificationCreatedAtDescVerificationIdDesc(

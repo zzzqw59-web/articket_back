@@ -1,3 +1,4 @@
+
 package com.project.articket.withdraw.service;
 
 import com.project.articket.member.entity.Member;
@@ -84,19 +85,25 @@ public class WithdrawService {
             );
         }
 
+        LocalDate today =
+                LocalDate.now(
+                        ZoneId.of("Asia/Seoul")
+                );
+
         boolean hasActiveReservation =
                 withdrawReservationRepository
-                        .existsByMemberMemberIdAndReservationStatusIn(
+                        .existsByMemberMemberIdAndReservationStatusInAndReservationDayGreaterThanEqual(
                                 memberId,
                                 List.of(
                                         ReservationStatus.PENDING,
                                         ReservationStatus.RESERVED
-                                )
+                                ),
+                                today
                         );
 
         if (hasActiveReservation) {
             throw new RuntimeException(
-                    "진행 중이거나 완료된 예약이 있어 탈퇴를 신청할 수 없습니다."
+                    "관람일이 지나지 않은 예약이 있어 탈퇴를 신청할 수 없습니다."
             );
         }
 
@@ -105,14 +112,21 @@ public class WithdrawService {
                         .existsByReservation_Member_MemberIdAndPaymentStatusIn(
                                 memberId,
                                 List.of(
-                                        PaymentStatus.READY,
-                                        PaymentStatus.DONE
+                                        PaymentStatus.READY
                                 )
                         );
 
-        if (hasActivePayment) {
+        boolean hasUnrefundedCanceledPayment =
+                withdrawPaymentRepository
+                        .existsByReservation_Member_MemberIdAndPaymentStatusAndReservation_ReservationStatus(
+                                memberId,
+                                PaymentStatus.DONE,
+                                ReservationStatus.CANCELED
+                        );
+
+        if (hasActivePayment || hasUnrefundedCanceledPayment) {
             throw new RuntimeException(
-                    "처리 중이거나 완료된 결제가 있어 탈퇴를 신청할 수 없습니다."
+                    "진행 중인 결제 또는 환불되지 않은 취소 결제가 있어 탈퇴를 신청할 수 없습니다."
             );
         }
 

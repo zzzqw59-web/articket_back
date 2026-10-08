@@ -1,3 +1,4 @@
+
 package com.project.articket.member.service;
 
 import com.project.articket.common.crypto.PersonalDataCrypto;
@@ -27,6 +28,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final VerificationService verificationService;
+    private final RefreshTokenService refreshTokenService;
     private final PersonalDataCrypto personalDataCrypto;
     private final PasswordEncoder passwordEncoder;
 
@@ -292,6 +294,10 @@ public class MemberService {
         member.updatePassword(
                 encodedPassword
         );
+
+        refreshTokenService.delete(
+                member.getMemberId()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -407,6 +413,10 @@ public class MemberService {
 
             member.updatePassword(
                     encodedPassword
+            );
+
+            refreshTokenService.delete(
+                    member.getMemberId()
             );
         }
 
