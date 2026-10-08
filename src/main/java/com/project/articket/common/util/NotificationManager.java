@@ -5,6 +5,8 @@ import com.project.articket.member.entity.Member;
 import com.project.articket.member.repository.MemberRepository;
 import com.project.articket.notification.dto.NotificationCreateDTO;
 import com.project.articket.notification.service.NotificationService;
+import com.project.articket.staff.entity.Staff;
+import com.project.articket.staff.repository.StaffRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -12,9 +14,10 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class NotificationManger {
+public class NotificationManager {
 
     private final MemberRepository memberRepository;
+    private final StaffRepository staffRepository;
     private final NotificationService notificationService;
 
     // 1. 전체 관리자 대상 알림 (문의글 등록 등)
@@ -35,9 +38,23 @@ public class NotificationManger {
         }
     }
 
-    // 3. 특정 전시 담당자(STAFF) 대상 알림 (추후 구현용)
+    // 3. 특정 전시 담당자(STAFF) 대상 알림
     public void notifyExhibitionStaffs(Long exhibitionId, int notificationType, Long targetId) {
-        /* TODO: exhibitionManagerRepository에서 STAFF 목록 조회 후 send() 호출 */
+        if (exhibitionId == null) return;
+
+        List<Staff> staffList = staffRepository.findByExhibitionExhibitionId(exhibitionId);
+
+        for (Staff staff : staffList) {
+            if (staff.getMember() != null) {
+                notificationService.createNotification(
+                        NotificationCreateDTO.builder()
+                                .receiver(staff.getMember())
+                                .notificationType(notificationType)
+                                .notificationTargetId(targetId)
+                                .build()
+                );
+            }
+        }
     }
 
     // 공통 단건 발송 메서드
