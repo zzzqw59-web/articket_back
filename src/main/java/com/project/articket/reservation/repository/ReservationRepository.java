@@ -24,6 +24,14 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             ReservationStatus reservationStatus
     );
 
+    // 동일 회원의 동일 전시, 동일 관람일 예약 여부 확인
+    boolean existsByMemberMemberIdAndExhibitionExhibitionIdAndReservationDayAndReservationStatus(
+            Long memberId,
+            Long exhibitionId,
+            LocalDate reservationDay,
+            ReservationStatus reservationStatus
+    );
+
     @Query("""
     SELECT DISTINCT new com.project.articket.review.dto.ReviewAvailableExhibitionDTO(
         r.exhibition.exhibitionId,

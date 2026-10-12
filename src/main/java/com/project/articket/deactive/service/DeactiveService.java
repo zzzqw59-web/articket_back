@@ -6,6 +6,8 @@ import com.project.articket.deactive.entity.Deactive;
 import com.project.articket.deactive.repository.DeactiveRepository;
 import com.project.articket.member.entity.Member;
 import com.project.articket.member.repository.MemberRepository;
+import com.project.articket.withdraw.enums.WithdrawStatus;
+import com.project.articket.withdraw.repository.WithdrawRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,7 @@ public class DeactiveService {
 
     private final DeactiveRepository deactiveRepository;
     private final MemberRepository memberRepository;
+    private final WithdrawRepository withdrawRepository;
 
     @Transactional
     public void deactivateMember(
@@ -150,6 +153,15 @@ public class DeactiveService {
             );
         }
 
+        if (withdrawRepository.existsByMemberMemberIdAndWithdrawStatus(
+                memberId,
+                WithdrawStatus.COMPLETED
+        )) {
+            throw new RuntimeException(
+                    "탈퇴 완료된 회원은 활성화할 수 없습니다."
+            );
+        }
+
         if (member.getMemberStatus()
                 == Member.STATUS_ACTIVE) {
             throw new RuntimeException(
@@ -258,6 +270,13 @@ public class DeactiveService {
                             );
 
             if (!releaseDate.isAfter(today)) {
+                if (withdrawRepository.existsByMemberMemberIdAndWithdrawStatus(
+                        deactive.getMember().getMemberId(),
+                        WithdrawStatus.COMPLETED
+                )) {
+                    continue;
+                }
+
                 deactive.getMember().activate();
             }
         }
