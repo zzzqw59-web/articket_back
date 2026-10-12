@@ -18,6 +18,7 @@ import com.project.articket.exhibition.repository.ExhibitionRepository;
 
 import com.project.articket.member.entity.Member;
 import com.project.articket.member.repository.MemberRepository;
+import com.project.articket.notification.enums.NotificationType; // 💡 알림 타입 Enum 임포트
 import com.project.articket.staff.repository.StaffRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -78,15 +79,15 @@ public class AskServiceImpl implements AskService {
             }
         }
 
-        // --- [1. 관리자 대상 새 문의 등록 알림 발송] ---
-        notificationManager.notifyAllAdmins(0, savedAsk.getAskId());
+        // --- [1. 관리자 대상 새 문의 등록 알림 발송 (10: ASK_NEW)] ---
+        notificationManager.notifyAllAdmins(NotificationType.ASK_NEW.getCode(), savedAsk.getAskId());
 
 
-        // --- [2. 전시 관계자(STAFF) 대상 알림 발송] ---
+        // --- [2. 전시 관계자(STAFF) 대상 알림 발송 (10: ASK_NEW)] ---
         if (savedAsk.getExhibitionId() != null) {
             notificationManager.notifyExhibitionStaffs(
                     savedAsk.getExhibitionId().getExhibitionId(),
-                    0, // 알림 타입 (새 문의 등록)
+                    NotificationType.ASK_NEW.getCode(),
                     savedAsk.getAskId()
             );
         }
@@ -136,7 +137,6 @@ public class AskServiceImpl implements AskService {
             boolean isOwner = loginMemberId != null && loginMemberId.equals(ask.getMemberId().getMemberId());
             boolean isAdmin = MemberRole.ADMIN.equalsKey(loginMemberType);
 
-            // 💡 전시 관계자(STAFF) 권한 체크: 해당 전시의 담당 Staff로 등록되어 있는지 확인
             boolean isExhibitionManager = false;
             if (loginMemberId != null && MemberRole.STAFF.equalsKey(loginMemberType) && ask.getExhibitionId() != null) {
                 isExhibitionManager = staffRepository.existsByMemberMemberIdAndExhibitionExhibitionId(
@@ -156,7 +156,7 @@ public class AskServiceImpl implements AskService {
         return AskResponseDTO.from(ask, images);
     }
 
-    // 4. 문의글 수정
+    // 4. 문의글 수정 (관리자에 의한 수정 시 작성자에게 알림 발송 포함)
     @Override
     @Transactional
     public Long updateAsk(Long askId, Long memberId, AskUpdateRequestDTO requestDto, List<MultipartFile> newFiles) {
@@ -219,10 +219,20 @@ public class AskServiceImpl implements AskService {
             }
         }
 
+        // 💡 [관리자에 의한 수정인 경우, 작성자에게 알림 발송 (12: ASK_UPDATE)]
+        if (isAdmin && !isWriter) {
+            notificationManager.notifyUser(
+                    ask.getMemberId(),
+                    NotificationType.ASK_UPDATE.getCode(),
+                    ask.getAskId(),
+                    memberId
+            );
+        }
+
         return ask.getAskId();
     }
 
-    // 5. 문의글 삭제
+    // 5. 문의글 삭제 (관리자에 의한 삭제 시 작성자에게 알림 발송 포함)
     @Override
     @Transactional
     public void deleteAsk(Long askId, Long memberId) {
@@ -244,6 +254,16 @@ public class AskServiceImpl implements AskService {
             fileUtil.deleteFile(image.getAskImageFilename());
         }
 
+        // 💡 [관리자에 의한 삭제인 경우, 실제 삭제 직전 작성자에게 알림 발송 (13: ASK_DELETE)]
+        if (isAdmin && !isWriter) {
+            notificationManager.notifyUser(
+                    ask.getMemberId(),
+                    NotificationType.ASK_DELETE.getCode(),
+                    ask.getAskId(),
+                    memberId
+            );
+        }
+
         askRepository.delete(ask);
     }
 
@@ -252,7 +272,6 @@ public class AskServiceImpl implements AskService {
     public PageResponseDTO<AskListResponseDTO> getMyAskList(Long memberId, Integer askType, PageRequestDTO pageRequestDTO) {
         Pageable pageable = pageRequestDTO.getPageable("askId");
 
-        // 💡 DTO에서 searchType, keyword, sort 값을 직접 추출하여 Repository에 전달
         Page<Ask> askPage = askRepository.searchMyAsks(
                 memberId,
                 pageRequestDTO.getSearchType(),
