@@ -1,5 +1,6 @@
 package com.project.articket.deactive.service;
 
+import com.project.articket.common.util.NotificationManager;
 import com.project.articket.deactive.dto.DeactiveRequestDTO;
 import com.project.articket.deactive.dto.DeactiveResponseDTO;
 import com.project.articket.deactive.entity.Deactive;
@@ -24,6 +25,7 @@ public class DeactiveService {
     private final DeactiveRepository deactiveRepository;
     private final MemberRepository memberRepository;
     private final WithdrawRepository withdrawRepository;
+    private final NotificationManager notificationManager;
 
     @Transactional
     public void deactivateMember(
@@ -110,9 +112,18 @@ public class DeactiveService {
                         .deactiveTerm(term)
                         .build();
 
-        deactiveRepository.save(deactive);
+        Deactive savedDeactive = deactiveRepository.save(deactive);
 
         member.deactivate();
+
+        // 회원 비활성화 알림 발송 (type: 3, targetId: 비활성화 내역 ID)
+        // notifyUser 내부에서 본인 여부 체크(receiver != currentMemberId)를 하므로 adminId를 currentMemberId로 전달
+        notificationManager.notifyUser(
+                member,
+                3, // 회원 비활성화 알림 타입
+                savedDeactive.getDeactiveId(),
+                adminMemberId
+        );
     }
 
     @Transactional
