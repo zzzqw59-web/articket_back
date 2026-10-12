@@ -28,7 +28,7 @@ public class Notification {
     private Member memberId;
 
     @Column(name = "NOTIFICATION_TYPE", nullable = false)
-    private Integer notificationType; // 0: 새 문의, 1: 리뷰 댓글, 2: 문의 댓글
+    private Integer notificationType; // 0: 새 문의, 1: 리뷰 댓글, 2: 문의 댓글, 3: 회원 비활성화
 
     @Column(name = "NOTIFICATION_TARGET_ID", nullable = false)
     private Long notificationTargetId; // REVIEW_ID 또는 ASK_ID
