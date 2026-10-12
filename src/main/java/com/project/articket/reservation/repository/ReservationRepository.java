@@ -13,7 +13,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-public interface ReservationRepository extends JpaRepository<Reservation, Long> {
+public interface ReservationRepository extends JpaRepository<Reservation, Long>, ReservationRepositoryCustom {
     Page<Reservation> findByMemberMemberId(Long memberId, Pageable pageable);
 
     Optional<Reservation> findByReservationOrderId(String reservationOrderId);
