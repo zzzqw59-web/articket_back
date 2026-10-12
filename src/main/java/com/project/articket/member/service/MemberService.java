@@ -29,6 +29,7 @@ public class MemberService {
     private final VerificationService verificationService;
     private final PersonalDataCrypto personalDataCrypto;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService;
 
     public boolean isEmailAvailable(String email) {
         return !memberRepository.existsByMemberEmail(email);
@@ -292,6 +293,8 @@ public class MemberService {
         member.updatePassword(
                 encodedPassword
         );
+
+        refreshTokenService.delete(member.getMemberId());
     }
 
     @Transactional(readOnly = true)
@@ -408,6 +411,8 @@ public class MemberService {
             member.updatePassword(
                     encodedPassword
             );
+
+            refreshTokenService.delete(memberId);
         }
 
         member.updatePhone(
