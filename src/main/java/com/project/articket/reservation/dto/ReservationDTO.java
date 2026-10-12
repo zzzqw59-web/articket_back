@@ -1,5 +1,6 @@
 package com.project.articket.reservation.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.project.articket.exhibition.entity.Exhibition;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,8 +22,10 @@ public class ReservationDTO {
     private LocalDate reservationDay;
     private Integer reservationPerson;
     private Long reservationAmount;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime reservationCreatedAt;
     private String reservationStatus;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime reservationCanceledAt;
     private Long exhibitionId;
 }

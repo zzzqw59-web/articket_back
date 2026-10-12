@@ -27,7 +27,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<MyReviewListResponseDTO> searchMyReviews(Long memberId, String searchType, String keyword, Pageable pageable) {
+    public Page<MyReviewListResponseDTO> searchMyReviews(Long memberId, String searchType, String keyword, String sort, Pageable pageable) {
 
         // 1. DTO 직접 조회 (검색 조건 및 동적 정렬 적용)
         List<MyReviewListResponseDTO> content = queryFactory
@@ -81,8 +81,16 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
     private OrderSpecifier<?> getOrderSpecifier(Pageable pageable) {
         if (pageable.getSort().isSorted()) {
             for (Sort.Order order : pageable.getSort()) {
-                if (order.isAscending()) {
-                    return review.reviewCreatedAt.asc(); // 오래된 순
+                if (order.getProperty().equals("reviewHits")) {
+                    return order.isAscending()
+                            ? review.reviewHits.asc()
+                            : review.reviewHits.desc();
+                }
+
+                if (order.getProperty().equals("reviewCreatedAt")) {
+                    return order.isAscending()
+                            ? review.reviewCreatedAt.asc()
+                            : review.reviewCreatedAt.desc();
                 }
             }
         }

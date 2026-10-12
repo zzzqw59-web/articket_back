@@ -5,5 +5,5 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface MyReplyRepositoryCustom {
-    Page<MyReplyListResponseDTO> searchMyReplies(Long memberId, String searchType, String keyword, Pageable pageable);
+    Page<MyReplyListResponseDTO> searchMyReplies(Long memberId, String searchType, String keyword, String sort, Pageable pageable);
 }
