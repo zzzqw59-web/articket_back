@@ -121,6 +121,8 @@ public class CustomSecurityConfig {
                                 "/api/staff/**"
                         ).hasRole("STAFF")
 
+                        .requestMatchers("/api/statistic/**").hasAnyRole("STAFF", "ADMIN")
+
                         .anyRequest()
                         .authenticated()
                 )

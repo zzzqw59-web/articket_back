@@ -34,7 +34,7 @@ class MemberRepositoryTests {
     @Test
     void insertEncryptedTestMember() {
 
-        String email = "12345";
+        String email = "123@123.123";
         String password = "1234";
         String nickname = "테스트회원";
         String name = "홍길동";

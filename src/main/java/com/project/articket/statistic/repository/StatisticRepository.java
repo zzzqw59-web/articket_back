@@ -1,10 +1,8 @@
 package com.project.articket.statistic.repository;
 
 
-import com.project.articket.exhibition.entity.Exhibition;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;

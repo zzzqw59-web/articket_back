@@ -1,17 +1,13 @@
 package com.project.articket.statistic.controller;
 
-import com.project.articket.exhibition.entity.Exhibition;
 import com.project.articket.statistic.dto.CancelDetailResponseDTO;
 import com.project.articket.statistic.dto.CancelReasonStatsResponseDTO;
 import com.project.articket.statistic.dto.StatisticRequestDTO;
 import com.project.articket.statistic.dto.StatisticResponseDTO;
 import com.project.articket.statistic.service.StatisticService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
