@@ -137,10 +137,7 @@ public class AskController {
     // 💡 6. 마이페이지 문의글 조회 (수정 완료)
     @GetMapping("/my")
     public ResponseEntity<PageResponseDTO<AskListResponseDTO>> getMyAskList(
-            @RequestParam(value = "searchType", required = false) String searchType,
-            @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "askType", required = false) Integer askType,
-            @RequestParam(value = "sort", required = false) String sort,
             PageRequestDTO pageRequestDTO,
             Authentication authentication
     ) {
@@ -149,15 +146,12 @@ public class AskController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
         }
 
-        // 💡 올바른 서비스 메서드(getMyAskList) 호출로 보정
+        // pageRequestDTO 내부에 searchType, keyword, sort가 모두 자동 바인딩되어 있음
         PageResponseDTO<AskListResponseDTO> response =
                 askService.getMyAskList(
                         loginMemberId,
-                        searchType,
-                        keyword,
                         askType,
-                        sort,
-                        pageRequestDTO
+                        pageRequestDTO // 💡 DTO 통째로 전달
                 );
 
         return ResponseEntity.ok(response);

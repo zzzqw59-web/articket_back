@@ -1,5 +1,6 @@
 package com.project.articket.payment.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.project.articket.payment.entity.PaymentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,9 +19,12 @@ public class PaymentDetailResponseDTO {
     private Long reservationId;
     private Long paymentAmount;
     private PaymentStatus paymentStatus;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime paymentApprovedAt;
     private String paymentMethod;
     private Long paymentRefundAmount;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime paymentCreatedAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime paymentCanceledAt;
 }

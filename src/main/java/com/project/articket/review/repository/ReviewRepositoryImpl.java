@@ -27,7 +27,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<MyReviewListResponseDTO> searchMyReviews(Long memberId, String searchType, String keyword, Pageable pageable) {
+    public Page<MyReviewListResponseDTO> searchMyReviews(Long memberId, String searchType, String keyword, String sort, Pageable pageable) {
 
         // 1. DTO 직접 조회 (검색 조건 및 동적 정렬 적용)
         List<MyReviewListResponseDTO> content = queryFactory

@@ -6,5 +6,5 @@ import org.springframework.data.domain.Pageable;
 
 public interface ReviewRepositoryCustom {
     // 마이페이지: 내 리뷰 목록 조회
-    Page<MyReviewListResponseDTO> searchMyReviews(Long memberId, String searchType, String keyword, Pageable pageable);
+    Page<MyReviewListResponseDTO> searchMyReviews(Long memberId, String searchType, String keyword, String sort, Pageable pageable);
 }
