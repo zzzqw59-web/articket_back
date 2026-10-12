@@ -269,5 +269,6 @@ public class ReservationServiceImpl implements ReservationService {
         reservationDTO.setExhibitionId(reservation.getExhibition().getExhibitionId());
 
         return reservationDTO;
+
     }
 }
