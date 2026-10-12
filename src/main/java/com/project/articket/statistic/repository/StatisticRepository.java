@@ -15,7 +15,7 @@ public class StatisticRepository {
     @PersistenceContext
     private EntityManager em;
 
-    public List<Object[]> findProfit(Long exhibitionId, LocalDate startDate, LocalDate endDate){
+    public List<Object[]> findProfit(Long exhibitionId, LocalDate startDate, LocalDate endDate) {
         StringBuilder sql = new StringBuilder("""
                 SELECT 
                 TRUNC(reservation_created_at) AS anchor_date,
@@ -26,27 +26,27 @@ public class StatisticRepository {
                           AND reservation_created_at < :endDate
                 """);
 
-        if (exhibitionId != null){
+        if (exhibitionId != null) {
             sql.append(" AND exhibition_id = :exhibitionId ");
         }
 
         sql.append("""
-                       GROUP BY TRUNC(reservation_created_at)
-                       ORDER BY anchor_date
-                       """);
+                GROUP BY TRUNC(reservation_created_at)
+                ORDER BY anchor_date
+                """);
 
         var query = em.createNativeQuery(sql.toString())
                 .setParameter("startDate", startDate)
                 .setParameter("endDate", endDate.plusDays(1));
 
-        if (exhibitionId != null){
+        if (exhibitionId != null) {
             query.setParameter("exhibitionId", exhibitionId);
         }
 
         return query.getResultList();
     }
 
-    public List<Object[]> findReservation(Long exhibitionId, LocalDate startDate, LocalDate endDate){
+    public List<Object[]> findReservation(Long exhibitionId, LocalDate startDate, LocalDate endDate) {
         StringBuilder sql = new StringBuilder("""
                 SELECT 
                 TRUNC(reservation_created_at) AS anchor_date,
@@ -57,27 +57,27 @@ public class StatisticRepository {
                 AND reservation_created_at < :endDate
                 """);
 
-        if (exhibitionId != null){
+        if (exhibitionId != null) {
             sql.append(" AND exhibition_id = :exhibitionId ");
         }
 
         sql.append("""
-                        GROUP BY TRUNC(reservation_created_at) 
-                       ORDER BY anchor_date 
-                       """);
+                 GROUP BY TRUNC(reservation_created_at) 
+                ORDER BY anchor_date 
+                """);
 
         var query = em.createNativeQuery(sql.toString())
                 .setParameter("startDate", startDate)
                 .setParameter("endDate", endDate.plusDays(1));
 
-        if (exhibitionId != null){
+        if (exhibitionId != null) {
             query.setParameter("exhibitionId", exhibitionId);
         }
 
         return query.getResultList();
     }
 
-    public List<Object[]> findVisitor(Long exhibitionId, LocalDate startDate, LocalDate endDate){
+    public List<Object[]> findVisitor(Long exhibitionId, LocalDate startDate, LocalDate endDate) {
         StringBuilder sql = new StringBuilder("""
                 SELECT 
                 TRUNC(reservation_day) AS anchor_date,
@@ -89,24 +89,67 @@ public class StatisticRepository {
                 AND reservation_day < :endDate
                 """);
 
-        if (exhibitionId != null){
+        if (exhibitionId != null) {
             sql.append(" AND exhibition_id = :exhibitionId ");
         }
 
         sql.append("""
-                        GROUP BY TRUNC(reservation_day) 
-                       ORDER BY anchor_date 
-                       """);
+                 GROUP BY TRUNC(reservation_day) 
+                ORDER BY anchor_date 
+                """);
 
         var query = em.createNativeQuery(sql.toString())
                 .setParameter("startDate", startDate)
                 .setParameter("endDate", endDate.plusDays(1));
 
-        if (exhibitionId != null){
+        if (exhibitionId != null) {
             query.setParameter("exhibitionId", exhibitionId);
         }
 
         return query.getResultList();
     }
 
+    public List<Object[]> findCancelReasonStats(Long exhibitionId) {
+        StringBuilder sql = new StringBuilder("""
+            SELECT
+                reservation_cancel_reason,
+                COUNT(*) AS cancel_count
+            FROM reservation
+            WHERE reservation_cancel_reason IS NOT NULL
+            AND reservation_status = 'CANCELED'
+            """);
+
+        if (exhibitionId != null) {
+            sql.append(" AND exhibition_id = :exhibitionId ");
+        }
+
+        sql.append("""
+            GROUP BY reservation_cancel_reason
+            ORDER BY reservation_cancel_reason
+            """);
+
+        var query = em.createNativeQuery(sql.toString());
+
+        if (exhibitionId != null) {
+            query.setParameter("exhibitionId", exhibitionId);
+        }
+
+        return query.getResultList();
+    }
+
+    public List<Object[]> findCancelDetail(Long exhibitionId) {
+        String sql = """
+                SELECT  reservation_created_at, reservation_cancel_detail
+                FROM reservation
+                WHERE reservation_status = 'CANCELED'
+                  AND exhibition_id = :exhibitionId
+                  AND reservation_cancel_reason = 'OTHER'
+                  AND reservation_cancel_detail IS NOT NULL
+                ORDER BY reservation_canceled_at DESC
+                """;
+
+        return em.createNativeQuery(sql)
+                .setParameter("exhibitionId", exhibitionId)
+                .getResultList();
+    }
 }

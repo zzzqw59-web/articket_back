@@ -1,10 +1,14 @@
 package com.project.articket.statistic.controller;
 
 import com.project.articket.exhibition.entity.Exhibition;
+import com.project.articket.statistic.dto.CancelDetailResponseDTO;
+import com.project.articket.statistic.dto.CancelReasonStatsResponseDTO;
+import com.project.articket.statistic.dto.StatisticRequestDTO;
 import com.project.articket.statistic.dto.StatisticResponseDTO;
 import com.project.articket.statistic.service.StatisticService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -17,32 +21,47 @@ public class StatisticController {
     private final StatisticService statisticService;
 
     @GetMapping("/profit/total")
-    public Long findTotalProfit(@RequestParam(required = false)  Long exhibitionId, @RequestParam LocalDate startDate, @RequestParam LocalDate endDate) {
-        return statisticService.findTotalProfit(exhibitionId, startDate, endDate);
+    public Long findTotalProfit(@ModelAttribute StatisticRequestDTO request) {
+        return statisticService.findTotalProfit(null, request.getStartDate(), request.getEndDate());
     }
 
     @GetMapping("/profit/{exhibitionId}")
-    public List<StatisticResponseDTO> findProfitList(@PathVariable Long exhibitionId, @RequestParam LocalDate startDate, @RequestParam LocalDate endDate) {
-        return statisticService.findProfitList(exhibitionId, startDate, endDate);
+    public List<StatisticResponseDTO> findProfitList(@PathVariable Long exhibitionId, @ModelAttribute StatisticRequestDTO request) {
+        return statisticService.findProfitList(exhibitionId, request.getStartDate(), request.getEndDate());
     }
 
     @GetMapping("/visitor/total")
-    public Long findTotalVisitor(@RequestParam(required = false)  Long exhibitionId, @RequestParam LocalDate startDate, @RequestParam LocalDate endDate) {
-        return statisticService.findTotalVisitor(exhibitionId, startDate, endDate);
+    public Long findTotalVisitor(@ModelAttribute StatisticRequestDTO request) {
+        return statisticService.findTotalVisitor(null, request.getStartDate(), request.getEndDate());
     }
 
     @GetMapping("/visitor/{exhibitionId}")
-    public List<StatisticResponseDTO> findVisitorList(@PathVariable Long exhibitionId, @RequestParam LocalDate startDate, @RequestParam LocalDate endDate) {
-        return statisticService.findVisitorList(exhibitionId, startDate, endDate);
+    public List<StatisticResponseDTO> findVisitorList(@PathVariable Long exhibitionId, @ModelAttribute StatisticRequestDTO request) {
+        return statisticService.findVisitorList(exhibitionId, request.getStartDate(), request.getEndDate());
     }
 
     @GetMapping("/reservation/total")
-    public Long findTotalReservation(@RequestParam(required = false) Long exhibitionId, @RequestParam LocalDate startDate, @RequestParam LocalDate endDate) {
-        return statisticService.findTotalReservation(exhibitionId, startDate, endDate);
+    public Long findTotalReservation(@ModelAttribute StatisticRequestDTO request) {
+        return statisticService.findTotalReservation(null, request.getStartDate(), request.getEndDate());
     }
 
     @GetMapping("/reservation/{exhibitionId}")
-    public List<StatisticResponseDTO> findReservationList(@PathVariable Long exhibitionId, @RequestParam LocalDate startDate, @RequestParam LocalDate endDate) {
-        return statisticService.findReservationList(exhibitionId, startDate, endDate);
+    public List<StatisticResponseDTO> findReservationList(@PathVariable Long exhibitionId, @ModelAttribute StatisticRequestDTO request) {
+        return statisticService.findReservationList(exhibitionId, request.getStartDate(), request.getEndDate());
+    }
+
+    @GetMapping("/cancel/total")
+    public List<CancelReasonStatsResponseDTO> findTotalCancelReason(){
+        return statisticService.findCancelReasonStats(null);
+    }
+
+    @GetMapping("/cancel/{exhibitionId}")
+    public List<CancelReasonStatsResponseDTO> findCancelReasonList(@PathVariable Long exhibitionId){
+        return statisticService.findCancelReasonStats(exhibitionId);
+    }
+
+    @GetMapping("/cancel/detail/{exhibitionId}")
+    public List<CancelDetailResponseDTO> findCancelDetail(@PathVariable Long exhibitionId){
+        return statisticService.findCancelDetail(exhibitionId);
     }
 }

@@ -1,11 +1,12 @@
 package com.project.articket.statistic.service;
 
 
-import com.project.articket.exhibition.entity.Exhibition;
+import com.project.articket.reservation.entity.ReservationCancelReason;
+import com.project.articket.statistic.dto.CancelDetailResponseDTO;
+import com.project.articket.statistic.dto.CancelReasonStatsResponseDTO;
 import com.project.articket.statistic.dto.StatisticResponseDTO;
 import com.project.articket.statistic.repository.StatisticRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 
@@ -16,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
@@ -128,4 +131,25 @@ public class StatisticService {
                 .mapToLong(StatisticResponseDTO::getValue)
                 .sum();
     }
+
+    public List<CancelReasonStatsResponseDTO> findCancelReasonStats(Long exhibitionId){
+        List<Object[]> result = repository.findCancelReasonStats(exhibitionId);
+        return result.stream()
+                .map(row->new CancelReasonStatsResponseDTO(
+                        ReservationCancelReason.valueOf((String) row[0]),
+                        ((Number) row[1]).longValue()
+                ))
+        .toList();
+    }
+
+    public List<CancelDetailResponseDTO> findCancelDetail(Long exhibitionId){
+        List<Object[]> result = repository.findCancelDetail(exhibitionId);
+        return result.stream()
+                .map(row-> new CancelDetailResponseDTO(
+                        ((LocalDateTime) row[0]),
+                        ((String) row[1])
+                ))
+        .toList();
+    }
+
 }
