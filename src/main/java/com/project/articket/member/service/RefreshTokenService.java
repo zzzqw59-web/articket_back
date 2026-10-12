@@ -1,5 +1,7 @@
 package com.project.articket.member.service;
 
+import com.project.articket.common.util.CustomJWTException;
+import com.project.articket.common.util.JWTUtil;
 import com.project.articket.member.entity.Member;
 import com.project.articket.member.entity.RefreshToken;
 import com.project.articket.member.repository.MemberRepository;
@@ -18,6 +20,7 @@ public class RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final MemberRepository memberRepository;
+    private final JWTUtil jwtUtil;
 
     public void saveOrUpdate(
             Long memberId,
@@ -60,6 +63,26 @@ public class RefreshTokenService {
                         refreshToken.getRefreshTokenValue()
                                 .equals(refreshTokenValue)
                 )
+                .orElse(false);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean matchesSession(Long memberId, String sessionId) {
+        if (sessionId == null || sessionId.isBlank()) {
+            return false;
+        }
+
+        return refreshTokenRepository.findByMemberMemberId(memberId)
+                .filter(token -> token.getRefreshTokenExpiresAt().isAfter(LocalDateTime.now()))
+                .map(token -> {
+                    try {
+                        return sessionId.equals(jwtUtil.validateToken(
+                                token.getRefreshTokenValue(), "REFRESH"
+                        ).get("sessionId"));
+                    } catch (CustomJWTException exception) {
+                        return false;
+                    }
+                })
                 .orElse(false);
     }
 

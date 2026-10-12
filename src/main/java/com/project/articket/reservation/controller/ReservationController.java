@@ -38,7 +38,6 @@ public class ReservationController {
     @PostMapping
     public ReservationDTO reservationCreate(@Valid @RequestBody ReservationCreateDTO reservationCreateDTO, Authentication authentication) {
         Long memberId = (Long) authentication.getPrincipal();
-        reservationService.reservationCreate(memberId, reservationCreateDTO);
 
         return reservationService.reservationCreate(memberId, reservationCreateDTO);
     }
