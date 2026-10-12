@@ -82,11 +82,11 @@
 //        memberRepository.saveAll(List.of(member1, member2, admin));
 //
 //        // 2. 더미 전시 생성
-////        Exhibition exhibition = Exhibition.builder()
-////                .exhibitionTitle("반 고흐, 영혼의 편지 展")
-////                .build();
-////
-////        exhibitionRepository.save(exhibition);
+//        Exhibition exhibition = Exhibition.builder()
+//                .exhibitionTitle("반 고흐, 영혼의 편지 展")
+//                .build();
+//
+//        exhibitionRepository.save(exhibition);
 //
 //        // 3. 더미 문의글 생성 (일반 문의 1개, 전시 관련 문의 1개)
 //        Ask ask1 = Ask.builder()
