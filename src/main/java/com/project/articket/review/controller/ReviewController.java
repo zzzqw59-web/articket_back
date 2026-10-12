@@ -89,4 +89,9 @@ public class ReviewController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/reviews/staffpage/{exhibitionId}")
+    public PageResponseDTO<ReviewDTO> getStaffPageReview(@PathVariable Long exhibitionId, PageRequestDTO pageRequestDTO){
+        return reviewService.findByExhibition_ExhibitionId(exhibitionId, pageRequestDTO);
+    }
+
 }

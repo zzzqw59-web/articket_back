@@ -168,4 +168,10 @@ public class AskController {
         }
         return null;
     }
+
+    @GetMapping("/staffpage/{exhibitionId}")
+    public ResponseEntity<PageResponseDTO<AskListResponseDTO>> getStaffPageAsk(@PathVariable Long exhibitionId, PageRequestDTO pageRequestDTO){
+        PageResponseDTO<AskListResponseDTO> response = askService.findByExhibitionId_ExhibitionId(exhibitionId, pageRequestDTO);
+        return ResponseEntity.ok(response);
+    }
 }
