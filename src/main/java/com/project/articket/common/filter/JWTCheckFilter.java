@@ -2,6 +2,7 @@ package com.project.articket.common.filter;
 
 import com.project.articket.common.util.CustomJWTException;
 import com.project.articket.common.util.JWTUtil;
+import com.project.articket.member.service.RefreshTokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +24,7 @@ import java.util.Map;
 public class JWTCheckFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     protected void doFilterInternal(
@@ -52,7 +54,7 @@ public class JWTCheckFilter extends OncePerRequestFilter {
         try {
 
             Map<String, Object> claims =
-                    jwtUtil.validateToken(accessToken);
+                    jwtUtil.validateToken(accessToken, "ACCESS");
 
             Long memberId =
                     ((Number) claims.get("memberId"))
@@ -60,6 +62,12 @@ public class JWTCheckFilter extends OncePerRequestFilter {
 
             String memberType =
                     (String) claims.get("memberType");
+            String sessionId = (String) claims.get("sessionId");
+
+            if (memberType == null || memberType.isBlank()
+                    || !refreshTokenService.matchesSession(memberId, sessionId)) {
+                throw new CustomJWTException("REVOKED");
+            }
 
             SimpleGrantedAuthority authority =
                     new SimpleGrantedAuthority(

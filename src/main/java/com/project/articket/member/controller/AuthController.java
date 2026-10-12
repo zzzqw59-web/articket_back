@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -73,19 +74,16 @@ public class AuthController {
                 (MemberAuthDTO) authentication.getPrincipal();
 
         Map<String, Object> claims =
-                memberAuthDTO.getClaims();
+                new HashMap<>(memberAuthDTO.getClaims());
+        claims.put("sessionId", UUID.randomUUID().toString());
 
-        String accessToken =
-                jwtUtil.generateToken(
-                        claims,
-                        30
-                );
+        Map<String, Object> accessClaims = new HashMap<>(claims);
+        accessClaims.put("tokenType", "ACCESS");
+        String accessToken = jwtUtil.generateToken(accessClaims, 30);
 
-        String refreshToken =
-                jwtUtil.generateToken(
-                        claims,
-                        60 * 24
-                );
+        Map<String, Object> refreshClaims = new HashMap<>(claims);
+        refreshClaims.put("tokenType", "REFRESH");
+        String refreshToken = jwtUtil.generateToken(refreshClaims, 60 * 24);
 
         refreshTokenService.saveOrUpdate(
                 memberAuthDTO.getMemberId(),
@@ -123,7 +121,7 @@ public class AuthController {
 
             Map<String, Object> claims =
                     jwtUtil.validateToken(
-                            refreshToken
+                            refreshToken, "REFRESH"
                     );
 
             Long memberId =
@@ -164,7 +162,7 @@ public class AuthController {
 
             Map<String, Object> claims =
                     jwtUtil.validateToken(
-                            refreshToken
+                            refreshToken, "REFRESH"
                     );
 
             Long memberId =
@@ -192,6 +190,8 @@ public class AuthController {
                     "memberType",
                     claims.get("memberType")
             );
+            tokenClaims.put("sessionId", claims.get("sessionId"));
+            tokenClaims.put("tokenType", "ACCESS");
 
             String accessToken =
                     jwtUtil.generateToken(
