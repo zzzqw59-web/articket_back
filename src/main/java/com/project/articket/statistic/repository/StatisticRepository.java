@@ -75,6 +75,38 @@ public class StatisticRepository {
         return query.getResultList();
     }
 
+
+    public List<Object[]> findCanceledReservation(Long exhibitionId, LocalDate startDate, LocalDate endDate) {
+        StringBuilder sql = new StringBuilder("""
+                SELECT 
+                TRUNC(RESERVATION_CANCELED_AT) AS anchor_date,
+                COUNT(*) as canceled 
+                FROM reservation 
+                WHERE reservation_status = 'CANCELED' 
+                AND RESERVATION_CANCELED_AT >= :startDate 
+                AND RESERVATION_CANCELED_AT < :endDate
+                """);
+
+        if (exhibitionId != null) {
+            sql.append(" AND exhibition_id = :exhibitionId ");
+        }
+
+        sql.append("""
+                 GROUP BY TRUNC(RESERVATION_CANCELED_AT) 
+                ORDER BY anchor_date 
+                """);
+
+        var query = em.createNativeQuery(sql.toString())
+                .setParameter("startDate", startDate)
+                .setParameter("endDate", endDate.plusDays(1));
+
+        if (exhibitionId != null) {
+            query.setParameter("exhibitionId", exhibitionId);
+        }
+
+        return query.getResultList();
+    }
+
     public List<Object[]> findVisitor(Long exhibitionId, LocalDate startDate, LocalDate endDate) {
         StringBuilder sql = new StringBuilder("""
                 SELECT 
@@ -109,22 +141,22 @@ public class StatisticRepository {
 
     public List<Object[]> findCancelReasonStats(Long exhibitionId) {
         StringBuilder sql = new StringBuilder("""
-            SELECT
-                reservation_cancel_reason,
-                COUNT(*) AS cancel_count
-            FROM reservation
-            WHERE reservation_cancel_reason IS NOT NULL
-            AND reservation_status = 'CANCELED'
-            """);
+                SELECT
+                    reservation_cancel_reason,
+                    COUNT(*) AS cancel_count
+                FROM reservation
+                WHERE reservation_cancel_reason IS NOT NULL
+                AND reservation_status = 'CANCELED'
+                """);
 
         if (exhibitionId != null) {
             sql.append(" AND exhibition_id = :exhibitionId ");
         }
 
         sql.append("""
-            GROUP BY reservation_cancel_reason
-            ORDER BY reservation_cancel_reason
-            """);
+                GROUP BY reservation_cancel_reason
+                ORDER BY reservation_cancel_reason
+                """);
 
         var query = em.createNativeQuery(sql.toString());
 

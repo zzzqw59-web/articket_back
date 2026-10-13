@@ -46,6 +46,16 @@ public class StatisticController {
         return statisticService.findReservationList(exhibitionId, request.getStartDate(), request.getEndDate());
     }
 
+    @GetMapping("/reservation/canceled/total")
+    public Long findTotalCanceledReservation(@ModelAttribute StatisticRequestDTO request) {
+        return statisticService.findTotalCanceledReservation(null, request.getStartDate(), request.getEndDate());
+    }
+
+    @GetMapping("/reservation/canceled/{exhibitionId}")
+    public List<StatisticResponseDTO> findCanceledReservationList(@PathVariable Long exhibitionId, @ModelAttribute StatisticRequestDTO request) {
+        return statisticService.findCanceledReservationList(exhibitionId, request.getStartDate(), request.getEndDate());
+    }
+
     @GetMapping("/cancel/total")
     public List<CancelReasonStatsResponseDTO> findTotalCancelReason(){
         return statisticService.findCancelReasonStats(null);

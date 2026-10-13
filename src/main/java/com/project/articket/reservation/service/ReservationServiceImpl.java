@@ -1,5 +1,6 @@
 package com.project.articket.reservation.service;
 
+import com.project.articket.common.crypto.PersonalDataCrypto;
 import com.project.articket.common.dto.PageRequestDTO;
 import com.project.articket.common.dto.PageResponseDTO;
 import com.project.articket.exhibition.entity.Exhibition;
@@ -10,6 +11,7 @@ import com.project.articket.payment.service.PaymentService;
 import com.project.articket.reservation.dto.ReservationCancelDTO;
 import com.project.articket.reservation.dto.ReservationCreateDTO;
 import com.project.articket.reservation.dto.ReservationDTO;
+import com.project.articket.reservation.dto.ReservationListDTO;
 import com.project.articket.reservation.entity.Reservation;
 import com.project.articket.reservation.entity.ReservationCancelReason;
 import com.project.articket.reservation.entity.ReservationStatus;
@@ -17,6 +19,9 @@ import com.project.articket.reservation.repository.ReservationRepository;
 import com.project.articket.review.dto.ReviewAvailableExhibitionDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +38,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final ExhibitionRepository exhibitionRepository;
     private final MemberRepository memberRepository;
     private final PaymentService paymentService;
+    private final PersonalDataCrypto personalDataCrypto;
 
     @Override
     public PageResponseDTO<ReservationDTO> reservationList(Long memberId, PageRequestDTO pageRequestDTO) {
@@ -269,5 +275,30 @@ public class ReservationServiceImpl implements ReservationService {
         reservationDTO.setExhibitionId(reservation.getExhibition().getExhibitionId());
 
         return reservationDTO;
+    }
+
+    @Override
+    public PageResponseDTO<ReservationListDTO> reservationListForAdmin(PageRequestDTO pageRequestDTO) {
+        Pageable pageable = PageRequest.of(
+                Math.max(pageRequestDTO.getPage() - 1, 0),
+                pageRequestDTO.getSize(),
+                Sort.by(Sort.Direction.DESC, "reservationId")
+        );
+        String keyword = pageRequestDTO.getKeyword();
+
+        Page<Reservation> result;
+
+        if (keyword == null || keyword.trim().isEmpty()) {
+            result = reservationRepository.findAllByOrderByReservationIdDesc(pageable);
+        } else {
+            result = reservationRepository.findByExhibition_ExhibitionTitleContainingIgnoreCaseOrderByReservationIdDesc(keyword.trim(), pageable);
+        }
+
+        List<ReservationListDTO> dtoList = result.getContent().stream()
+                .map(reservation -> ReservationListDTO.from(
+                        reservation, personalDataCrypto
+                ))
+                .toList();
+        return new PageResponseDTO<>(dtoList, pageRequestDTO, result.getTotalElements());
     }
 }

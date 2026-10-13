@@ -104,6 +104,34 @@ public class StatisticService {
                 .sum();
     }
 
+
+    public List<StatisticResponseDTO> findCanceledReservationList(
+            Long exhibitionId,
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        List<Object[]> result =
+                repository.findCanceledReservation(exhibitionId, startDate, endDate);
+
+        return fillDate(
+                result,
+                startDate,
+                endDate,
+                StatisticResponseDTO::new
+        );
+    }
+
+    public Long findTotalCanceledReservation(
+            Long exhibitionId,
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        return findCanceledReservationList(exhibitionId, startDate, endDate)
+                .stream()
+                .mapToLong(StatisticResponseDTO::getValue)
+                .sum();
+    }
+
     public List<StatisticResponseDTO> findVisitorList(
             Long exhibitionId,
             LocalDate startDate,

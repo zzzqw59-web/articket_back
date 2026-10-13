@@ -56,4 +56,11 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long>,
 
     // 회원 ID + 예약/주문 번호(키워드 포함) 검색 추가
     Page<Reservation> findByMemberMemberIdAndReservationOrderIdContaining(Long memberId, String reservationOrderId, Pageable pageable);
+
+    Page<Reservation> findAllByOrderByReservationIdDesc(Pageable pageable);
+    Page<Reservation>
+    findByExhibition_ExhibitionTitleContainingIgnoreCaseOrderByReservationIdDesc(
+            String exhibitionTitle,
+            Pageable pageable
+    );
 }
