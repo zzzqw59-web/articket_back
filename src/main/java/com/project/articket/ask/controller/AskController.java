@@ -174,4 +174,11 @@ public class AskController {
         PageResponseDTO<AskListResponseDTO> response = askService.findByExhibitionId_ExhibitionId(exhibitionId, pageRequestDTO);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/adminpage")
+    public PageResponseDTO<AskListResponseDTO> getAsksWithoutReplies(
+            PageRequestDTO pageRequestDTO
+    ) {
+        return askService.getAsksWithoutReplies(pageRequestDTO);
+    }
 }

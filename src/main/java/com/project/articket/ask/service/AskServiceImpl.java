@@ -301,4 +301,25 @@ public class AskServiceImpl implements AskService {
                 result.getTotalElements()
         );
     }
+
+    @Override
+    public PageResponseDTO<AskListResponseDTO> getAsksWithoutReplies(
+            PageRequestDTO pageRequestDTO
+    ) {
+        Pageable pageable = pageRequestDTO.getPageable("askCreatedAt");
+
+        Page<Ask> result =
+                askRepository.findAsksWithoutReplies(pageable);
+
+        List<AskListResponseDTO> dtoList = result.getContent()
+                .stream()
+                .map(AskListResponseDTO::from)
+                .toList();
+
+        return new PageResponseDTO<>(
+                dtoList,
+                pageRequestDTO,
+                result.getTotalElements()
+        );
+    }
 }

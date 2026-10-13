@@ -24,4 +24,6 @@ public interface AskService {
     // 마이페이지 내부 문의 목록 조회
     PageResponseDTO<AskListResponseDTO> getMyAskList(Long memberId, Integer askType, PageRequestDTO pageRequestDTO);
     PageResponseDTO<AskListResponseDTO> findByExhibitionId_ExhibitionId(Long exhibitionId, PageRequestDTO pageRequestDTO);
+
+    PageResponseDTO<AskListResponseDTO> getAsksWithoutReplies(PageRequestDTO pageRequestDTO);
 }
