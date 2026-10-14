@@ -187,7 +187,7 @@ public class AskServiceImpl implements AskService {
         return AskResponseDTO.from(ask, images);
     }
 
-    // 4. 문의글 수정 (이미지 검증 및 수정 범위 포함)
+    // 4. 문의글 수정 (수정 가능 범위 제한: 제목, 본문, 비밀글 여부, 이미지)
     @Override
     @Transactional
     public Long updateAsk(Long askId, Long memberId, AskUpdateRequestDTO requestDto, List<MultipartFile> newFiles) {
@@ -214,21 +214,16 @@ public class AskServiceImpl implements AskService {
                 .filter(img -> keepFilenames.contains(img.getAskImageFilename()))
                 .count();
 
-        // 💡 2. 수정 시 새로 업로드하는 이미지 검증 (기유지 이미지 수 고려)
+        // 새로 업로드하는 이미지 검증
         validateImages(newFiles, keepCount);
 
-        Exhibition exhibition = null;
-        if (requestDto.getExhibitionId() != null) {
-            exhibition = exhibitionRepository.findById(requestDto.getExhibitionId())
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 전시입니다. exhibitionId=" + requestDto.getExhibitionId()));
-        }
-
+        // 💡 [수정 범위 제한] 문의 유형(askType)과 연관 전시(exhibition)는 수정 불가하므로 기존 값 유지
         ask.updateAsk(
                 requestDto.getAskTitle(),
                 requestDto.getAskBody(),
-                requestDto.getAskType(),
+                ask.getAskType(),       // 기존 문의 유형 유지
                 requestDto.getAskSecret(),
-                exhibition
+                ask.getExhibitionId()   // 기존 연관 전시 유지
         );
 
         for (AskImage currentImage : currentImages) {
