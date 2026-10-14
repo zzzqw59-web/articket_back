@@ -63,4 +63,20 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long>,
             String exhibitionTitle,
             Pageable pageable
     );
+
+    Optional<Reservation> findFirstByMemberMemberIdAndExhibitionExhibitionIdAndReservationDayAndReservationStatusOrderByReservationIdDesc(
+            Long memberId,
+            Long exhibitionId,
+            LocalDate reservationDay,
+            ReservationStatus reservationStatus
+    );
+
+    @Query("""
+    SELECT r.member.memberId
+    FROM Reservation r
+    WHERE r.reservationOrderId = :orderId
+""")
+    Optional<Long> findMemberIdByOrderId(
+            @Param("orderId") String orderId
+    );
 }

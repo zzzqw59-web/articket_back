@@ -22,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -90,8 +92,14 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public ReservationDTO reservationDetail(Long reservationId) {
-        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않습니다."));
+    public ReservationDTO reservationDetail(Long memberId, Long reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않습니다."));
+
+        // 예약 소유권 검증
+        if (!reservation.getMember().getMemberId().equals(memberId)) {
+            throw new org.springframework.security.access.AccessDeniedException("본인의 예약만 조회할 수 있습니다.");
+        }
 
         ReservationDTO reservationDTO = new ReservationDTO();
         reservationDTO.setReservationId(reservation.getReservationId());
@@ -116,60 +124,120 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Transactional
     @Override
-    public ReservationDTO reservationCreate(Long memberId, ReservationCreateDTO reservationCreateDTO) {
-        Exhibition exhibition = exhibitionRepository.findById(reservationCreateDTO.getExhibitionId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 전시가 존재하지 않습니다."));
+    public ReservationDTO reservationCreate(
+            Long memberId,
+            ReservationCreateDTO reservationCreateDTO
+    ) {
 
-        boolean alreadyReserved = reservationRepository.existsByMemberMemberIdAndExhibitionExhibitionIdAndReservationDayAndReservationStatus(
-                memberId,
-                reservationCreateDTO.getExhibitionId(),
-                reservationCreateDTO.getReservationDay(),
-                ReservationStatus.RESERVED);
+        // 1. 회원 조회 및 동시 예약 요청 방지를 위한 잠금
+        Member member = memberRepository.findByIdForUpdate(memberId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("해당 회원이 존재하지 않습니다."));
+
+        // 2. 전시 조회
+        Exhibition exhibition = exhibitionRepository
+                .findById(reservationCreateDTO.getExhibitionId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("해당 전시가 존재하지 않습니다."));
 
         LocalDate today = LocalDate.now();
+
+        // 3. 이미 결제 완료된 예약인지 확인
+        boolean alreadyReserved = reservationRepository
+                .existsByMemberMemberIdAndExhibitionExhibitionIdAndReservationDayAndReservationStatus(
+                        memberId,
+                        reservationCreateDTO.getExhibitionId(),
+                        reservationCreateDTO.getReservationDay(),
+                        ReservationStatus.RESERVED
+                );
 
         if (alreadyReserved) {
             throw new IllegalArgumentException("이미 예약한 관람일입니다.");
         }
 
+        // 4. 예약 가능 기간 검증
         if (exhibition.getStartDate().minusDays(14).isAfter(today)) {
-            throw new IllegalArgumentException("예약은 전시 시작일 14일 전부터 가능합니다.");
+            throw new IllegalArgumentException(
+                    "예약은 전시 시작일 14일 전부터 가능합니다.");
         }
 
         if (exhibition.getEndDate().isBefore(today)) {
-            throw new IllegalArgumentException("예약이 종료된 전시는 예약이 불가능합니다.");
+            throw new IllegalArgumentException(
+                    "예약이 종료된 전시는 예약이 불가능합니다.");
         }
 
+        // 5. 과거 관람일 검증 (3-3)
+        if (reservationCreateDTO.getReservationDay().isBefore(today)) {
+            throw new IllegalArgumentException(
+                    "지난 날짜는 예약할 수 없습니다.");
+        }
+
+        // 6. 전시 기간 내 관람일 검증
         if (reservationCreateDTO.getReservationDay().isBefore(exhibition.getStartDate())
                 || reservationCreateDTO.getReservationDay().isAfter(exhibition.getEndDate())) {
-            throw new IllegalArgumentException("예약은 전시 기간 내에 설정 가능합니다.");
+            throw new IllegalArgumentException(
+                    "예약은 전시 기간 내에 설정 가능합니다.");
         }
 
-        if (exhibition.getIsFree()) {
-            throw new IllegalArgumentException("무료 전시는 예약이 불가능합니다.");
+        // 7. 무료 전시 예약 제한
+        if (Boolean.TRUE.equals(exhibition.getIsFree())) {
+            throw new IllegalArgumentException(
+                    "무료 전시는 예약이 불가능합니다.");
+        }
+
+        // 8. 예약 인원 및 금액 계산
+        Integer reservationPerson = reservationCreateDTO.getReservationPerson();
+
+        if (reservationPerson == null || reservationPerson < 1) {
+            throw new IllegalArgumentException(
+                    "예약 인원은 1명 이상이어야 합니다.");
         }
 
         Long totalPrice =
-                (long) reservationCreateDTO.getReservationPerson()
-                        * exhibition.getExhibitionTicketPrice();
+                (long) reservationPerson * exhibition.getExhibitionTicketPrice();
 
+        // 9. 동일 조건의 PENDING 예약 조회
+        Optional<Reservation> pendingReservation = reservationRepository
+                .findFirstByMemberMemberIdAndExhibitionExhibitionIdAndReservationDayAndReservationStatusOrderByReservationIdDesc(
+                        memberId,
+                        reservationCreateDTO.getExhibitionId(),
+                        reservationCreateDTO.getReservationDay(),
+                        ReservationStatus.PENDING
+                );
+
+        // 10. 새로운 주문 번호 생성
         String orderId = "Articket-" + UUID.randomUUID();
 
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 멤버는 존재하지 않습니다."));
+        Reservation reservation;
 
-        Reservation reservation = new Reservation(
-                member,
-                exhibition,
-                orderId,
-                reservationCreateDTO.getReservationPerson(),
-                reservationCreateDTO.getReservationDay(),
-                ReservationStatus.PENDING,
-                totalPrice
-        );
+        if (pendingReservation.isPresent()) {
 
-        reservationRepository.save(reservation);
+            // 기존 PENDING 예약 갱신
+            reservation = pendingReservation.get();
 
+            reservation.updatePendingReservation(
+                    orderId,
+                    reservationPerson,
+                    totalPrice
+            );
+
+        } else {
+
+            // 새로운 예약 생성
+            reservation = new Reservation(
+                    member,
+                    exhibition,
+                    orderId,
+                    reservationPerson,
+                    reservationCreateDTO.getReservationDay(),
+                    ReservationStatus.PENDING,
+                    totalPrice
+            );
+
+            reservationRepository.save(reservation);
+        }
+
+        // 11. DTO 변환
         ReservationDTO dto = new ReservationDTO();
         dto.setReservationOrderId(reservation.getReservationOrderId());
         dto.setReservationId(reservation.getReservationId());
@@ -250,16 +318,49 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Transactional
     @Override
-    public void cancelReservation(Long reservationId, ReservationCancelReason reason, String detail) {
-        // 다른 서비스에서 예약 상태를 취소로 변경
-        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new IllegalArgumentException("해당 예약이 존재하지 않습니다."));
+    public void cancelReservation(
+            Long reservationId,
+            ReservationCancelReason reason,
+            String detail) {
+
+        // 1. 예약 조회
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("해당 예약이 존재하지 않습니다.")
+                );
+
+        // 2. 이미 취소된 예약인지 검증
+        if (reservation.getReservationStatus() == ReservationStatus.CANCELED) {
+            throw new IllegalArgumentException("이미 취소된 예약입니다.");
+        }
+
+        // 3. 결제 완료된 예약이면 전액 환불
+        if (reservation.getReservationStatus() == ReservationStatus.RESERVED) {
+
+            Long refundAmount = reservation.getReservationAmount();
+
+            paymentService.cancelPayment(reservationId, refundAmount);
+        }
+
+        // 4. 예약 취소 처리
         reservation.cancel(reason, detail);
     }
 
     @Override
-    public ReservationDTO reservationDetailByOrderId(String orderId) {
+    public ReservationDTO reservationDetailByOrderId(Long memberId, String orderId) {
         Reservation reservation = reservationRepository.findByReservationOrderId(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않습니다."));
+
+        System.out.println("========== 주문번호 소유권 검증 ==========");
+        System.out.println("로그인 회원 ID: " + memberId);
+        System.out.println("예약 소유자 ID: " + reservation.getMember().getMemberId());
+        System.out.println("요청 주문번호: " + orderId);
+        System.out.println("========================================");
+
+        // 예약 소유권 검증
+        if (!reservation.getMember().getMemberId().equals(memberId)) {
+            throw new AccessDeniedException("본인의 예약만 조회할 수 있습니다.");
+        }
 
         ReservationDTO reservationDTO = new ReservationDTO();
         reservationDTO.setReservationId(reservation.getReservationId());

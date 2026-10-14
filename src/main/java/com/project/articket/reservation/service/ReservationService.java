@@ -16,15 +16,16 @@ public interface ReservationService {
 
     PageResponseDTO<ReservationDTO> reservationList(Long memberId, PageRequestDTO pageRequestDTO);
 
-    ReservationDTO reservationDetail(Long reservationId);
+    ReservationDTO reservationDetail(Long memberId, Long reservationId);
 
-    ReservationDTO reservationDetailByOrderId(String orderId);
+    ReservationDTO reservationDetailByOrderId(Long memberId, String orderId);
 
     void reservationCancel(Long memberId, Long reservationId, ReservationCancelDTO reservationCancelDTO);
 
     void reserveReservation(Long reservationId);
 
     void cancelReservation(Long reservationId, ReservationCancelReason reason, String detail);
+
 
     List<ReviewAvailableExhibitionDTO> getAvailableExhibitionsForReview(Long memberId);
 

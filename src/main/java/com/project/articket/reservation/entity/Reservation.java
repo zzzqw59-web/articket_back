@@ -82,4 +82,15 @@ public class Reservation {
         this.reservationCancelReason = reason;
         this.reservationCancelDetail = detail;
     }
+
+    // 미결제 예약 정보 갱신
+    public void updatePendingReservation(String orderId, Integer person, Long amount) {
+        if (this.reservationStatus != ReservationStatus.PENDING) {
+            throw new IllegalStateException("미결제 예약만 변경할 수 있습니다.");
+        }
+
+        this.reservationOrderId = orderId;
+        this.reservationPerson = person;
+        this.reservationAmount = amount;
+    }
 }

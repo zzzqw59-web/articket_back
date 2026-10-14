@@ -6,10 +6,12 @@ import com.project.articket.review.dto.*;
 import com.project.articket.review.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -19,8 +21,26 @@ import java.util.List;
 public class ReviewController {
     private final ReviewService reviewService;
 
+    private void validatePageRequest(PageRequestDTO pageRequestDTO) {
+
+        if (pageRequestDTO.getPage() < 1) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "페이지 번호는 1 이상이어야 합니다."
+            );
+        }
+
+        if (pageRequestDTO.getSize() < 1 || pageRequestDTO.getSize() > 100) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "페이지 크기는 1 이상 100 이하여야 합니다."
+            );
+        }
+    }
+
     @GetMapping("/reviews")
     public PageResponseDTO<ReviewDTO> reviewList(@RequestParam(required = false) String searchType, @RequestParam(required = false) String keyword, PageRequestDTO pageRequestDTO) {
+        validatePageRequest(pageRequestDTO);
         if (keyword == null || keyword.isBlank()) {
             PageResponseDTO<ReviewDTO> dto = reviewService.reviewPage(pageRequestDTO);
             return dto;
@@ -34,6 +54,7 @@ public class ReviewController {
     public PageResponseDTO<ReviewDTO> reviewHitsList(
             PageRequestDTO pageRequestDTO
     ) {
+        validatePageRequest(pageRequestDTO);
         return reviewService.reviewHitsPage(pageRequestDTO);
     }
 
@@ -80,6 +101,7 @@ public class ReviewController {
             PageRequestDTO pageRequestDTO,
             Authentication authentication
     ) {
+        validatePageRequest(pageRequestDTO);
         Long memberId = (Long) authentication.getPrincipal();
 
         // PageRequestDTO 하나로 검색 조건(searchType, keyword) 및 정렬(sort)이 모두 전달됨
@@ -90,7 +112,8 @@ public class ReviewController {
     }
 
     @GetMapping("/reviews/staffpage/{exhibitionId}")
-    public PageResponseDTO<ReviewDTO> getStaffPageReview(@PathVariable Long exhibitionId, PageRequestDTO pageRequestDTO){
+    public PageResponseDTO<ReviewDTO> getStaffPageReview(@PathVariable Long exhibitionId, PageRequestDTO pageRequestDTO) {
+        validatePageRequest(pageRequestDTO);
         return reviewService.findByExhibition_ExhibitionId(exhibitionId, pageRequestDTO);
     }
 

@@ -8,11 +8,11 @@ import com.project.articket.payment.dto.PaymentDetailResponseDTO;
 import com.project.articket.payment.dto.PaymentListResponseDTO;
 
 public interface PaymentService {
-    PaymentConfirmResponseDTO confirmPayment(PaymentConfirmRequestDTO paymentConfirmRequestDTO);
+    PaymentConfirmResponseDTO confirmPayment(Long memberId, PaymentConfirmRequestDTO paymentConfirmRequestDTO);
 
     void cancelPayment(Long reservationId, Long refundAmount);
 
     PageResponseDTO<PaymentListResponseDTO> getMyPaymentList(Long memberId, PageRequestDTO pageRequestDTO);
 
-    PaymentDetailResponseDTO getPaymentDetail(Long paymentId);
+    PaymentDetailResponseDTO getPaymentDetail(Long memberId, Long paymentId);
 }
