@@ -16,4 +16,9 @@ public interface StaffRepository
     List<Staff> findByMemberMemberIdOrderByStaffCreatedAtDesc(
             Long memberId
     );
+
+    // [추가 1] 특정 전시(exhibitionId)를 담당하는 모든 Staff 리스트 반환 (알림 발송용)
+    List<Staff> findByExhibitionExhibitionId(
+            Long exhibitionId
+    );
 }

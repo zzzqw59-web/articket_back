@@ -1,10 +1,10 @@
 package com.project.articket.review.service;
 import com.project.articket.common.dto.PageRequestDTO;
 import com.project.articket.common.dto.PageResponseDTO;
-import com.project.articket.review.dto.MyReviewListResponseDTO;
-import com.project.articket.review.dto.ReviewCreateDTO;
-import com.project.articket.review.dto.ReviewDTO;
-import com.project.articket.review.dto.ReviewUpdateDTO;
+import com.project.articket.review.dto.*;
+import com.project.articket.review.entity.Review;
+
+import java.util.List;
 
 public interface ReviewService {
     PageResponseDTO<ReviewDTO> reviewPage(PageRequestDTO pageRequestDTO);
@@ -21,4 +21,10 @@ public interface ReviewService {
 
     // 마이페이지 조회용
     PageResponseDTO<MyReviewListResponseDTO> getMyReviews(Long memberId, PageRequestDTO pageRequestDTO);
+
+    PageResponseDTO<ReviewDTO> reviewHitsPage(PageRequestDTO pageRequestDTO);
+
+    List<ReviewAvailableExhibitionDTO> getAvailableExhibitionsForReview(Long memberId);
+
+    PageResponseDTO<ReviewDTO> findByExhibition_ExhibitionId(Long exhibitionId, PageRequestDTO pageRequestDTO);
 }

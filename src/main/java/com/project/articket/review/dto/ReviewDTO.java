@@ -1,5 +1,6 @@
 package com.project.articket.review.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.project.articket.review.entity.Review;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,6 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 public class ReviewDTO {
     private Long reviewId;
+    private Long exhibitionId;
     private String memberNickname;
     private String exhibitionTitle;
     private String reviewTitle;

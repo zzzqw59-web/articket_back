@@ -1,11 +1,15 @@
 package com.project.articket.deactive.service;
 
+import com.project.articket.common.util.NotificationManager;
 import com.project.articket.deactive.dto.DeactiveRequestDTO;
 import com.project.articket.deactive.dto.DeactiveResponseDTO;
 import com.project.articket.deactive.entity.Deactive;
 import com.project.articket.deactive.repository.DeactiveRepository;
 import com.project.articket.member.entity.Member;
 import com.project.articket.member.repository.MemberRepository;
+import com.project.articket.notification.enums.NotificationType; // 💡 알림 타입 Enum 임포트
+import com.project.articket.withdraw.enums.WithdrawStatus;
+import com.project.articket.withdraw.repository.WithdrawRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +25,8 @@ public class DeactiveService {
 
     private final DeactiveRepository deactiveRepository;
     private final MemberRepository memberRepository;
+    private final WithdrawRepository withdrawRepository;
+    private final NotificationManager notificationManager;
 
     @Transactional
     public void deactivateMember(
@@ -107,9 +113,17 @@ public class DeactiveService {
                         .deactiveTerm(term)
                         .build();
 
-        deactiveRepository.save(deactive);
+        Deactive savedDeactive = deactiveRepository.save(deactive);
 
         member.deactivate();
+
+        // 💡 [회원 비활성화 알림 발송 (0: MEMBER_DEACTIVE)]
+        notificationManager.notifyUser(
+                member,
+                NotificationType.MEMBER_DEACTIVE.getCode(),
+                savedDeactive.getDeactiveId(),
+                adminMemberId
+        );
     }
 
     @Transactional
@@ -122,7 +136,7 @@ public class DeactiveService {
                 memberRepository.findById(adminMemberId)
                         .orElseThrow(
                                 () -> new RuntimeException(
-                                        "관리자 정보를 찾을 수 없습니다."
+                                        "관리자에 의해 정보를 찾을 수 없습니다."
                                 )
                         );
 
@@ -150,6 +164,15 @@ public class DeactiveService {
             );
         }
 
+        if (withdrawRepository.existsByMemberMemberIdAndWithdrawStatus(
+                memberId,
+                WithdrawStatus.COMPLETED
+        )) {
+            throw new RuntimeException(
+                    "탈퇴 완료된 회원은 활성화할 수 없습니다."
+            );
+        }
+
         if (member.getMemberStatus()
                 == Member.STATUS_ACTIVE) {
             throw new RuntimeException(
@@ -158,6 +181,17 @@ public class DeactiveService {
         }
 
         member.activate();
+
+        // 💡 [회원 활성화(제재 해제) 시 최신 제재 내역 ID를 타겟으로 알림 발송 필요 시 추가 가능]
+        // 가장 최근의 비활성화 내역을 조회하여 타겟 ID로 활용할 수 있습니다.
+        Deactive latestDeactive = deactiveRepository
+                .findFirstByMemberMemberIdOrderByDeactiveCreatedAtDesc(memberId)
+                .orElse(null);
+
+        Long targetId = latestDeactive != null ? latestDeactive.getDeactiveId() : 0L;
+
+        // 예시: 만약 활성화 알림 타입이 별도로 존재한다면 아래와 같이 발송 가능
+        // notificationManager.notifyUser(member, NotificationType.MEMBER_ACTIVE.getCode(), targetId, adminMemberId);
     }
 
     @Transactional(readOnly = true)
@@ -258,6 +292,13 @@ public class DeactiveService {
                             );
 
             if (!releaseDate.isAfter(today)) {
+                if (withdrawRepository.existsByMemberMemberIdAndWithdrawStatus(
+                        deactive.getMember().getMemberId(),
+                        WithdrawStatus.COMPLETED
+                )) {
+                    continue;
+                }
+
                 deactive.getMember().activate();
             }
         }

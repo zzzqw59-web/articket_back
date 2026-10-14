@@ -57,6 +57,7 @@ public class CustomSecurityConfig {
     ) throws Exception {
 
         http
+                .cors(cors -> {})
                 .csrf(csrf ->
                         csrf.disable()
                 )
@@ -74,19 +75,32 @@ public class CustomSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         .requestMatchers(
+                                HttpMethod.OPTIONS,
+                                "/**"
+                        ).permitAll()
+
+                        .requestMatchers(
                                 "/api/auth/**"
                         ).permitAll()
 
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/v3/api-docs/**",
-                                "/api/**"
+                                "/v3/api-docs/**"
                         ).permitAll()
 
                         .requestMatchers(
                                 "/error"
                         ).permitAll()
+
+                        // 본인 전용 조회는 공개 GET 규칙보다 먼저 적용한다.
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/reviews/me",
+                                "/api/reviews/my-exhibitions",
+                                "/api/asks/my",
+                                "/api/wishes/me"
+                        ).authenticated()
 
                         .requestMatchers(
                                 HttpMethod.GET,
@@ -96,7 +110,7 @@ public class CustomSecurityConfig {
                                 "/api/asks/**",
                                 "/api/images/**",
                                 "/upload/review/**",
-                                "/api/wishes/**"
+                                "/api/wishes/count/**"
                         ).permitAll()
 
                         .requestMatchers(
@@ -106,6 +120,8 @@ public class CustomSecurityConfig {
                         .requestMatchers(
                                 "/api/staff/**"
                         ).hasRole("STAFF")
+
+                        .requestMatchers("/api/statistic/**").hasAnyRole("STAFF", "ADMIN")
 
                         .anyRequest()
                         .authenticated()

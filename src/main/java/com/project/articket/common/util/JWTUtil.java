@@ -55,6 +55,19 @@ public class JWTUtil {
     }
 
     public Map<String, Object> validateToken(
+            String token,
+            String tokenType
+    ) {
+        Map<String, Object> claims = validateToken(token);
+
+        if (!tokenType.equals(claims.get("tokenType"))) {
+            throw new CustomJWTException("INVALID_TOKEN_TYPE");
+        }
+
+        return claims;
+    }
+
+    public Map<String, Object> validateToken(
             String token
     ) {
 

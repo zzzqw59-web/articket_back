@@ -3,8 +3,11 @@ package com.project.articket.review.service;
 import com.project.articket.common.crypto.PersonalDataCrypto;
 import com.project.articket.common.dto.PageRequestDTO;
 import com.project.articket.common.dto.PageResponseDTO;
+import com.project.articket.common.enums.MemberRole; // 💡 권한 체크용 임포트 추가
+import com.project.articket.common.util.NotificationManager;
 import com.project.articket.member.entity.Member;
 import com.project.articket.member.repository.MemberRepository;
+import com.project.articket.notification.enums.NotificationType; // 💡 알림 타입 Enum 임포트
 import com.project.articket.review.dto.ReviewReplyCreateDTO;
 import com.project.articket.review.dto.ReviewReplyDTO;
 import com.project.articket.review.dto.ReviewReplyUpdateDTO;
@@ -26,6 +29,7 @@ public class ReviewReplyServiceImpl implements ReviewReplyService {
     private final MemberRepository memberRepository;
     private final ReviewRepository reviewRepository;
     private final PersonalDataCrypto personalDataCrypto;
+    private final NotificationManager notificationManager;
 
     @Override
     public PageResponseDTO<ReviewReplyDTO> reviewReplyPage(Long reviewId, PageRequestDTO pageRequestDTO) {
@@ -54,6 +58,7 @@ public class ReviewReplyServiceImpl implements ReviewReplyService {
     }
 
     @Override
+    @Transactional
     public void reviewReplyCreate(
             Long reviewId,
             Long memberId,
@@ -71,7 +76,15 @@ public class ReviewReplyServiceImpl implements ReviewReplyService {
                 member
         );
 
-        reviewReplyRepository.save(reviewReply);
+        ReviewReply savedReply = reviewReplyRepository.save(reviewReply);
+
+        // 💡 [리뷰 댓글 등록 알림 발송 (21: REVIEW_REPLY)]
+        notificationManager.notifyUser(
+                review.getMember(),
+                NotificationType.REVIEW_REPLY.getCode(),
+                reviewId,
+                memberId
+        );
     }
 
     @Transactional
@@ -80,11 +93,27 @@ public class ReviewReplyServiceImpl implements ReviewReplyService {
         ReviewReply reviewReply = reviewReplyRepository.findById(reviewReplyId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 리뷰 댓글이 존재하지 않습니다."));
 
-        if (!reviewReply.getMember().getMemberId().equals(memberId)) {
+        Member requester = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
+
+        boolean isWriter = reviewReply.getMember().getMemberId().equals(memberId);
+        boolean isAdmin = MemberRole.ADMIN.equalsKey(requester.getMemberType());
+
+        if (!isWriter && !isAdmin) {
             throw new IllegalArgumentException("댓글을 수정할 권한이 없습니다.");
         }
 
         reviewReply.setReviewReplyBody(reviewReplyUpdateDTO.getReviewReplyBody());
+
+        // 💡 [관리자에 의한 리뷰 댓글 수정 시 알림 발송 (24: REVIEW_REPLY_UPDATE)]
+        if (isAdmin && !isWriter) {
+            notificationManager.notifyUser(
+                    reviewReply.getReview().getMember(),
+                    NotificationType.REVIEW_REPLY_UPDATE.getCode(),
+                    reviewReply.getReview().getReviewId(),
+                    memberId
+            );
+        }
     }
 
     @Transactional
@@ -93,8 +122,24 @@ public class ReviewReplyServiceImpl implements ReviewReplyService {
         ReviewReply reviewReply = reviewReplyRepository.findById(reviewReplyId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 리뷰 댓글이 존재하지 않습니다."));
 
-        if (!reviewReply.getMember().getMemberId().equals(memberId)) {
+        Member requester = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
+
+        boolean isWriter = reviewReply.getMember().getMemberId().equals(memberId);
+        boolean isAdmin = MemberRole.ADMIN.equalsKey(requester.getMemberType());
+
+        if (!isWriter && !isAdmin) {
             throw new IllegalArgumentException("댓글을 삭제할 권한이 없습니다.");
+        }
+
+        // 💡 [관리자에 의한 리뷰 댓글 삭제 시 실제 삭제 직전 알림 발송 (25: REVIEW_REPLY_DELETE)]
+        if (isAdmin && !isWriter) {
+            notificationManager.notifyUser(
+                    reviewReply.getReview().getMember(),
+                    NotificationType.REVIEW_REPLY_DELETE.getCode(),
+                    reviewReply.getReview().getReviewId(),
+                    memberId
+            );
         }
 
         reviewReplyRepository.delete(reviewReply);

@@ -2,10 +2,13 @@ package com.project.articket.review.service;
 
 import com.project.articket.common.dto.PageRequestDTO;
 import com.project.articket.common.dto.PageResponseDTO;
+import com.project.articket.common.enums.MemberRole; // 💡 권한 체크용 임포트 추가
+import com.project.articket.common.util.NotificationManager;
 import com.project.articket.exhibition.entity.Exhibition;
 import com.project.articket.exhibition.repository.ExhibitionRepository;
 import com.project.articket.member.entity.Member;
 import com.project.articket.member.repository.MemberRepository;
+import com.project.articket.notification.enums.NotificationType; // 💡 알림 타입 Enum 임포트
 import com.project.articket.reservation.entity.Reservation;
 import com.project.articket.reservation.entity.ReservationStatus;
 import com.project.articket.reservation.repository.ReservationRepository;
@@ -16,6 +19,7 @@ import com.project.articket.review.entity.ReviewReply;
 import com.project.articket.review.repository.ReviewImageRepository;
 import com.project.articket.review.repository.ReviewReplyRepository;
 import com.project.articket.review.repository.ReviewRepository;
+import com.project.articket.staff.repository.StaffRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -37,10 +41,12 @@ import java.util.UUID;
 public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository repository;
     private final MemberRepository memberRepository;
+    private final StaffRepository staffRepository;
     private final ExhibitionRepository exhibitionRepository;
     private final ReviewImageRepository reviewImageRepository;
     private final ReviewReplyRepository reviewReplyRepository;
     private final ReservationRepository reservationRepository;
+    private final NotificationManager notificationManager;
 
     @Value("${com.spring.website.upload.path}")
     private String fileDir;
@@ -66,6 +72,38 @@ public class ReviewServiceImpl implements ReviewService {
         }).toList();
 
         return new PageResponseDTO<>(dtoList, pageRequestDTO, page.getTotalElements());
+    }
+
+    @Override
+    public PageResponseDTO<ReviewDTO> reviewHitsPage(PageRequestDTO pageRequestDTO) {
+        Page<Review> page = repository.findAllByOrderByReviewHitsDesc(
+                pageRequestDTO.getPageable("reviewCreatedAt")
+        );
+
+        List<ReviewDTO> dtoList = page.getContent().stream().map(review -> {
+            ReviewDTO dto = new ReviewDTO();
+
+            dto.setReviewId(review.getReviewId());
+            dto.setMemberNickname(
+                    review.getMember().getMemberNickname()
+            );
+            dto.setExhibitionTitle(
+                    review.getExhibition().getExhibitionTitle()
+            );
+            dto.setReviewTitle(review.getReviewTitle());
+            dto.setReviewBody(review.getReviewBody());
+            dto.setReviewCreatedAt(review.getReviewCreatedAt());
+            dto.setReviewModifiedAt(review.getReviewModifiedAt());
+            dto.setReviewHits(review.getReviewHits());
+
+            return dto;
+        }).toList();
+
+        return new PageResponseDTO<>(
+                dtoList,
+                pageRequestDTO,
+                page.getTotalElements()
+        );
     }
 
     @Override
@@ -127,9 +165,9 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
+    @Transactional
     public void reviewCreate(Long memberId, ReviewCreateDTO reviewCreateDTO) {
         List<MultipartFile> images = reviewCreateDTO.getImages();
-
 
         boolean exists = repository.existsByMemberMemberIdAndExhibitionExhibitionId(
                 memberId,
@@ -181,7 +219,7 @@ public class ReviewServiceImpl implements ReviewService {
                 reviewCreateDTO.getReviewBody()
         );
 
-        repository.save(review);
+        Review savedReview = repository.save(review);
 
         // 이미지가 있을 경우에만 파일 저장
         if (images != null && !images.isEmpty()) {
@@ -219,6 +257,15 @@ public class ReviewServiceImpl implements ReviewService {
                 throw new RuntimeException("파일 저장 경로 생성에 실패하였습니다.", e);
             }
         }
+
+        // 💡 [전시 관계자 대상 알림 발송 (20: REVIEW_NEW)]
+        if (savedReview.getExhibition() != null) {
+            notificationManager.notifyExhibitionStaffs(
+                    savedReview.getExhibition().getExhibitionId(),
+                    NotificationType.REVIEW_NEW.getCode(),
+                    savedReview.getReviewId()
+            );
+        }
     }
 
     @Transactional
@@ -227,8 +274,14 @@ public class ReviewServiceImpl implements ReviewService {
         Review review = repository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("리뷰가 존재하지 않습니다."));
 
-        if (!review.getMember().getMemberId().equals(memberId)) {
-            throw new IllegalArgumentException("본인이 작성한 리뷰만 수정할 수 있습니다.");
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
+
+        boolean isWriter = review.getMember().getMemberId().equals(memberId);
+        boolean isAdmin = MemberRole.ADMIN.equalsKey(member.getMemberType());
+
+        if (!isWriter && !isAdmin) {
+            throw new IllegalArgumentException("수정 권한이 없습니다.");
         }
 
         review.setReviewTitle(reviewUpdateDTO.getReviewTitle());
@@ -361,6 +414,16 @@ public class ReviewServiceImpl implements ReviewService {
                 );
             }
         }
+
+        // 💡 [관리자에 의한 수정인 경우, 작성자에게 알림 발송 (22: REVIEW_UPDATE)]
+        if (isAdmin && !isWriter) {
+            notificationManager.notifyUser(
+                    review.getMember(),
+                    NotificationType.REVIEW_UPDATE.getCode(),
+                    review.getReviewId(),
+                    memberId
+            );
+        }
     }
 
     @Transactional
@@ -369,8 +432,14 @@ public class ReviewServiceImpl implements ReviewService {
         Review review = repository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("리뷰가 존재하지 않습니다."));
 
-        if (!review.getMember().getMemberId().equals(memberId)) {
-            throw new IllegalArgumentException("본인이 작성한 리뷰만 삭제할 수 있습니다.");
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
+
+        boolean isWriter = review.getMember().getMemberId().equals(memberId);
+        boolean isAdmin = MemberRole.ADMIN.equalsKey(member.getMemberType());
+
+        if (!isWriter && !isAdmin) {
+            throw new IllegalArgumentException("삭제 권한이 없습니다.");
         }
 
         List<ReviewImage> reviewImages =
@@ -404,6 +473,16 @@ public class ReviewServiceImpl implements ReviewService {
             reviewImageRepository.delete(reviewImage);
         }
 
+        // 💡 [관리자에 의한 삭제인 경우, 실제 삭제 직전 작성자에게 알림 발송 (23: REVIEW_DELETE)]
+        if (isAdmin && !isWriter) {
+            notificationManager.notifyUser(
+                    review.getMember(),
+                    NotificationType.REVIEW_DELETE.getCode(),
+                    review.getReviewId(),
+                    memberId
+            );
+        }
+
         repository.delete(review);
     }
 
@@ -426,10 +505,9 @@ public class ReviewServiceImpl implements ReviewService {
         dto.setReviewBody(review.getReviewBody());
         dto.setReviewCreatedAt(review.getReviewCreatedAt());
         dto.setReviewModifiedAt(review.getReviewModifiedAt());
-        dto.setExhibitionTitle(
-                review.getExhibition().getExhibitionTitle()
-        );
+        dto.setExhibitionTitle(review.getExhibition().getExhibitionTitle());
         dto.setReviewHits(review.getReviewHits());
+        dto.setExhibitionId(review.getExhibition().getExhibitionId());
 
         List<ReviewImageDTO> images = reviewImageRepository
                 .findByReviewReviewIdOrderByReviewImageOrderAsc(reviewId)
@@ -458,11 +536,11 @@ public class ReviewServiceImpl implements ReviewService {
 
         Pageable pageable = pageRequestDTO.getPageable("reviewCreatedAt");
 
-        // PageRequestDTO 내의 searchType과 keyword를 넘겨줍니다.
         Page<MyReviewListResponseDTO> result = repository.searchMyReviews(
                 memberId,
                 pageRequestDTO.getSearchType(),
                 pageRequestDTO.getKeyword(),
+                pageRequestDTO.getSort(),
                 pageable
         );
 
@@ -470,6 +548,42 @@ public class ReviewServiceImpl implements ReviewService {
                 result.getContent(),
                 pageRequestDTO,
                 result.getTotalElements()
+        );
+    }
+
+    @Override
+    public List<ReviewAvailableExhibitionDTO> getAvailableExhibitionsForReview(Long memberId) {
+        return reservationRepository.findAvailableExhibitionsForReview(memberId, LocalDate.now()
+        );
+    }
+
+    @Override
+    public PageResponseDTO<ReviewDTO> findByExhibition_ExhibitionId(
+            Long exhibitionId,
+            PageRequestDTO pageRequestDTO
+    ) {
+        Page<Review> page = repository.findByExhibition_ExhibitionId(
+                exhibitionId,
+                pageRequestDTO.getPageable("reviewCreatedAt")
+        );
+
+        List<ReviewDTO> dtoList = page.getContent().stream()
+                .map(review -> {
+                    ReviewDTO dto = new ReviewDTO();
+                    dto.setReviewId(review.getReviewId());
+                    dto.setReviewTitle(review.getReviewTitle());
+                    dto.setReviewBody(review.getReviewBody());
+                    dto.setReviewCreatedAt(review.getReviewCreatedAt());
+                    dto.setReviewModifiedAt(review.getReviewModifiedAt());
+                    dto.setReviewHits(review.getReviewHits());
+                    return dto;
+                })
+                .toList();
+
+        return new PageResponseDTO<>(
+                dtoList,
+                pageRequestDTO,
+                page.getTotalElements()
         );
     }
 }
