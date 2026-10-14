@@ -20,19 +20,24 @@ import com.project.articket.member.repository.MemberRepository;
 import com.project.articket.notification.enums.NotificationType;
 import com.project.articket.staff.repository.StaffRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class AskServiceImpl implements AskService {
 
     private final AskRepository askRepository;
@@ -43,7 +48,7 @@ public class AskServiceImpl implements AskService {
     private final CustomFileUtil fileUtil;
     private final NotificationManager notificationManager;
 
-    // 💡 [이미지 검증 공통 헬퍼 메서드] (최대 3장, 5MB, 허용 확장자: JPG, JPEG, PNG, WEBP)
+    // 💡 [이미지 검증 공통 헬퍼 메서드] (최대 3장, 5MB, 허용 확장자: JPG, JPEG, PNG, GIF, WEBP)
     private void validateImages(List<MultipartFile> files, int existingCount) {
         if (files == null) return;
 
@@ -57,7 +62,7 @@ public class AskServiceImpl implements AskService {
 
         for (MultipartFile file : validFiles) {
             // 용량 검증 (5MB = 5 * 1024 * 1024 bytes)
-            if (file.getSize() > 5 * 1024 * 1024) {
+            if (file.getSize() > 5L * 1024 * 1024) {
                 throw new IllegalArgumentException("파일 크기는 5MB를 초과할 수 없습니다.");
             }
 
@@ -75,7 +80,7 @@ public class AskServiceImpl implements AskService {
         }
     }
 
-    // 1. 문의글 작성 (파일 업로드 검증 포함)
+    // 1. 문의글 작성 (파일 업로드 검증 및 보상 처리 포함)
     @Override
     @Transactional
     public Long createAsk(Long memberId, AskCreateRequestDTO requestDto, List<MultipartFile> files) {
@@ -88,28 +93,44 @@ public class AskServiceImpl implements AskService {
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 전시입니다. exhibitionId=" + requestDto.getExhibitionId()));
         }
 
-        // 💡 1. 등록 시 이미지 검증 (기존 이미지 0장 기준)
+        // 등록 시 이미지 검증 (기존 이미지 0장 기준)
         validateImages(files, 0);
 
-        Ask ask = requestDto.toEntity(member, exhibition);
-        Ask savedAsk = askRepository.save(ask);
+        List<String> uploadedFilenames = new ArrayList<>();
+        Ask savedAsk;
 
-        if (files != null && !files.isEmpty()) {
-            for (int i = 0; i < files.size(); i++) {
-                MultipartFile file = files.get(i);
-                if (file != null && !file.isEmpty()) {
-                    String savedFilename = fileUtil.saveFile(file);
+        try {
+            Ask ask = requestDto.toEntity(member, exhibition);
+            savedAsk = askRepository.save(ask);
 
-                    AskImage askImage = AskImage.createAskImage(
-                            savedAsk,
-                            file.getOriginalFilename(),
-                            savedFilename,
-                            i + 1
-                    );
+            if (files != null && !files.isEmpty()) {
+                for (int i = 0; i < files.size(); i++) {
+                    MultipartFile file = files.get(i);
+                    if (file != null && !file.isEmpty()) {
+                        String savedFilename = fileUtil.saveFile(file);
+                        uploadedFilenames.add(savedFilename);
 
-                    askImageRepository.save(askImage);
+                        AskImage askImage = AskImage.createAskImage(
+                                savedAsk,
+                                file.getOriginalFilename(),
+                                savedFilename,
+                                i + 1
+                        );
+
+                        askImageRepository.save(askImage);
+                    }
                 }
             }
+        } catch (Exception e) {
+            // 💡 [정합성 보상 처리] DB 저장이 실패하여 롤백될 때, 이미 디스크에 업로드된 파일들 회수(고아 파일 방지)
+            for (String filename : uploadedFilenames) {
+                try {
+                    fileUtil.deleteFile(filename);
+                } catch (Exception fileEx) {
+                    log.error("업로드된 고아 파일 삭제 실패: {}", filename, fileEx);
+                }
+            }
+            throw e;
         }
 
         // --- [관리자 및 전시 관계자 알림 발송] ---
@@ -187,7 +208,7 @@ public class AskServiceImpl implements AskService {
         return AskResponseDTO.from(ask, images);
     }
 
-    // 4. 문의글 수정 (수정 가능 범위 제한: 제목, 본문, 비밀글 여부, 이미지)
+    // 4. 문의글 수정 (이미지 보상 처리 및 커밋 후 파일 삭제 동기화 반영)
     @Override
     @Transactional
     public Long updateAsk(Long askId, Long memberId, AskUpdateRequestDTO requestDto, List<MultipartFile> newFiles) {
@@ -217,41 +238,71 @@ public class AskServiceImpl implements AskService {
         // 새로 업로드하는 이미지 검증
         validateImages(newFiles, keepCount);
 
-        // 💡 [수정 범위 제한] 문의 유형(askType)과 연관 전시(exhibition)는 수정 불가하므로 기존 값 유지
+        // 문의 유형 및 연관 전시 기존 값 유지
         ask.updateAsk(
                 requestDto.getAskTitle(),
                 requestDto.getAskBody(),
-                ask.getAskType(),       // 기존 문의 유형 유지
+                ask.getAskType(),
                 requestDto.getAskSecret(),
-                ask.getExhibitionId()   // 기존 연관 전시 유지
+                ask.getExhibitionId()
         );
 
+        // 삭제 대상 파일명 목록 수집 (트랜잭션 커밋 직후에 삭제하도록 지연)
+        List<String> filesToDelete = new ArrayList<>();
         for (AskImage currentImage : currentImages) {
             if (!keepFilenames.contains(currentImage.getAskImageFilename())) {
-                fileUtil.deleteFile(currentImage.getAskImageFilename());
+                filesToDelete.add(currentImage.getAskImageFilename());
                 askImageRepository.delete(currentImage);
             }
         }
 
-        List<AskImage> remainingImages = askImageRepository.findByAskId_AskId(askId);
-        int currentOrder = remainingImages.size() + 1;
+        List<String> uploadedNewFilenames = new ArrayList<>();
+        try {
+            List<AskImage> remainingImages = askImageRepository.findByAskId_AskId(askId);
+            int currentOrder = remainingImages.size() + 1;
 
-        if (newFiles != null && !newFiles.isEmpty()) {
-            for (MultipartFile file : newFiles) {
-                if (file != null && !file.isEmpty()) {
-                    String savedFilename = fileUtil.saveFile(file);
+            if (newFiles != null && !newFiles.isEmpty()) {
+                for (MultipartFile file : newFiles) {
+                    if (file != null && !file.isEmpty()) {
+                        String savedFilename = fileUtil.saveFile(file);
+                        uploadedNewFilenames.add(savedFilename);
 
-                    AskImage newAskImage = AskImage.createAskImage(
-                            ask,
-                            file.getOriginalFilename(),
-                            savedFilename,
-                            currentOrder++
-                    );
+                        AskImage newAskImage = AskImage.createAskImage(
+                                ask,
+                                file.getOriginalFilename(),
+                                savedFilename,
+                                currentOrder++
+                        );
 
-                    askImageRepository.save(newAskImage);
+                        askImageRepository.save(newAskImage);
+                    }
                 }
             }
+        } catch (Exception e) {
+            // 수정 중 DB 에러 발생 시 새로 업로드했던 파일 회수
+            for (String filename : uploadedNewFilenames) {
+                try {
+                    fileUtil.deleteFile(filename);
+                } catch (Exception fileEx) {
+                    log.error("수정 중 업로드된 고아 파일 삭제 실패: {}", filename, fileEx);
+                }
+            }
+            throw e;
         }
+
+        // 💡 [트랜잭션 정합성 보호] DB 트랜잭션이 성공적으로 커밋된 이후에만 실제 파일 삭제 실행 (롤백 시 파일 유실 방지)
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                for (String filename : filesToDelete) {
+                    try {
+                        fileUtil.deleteFile(filename);
+                    } catch (Exception e) {
+                        log.error("커밋 후 파일 삭제 실패: {}", filename, e);
+                    }
+                }
+            }
+        });
 
         // 관리자에 의한 수정 알림 발송
         if (isAdmin && !isWriter) {
@@ -266,7 +317,7 @@ public class AskServiceImpl implements AskService {
         return ask.getAskId();
     }
 
-    // 5. 문의글 삭제
+    // 5. 문의글 삭제 (커밋 후 파일 삭제 동기화 반영)
     @Override
     @Transactional
     public void deleteAsk(Long askId, Long memberId) {
@@ -284,9 +335,27 @@ public class AskServiceImpl implements AskService {
         }
 
         List<AskImage> images = askImageRepository.findByAskId_AskId(askId);
-        for (AskImage image : images) {
-            fileUtil.deleteFile(image.getAskImageFilename());
-        }
+        List<String> filesToDelete = images.stream()
+                .map(AskImage::getAskImageFilename)
+                .toList();
+
+        // DB 상에서 이미지 및 문의글 엔티티 선 삭제 처리
+        askImageRepository.deleteAll(images);
+        askRepository.delete(ask);
+
+        // 💡 [트랜잭션 정합성 보호] DB 삭제가 정상 커밋된 후에만 파일 디스크에서 실제 삭제 수행
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                for (String filename : filesToDelete) {
+                    try {
+                        fileUtil.deleteFile(filename);
+                    } catch (Exception e) {
+                        log.error("문의 삭제 후 커밋 파일 제거 실패: {}", filename, e);
+                    }
+                }
+            }
+        });
 
         if (isAdmin && !isWriter) {
             notificationManager.notifyUser(
@@ -296,8 +365,6 @@ public class AskServiceImpl implements AskService {
                     memberId
             );
         }
-
-        askRepository.delete(ask);
     }
 
     // 6. 마이페이지 문의글 목록 조회 및 기타 메서드들...
