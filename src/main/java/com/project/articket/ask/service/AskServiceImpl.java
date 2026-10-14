@@ -287,4 +287,39 @@ public class AskServiceImpl implements AskService {
 
         return new PageResponseDTO<>(dtoList, pageRequestDTO, askPage.getTotalElements());
     }
+
+    @Override
+    public PageResponseDTO<AskListResponseDTO> findByExhibitionId_ExhibitionId(Long exhibitionId, PageRequestDTO pageRequestDTO) {
+        Page<Ask> result = askRepository.findByExhibitionId_ExhibitionId(exhibitionId, pageRequestDTO.getPageable("askCreatedAt"));
+        List<AskListResponseDTO> dtoList = result.getContent().stream()
+                .map(AskListResponseDTO::from)
+                .toList();
+
+        return new PageResponseDTO<>(
+                dtoList,
+                pageRequestDTO,
+                result.getTotalElements()
+        );
+    }
+
+    @Override
+    public PageResponseDTO<AskListResponseDTO> getAsksWithoutReplies(
+            PageRequestDTO pageRequestDTO
+    ) {
+        Pageable pageable = pageRequestDTO.getPageable("askCreatedAt");
+
+        Page<Ask> result =
+                askRepository.findAsksWithoutReplies(pageable);
+
+        List<AskListResponseDTO> dtoList = result.getContent()
+                .stream()
+                .map(AskListResponseDTO::from)
+                .toList();
+
+        return new PageResponseDTO<>(
+                dtoList,
+                pageRequestDTO,
+                result.getTotalElements()
+        );
+    }
 }

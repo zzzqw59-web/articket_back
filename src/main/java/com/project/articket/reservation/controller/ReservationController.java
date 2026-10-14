@@ -5,6 +5,7 @@ import com.project.articket.common.dto.PageResponseDTO;
 import com.project.articket.reservation.dto.ReservationCancelDTO;
 import com.project.articket.reservation.dto.ReservationCreateDTO;
 import com.project.articket.reservation.dto.ReservationDTO;
+import com.project.articket.reservation.dto.ReservationListDTO;
 import com.project.articket.reservation.service.ReservationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -46,5 +47,16 @@ public class ReservationController {
     void reservationCancel(@PathVariable Long reservationId, @Valid @RequestBody ReservationCancelDTO reservationCancelDTO, Authentication authentication) {
         Long memberId = (Long) authentication.getPrincipal();
         reservationService.reservationCancel(memberId, reservationId, reservationCancelDTO);
+    }
+
+    @GetMapping("/list")
+    public PageResponseDTO<ReservationListDTO> reservationListForAdmin(PageRequestDTO pageRequestDTO){
+        return reservationService.reservationListForAdmin(pageRequestDTO);
+    }
+
+    @PatchMapping("/{reservationId}/cancel/admin")
+    void cancelReservation(@PathVariable Long reservationId, @RequestBody ReservationCancelDTO reservationCancelDTO){
+        reservationService.cancelReservation(reservationId, reservationCancelDTO.getCancelReason(), reservationCancelDTO.getCancelDetail());
+
     }
 }

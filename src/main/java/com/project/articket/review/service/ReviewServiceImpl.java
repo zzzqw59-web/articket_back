@@ -556,4 +556,34 @@ public class ReviewServiceImpl implements ReviewService {
         return reservationRepository.findAvailableExhibitionsForReview(memberId, LocalDate.now()
         );
     }
+
+    @Override
+    public PageResponseDTO<ReviewDTO> findByExhibition_ExhibitionId(
+            Long exhibitionId,
+            PageRequestDTO pageRequestDTO
+    ) {
+        Page<Review> page = repository.findByExhibition_ExhibitionId(
+                exhibitionId,
+                pageRequestDTO.getPageable("reviewCreatedAt")
+        );
+
+        List<ReviewDTO> dtoList = page.getContent().stream()
+                .map(review -> {
+                    ReviewDTO dto = new ReviewDTO();
+                    dto.setReviewId(review.getReviewId());
+                    dto.setReviewTitle(review.getReviewTitle());
+                    dto.setReviewBody(review.getReviewBody());
+                    dto.setReviewCreatedAt(review.getReviewCreatedAt());
+                    dto.setReviewModifiedAt(review.getReviewModifiedAt());
+                    dto.setReviewHits(review.getReviewHits());
+                    return dto;
+                })
+                .toList();
+
+        return new PageResponseDTO<>(
+                dtoList,
+                pageRequestDTO,
+                page.getTotalElements()
+        );
+    }
 }

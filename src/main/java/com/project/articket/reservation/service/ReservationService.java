@@ -5,6 +5,7 @@ import com.project.articket.common.dto.PageResponseDTO;
 import com.project.articket.reservation.dto.ReservationCancelDTO;
 import com.project.articket.reservation.dto.ReservationCreateDTO;
 import com.project.articket.reservation.dto.ReservationDTO;
+import com.project.articket.reservation.dto.ReservationListDTO;
 import com.project.articket.reservation.entity.ReservationCancelReason;
 import com.project.articket.review.dto.ReviewAvailableExhibitionDTO;
 
@@ -26,4 +27,6 @@ public interface ReservationService {
     void cancelReservation(Long reservationId, ReservationCancelReason reason, String detail);
 
     List<ReviewAvailableExhibitionDTO> getAvailableExhibitionsForReview(Long memberId);
+
+    PageResponseDTO<ReservationListDTO> reservationListForAdmin(PageRequestDTO pageRequestDTO);
 }
