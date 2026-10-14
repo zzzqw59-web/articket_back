@@ -9,6 +9,7 @@ import com.project.articket.reservation.dto.ReservationListDTO;
 import com.project.articket.reservation.service.ReservationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,11 +50,13 @@ public class ReservationController {
         reservationService.reservationCancel(memberId, reservationId, reservationCancelDTO);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/list")
-    public PageResponseDTO<ReservationListDTO> reservationListForAdmin(PageRequestDTO pageRequestDTO){
+    public PageResponseDTO<ReservationListDTO> reservationListForAdmin(PageRequestDTO pageRequestDTO, Authentication authentication){
         return reservationService.reservationListForAdmin(pageRequestDTO);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{reservationId}/cancel/admin")
     void cancelReservation(@PathVariable Long reservationId, @RequestBody ReservationCancelDTO reservationCancelDTO){
         reservationService.cancelReservation(reservationId, reservationCancelDTO.getCancelReason(), reservationCancelDTO.getCancelDetail());

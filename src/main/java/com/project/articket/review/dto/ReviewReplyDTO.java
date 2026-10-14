@@ -16,6 +16,7 @@ public class ReviewReplyDTO {
     private Long reviewId; // 어느 리뷰의 댓글인지
     private String reviewReplyBody;
     private String memberName;
+    private String memberNickname;
     private LocalDateTime reviewReplyCreatedAt;
     private LocalDateTime reviewReplyModifiedAt;
 }
