@@ -57,5 +57,6 @@ public class ReservationController {
     @PatchMapping("/{reservationId}/cancel/admin")
     void cancelReservation(@PathVariable Long reservationId, @RequestBody ReservationCancelDTO reservationCancelDTO){
         reservationService.cancelReservation(reservationId, reservationCancelDTO.getCancelReason(), reservationCancelDTO.getCancelDetail());
+
     }
 }
