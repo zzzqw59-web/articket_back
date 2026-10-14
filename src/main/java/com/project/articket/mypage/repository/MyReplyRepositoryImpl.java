@@ -11,6 +11,7 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -26,7 +27,6 @@ public class MyReplyRepositoryImpl implements MyReplyRepositoryCustom {
         // 검색 조건 처리 (댓글 내용 검색 기준)
         String searchSql = "";
         if (keyword != null && !keyword.trim().isEmpty()) {
-            // 오라클 문자열 연결은 CONCAT 대신 || 또는 LIKE '%' || :keyword || '%' 사용을 권장
             searchSql = " AND combined.reply_content LIKE '%' || :keyword || '%' ";
         }
 
@@ -56,13 +56,13 @@ public class MyReplyRepositoryImpl implements MyReplyRepositoryCustom {
             }
         }
 
-        // 2. 데이터 목록 조회 (LIMIT / OFFSET 문자열 제거!)
+        // 2. 데이터 목록 조회
         String selectSql = unionSql + " ORDER BY GREATEST(combined.created_at, combined.modified_at) " + sortDirection;
 
         Query dataQuery = em.createNativeQuery(selectSql)
                 .setParameter("memberId", memberId)
-                .setFirstResult((int) pageable.getOffset()) // 👈 JPA 페이징 API 적용 (OFFSET 대체)
-                .setMaxResults(pageable.getPageSize());    // 👈 JPA 페이징 API 적용 (LIMIT 대체)
+                .setFirstResult((int) pageable.getOffset())
+                .setMaxResults(pageable.getPageSize());
 
         if (keyword != null && !keyword.trim().isEmpty()) {
             dataQuery.setParameter("keyword", keyword);
@@ -70,15 +70,17 @@ public class MyReplyRepositoryImpl implements MyReplyRepositoryCustom {
 
         List<Object[]> rawList = dataQuery.getResultList();
 
-        // Object[] -> DTO 매핑
-        List<MyReplyListResponseDTO> content = rawList.stream().map(row -> MyReplyListResponseDTO.builder()
-                .replyId(((Number) row[0]).longValue())
-                .replyType((String) row[1])
-                .targetId(((Number) row[2]).longValue())
-                .replyContent((String) row[3])
-                .replyCreatedAt(row[4] != null ? ((Timestamp) row[4]).toLocalDateTime() : null)
-                .replyModifiedAt(row[5] != null ? ((Timestamp) row[5]).toLocalDateTime() : null)
-                .build()).toList();
+        // Object[] -> DTO 매핑 (Timestamp 및 LocalDateTime 안전 변환 처리)
+        List<MyReplyListResponseDTO> content = rawList.stream().map(row -> {
+            return MyReplyListResponseDTO.builder()
+                    .replyId(((Number) row[0]).longValue())
+                    .replyType((String) row[1])
+                    .targetId(((Number) row[2]).longValue())
+                    .replyContent((String) row[3])
+                    .replyCreatedAt(convertToLocalDateTime(row[4]))
+                    .replyModifiedAt(convertToLocalDateTime(row[5]))
+                    .build();
+        }).toList();
 
         // 3. 카운트 쿼리
         String countSql = "SELECT COUNT(*) FROM (" + unionSql + ") count_table";
@@ -88,5 +90,19 @@ public class MyReplyRepositoryImpl implements MyReplyRepositoryCustom {
         }
 
         return PageableExecutionUtils.getPage(content, pageable, () -> ((Number) countQuery.getSingleResult()).longValue());
+    }
+
+    // 💡 날짜 타입(Timestamp 또는 LocalDateTime)을 안전하게 변환하는 헬퍼 메서드
+    private LocalDateTime convertToLocalDateTime(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+        if (obj instanceof Timestamp) {
+            return ((Timestamp) obj).toLocalDateTime();
+        }
+        if (obj instanceof LocalDateTime) {
+            return (LocalDateTime) obj;
+        }
+        return null;
     }
 }
