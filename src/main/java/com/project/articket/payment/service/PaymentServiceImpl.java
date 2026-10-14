@@ -2,6 +2,7 @@ package com.project.articket.payment.service;
 
 import com.project.articket.common.dto.PageRequestDTO;
 import com.project.articket.common.dto.PageResponseDTO;
+import com.project.articket.member.repository.MemberRepository;
 import com.project.articket.payment.dto.PaymentConfirmRequestDTO;
 import com.project.articket.payment.dto.PaymentConfirmResponseDTO;
 import com.project.articket.payment.dto.PaymentDetailResponseDTO;
@@ -24,6 +25,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -39,6 +41,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final ReservationRepository reservationRepository;
     private final WebClient paymentWebClient;
+    private final MemberRepository memberRepository;
 
     @Value("${toss.secret-key}")
     private String tossSecretKey;
@@ -82,24 +85,36 @@ public class PaymentServiceImpl implements PaymentService {
                 );
 
         // 5. Toss 결제 승인 요청
-        Map<String, Object> tossResponse = paymentWebClient.post()
-                .uri("/v1/payments/confirm")
-                .header(
-                        HttpHeaders.AUTHORIZATION,
-                        "Basic " + encodedSecretKey
-                )
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(Map.of(
-                        "paymentKey",
-                        paymentConfirmRequestDTO.getPaymentKey(),
-                        "orderId",
-                        paymentConfirmRequestDTO.getOrderId(),
-                        "amount",
-                        paymentConfirmRequestDTO.getAmount()
-                ))
-                .retrieve()
-                .bodyToMono(Map.class)
-                .block();
+        Map<String, Object> tossResponse;
+        try {
+            tossResponse = paymentWebClient.post()
+                    .uri("/v1/payments/confirm")
+                    .header(
+                            HttpHeaders.AUTHORIZATION,
+                            "Basic " + encodedSecretKey
+                    )
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(Map.of(
+                            "paymentKey",
+                            paymentConfirmRequestDTO.getPaymentKey(),
+                            "orderId",
+                            paymentConfirmRequestDTO.getOrderId(),
+                            "amount",
+                            paymentConfirmRequestDTO.getAmount()
+                    ))
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .block();
+        } catch (WebClientResponseException e) {
+
+            System.out.println("========== Toss 승인 오류 ==========");
+            System.out.println("HTTP 상태: " + e.getStatusCode());
+            System.out.println("오류 응답: " + e.getResponseBodyAsString());
+            System.out.println("==================================");
+
+            throw e;
+        }
+
 
         // 6. Toss 승인 결과에서 필요한 값 추출
         String paymentKey =
