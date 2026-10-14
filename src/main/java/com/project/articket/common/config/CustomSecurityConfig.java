@@ -116,7 +116,8 @@ public class CustomSecurityConfig {
                         .requestMatchers(
                                 "/api/admin/**"
                         ).hasRole("ADMIN")
-
+                        .requestMatchers(HttpMethod.GET, "/api/reservations/list").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/reservations/*/cancel/admin").hasRole("ADMIN")
                         .requestMatchers(
                                 "/api/staff/**"
                         ).hasRole("STAFF")
