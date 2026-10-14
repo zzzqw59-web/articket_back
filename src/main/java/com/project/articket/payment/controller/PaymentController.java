@@ -21,8 +21,9 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping("/confirm")
-    public PaymentConfirmResponseDTO confirmPayment(@Valid @RequestBody PaymentConfirmRequestDTO paymentConfirmRequestDTO) {
-        return paymentService.confirmPayment(paymentConfirmRequestDTO);
+    public PaymentConfirmResponseDTO confirmPayment(@Valid @RequestBody PaymentConfirmRequestDTO paymentConfirmRequestDTO, Authentication authentication) {
+        Long memberId = (Long) authentication.getPrincipal();
+        return paymentService.confirmPayment(memberId, paymentConfirmRequestDTO);
     }
 
     // 내 결제 내역 목록 조회
