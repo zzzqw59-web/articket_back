@@ -416,10 +416,12 @@ public class PaymentServiceImpl implements PaymentService {
     // 결제 취소
     // ======================================================
 
+
     @Transactional
     @Override
     public void cancelPayment(Long reservationId, Long refundAmount) {
 
+        // 1. 결제 정보 조회
         Payment payment = paymentRepository
                 .findByReservation_ReservationId(reservationId)
                 .orElseThrow(() ->
@@ -428,37 +430,72 @@ public class PaymentServiceImpl implements PaymentService {
                         )
                 );
 
+        // 2. 결제 상태 검증
         if (payment.getPaymentStatus() != PaymentStatus.DONE) {
             throw new IllegalArgumentException(
                     "취소할 수 없는 결제입니다."
             );
         }
 
+        // 3. 환불 금액 검증
+        if (refundAmount == null
+                || refundAmount <= 0
+                || refundAmount > payment.getPaymentAmount()) {
+
+            throw new IllegalArgumentException(
+                    "환불 금액이 올바르지 않습니다."
+            );
+        }
+
+        // 4. Toss Secret Key를 Base64로 인코딩
         String encodedSecretKey = Base64.getEncoder()
                 .encodeToString(
                         (tossSecretKey + ":")
                                 .getBytes(StandardCharsets.UTF_8)
                 );
 
-        paymentWebClient.post()
-                .uri("/v1/payments/" + payment.getPaymentKey() + "/cancel")
-                .header(
-                        HttpHeaders.AUTHORIZATION,
-                        "Basic " + encodedSecretKey
-                )
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(Map.of(
-                        "cancelReason", "고객 예약 취소",
-                        "cancelAmount", refundAmount
-                ))
-                .retrieve()
-                .bodyToMono(Map.class)
-                .block();
+        // 5. Toss 결제 취소 요청
+        try {
 
+            paymentWebClient.post()
+                    .uri(
+                            "/v1/payments/{paymentKey}/cancel",
+                            payment.getPaymentKey()
+                    )
+                    .header(
+                            HttpHeaders.AUTHORIZATION,
+                            "Basic " + encodedSecretKey
+                    )
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(Map.of(
+                            "cancelReason", "예약 취소에 따른 환불",
+                            "cancelAmount", refundAmount
+                    ))
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .block();
+
+            System.out.println("========== Toss 환불 성공 ==========");
+            System.out.println("예약 번호: " + reservationId);
+            System.out.println("환불 금액: " + refundAmount);
+            System.out.println("==================================");
+
+        } catch (WebClientResponseException e) {
+
+            System.err.println("========== Toss 환불 오류 ==========");
+            System.err.println("HTTP 상태: " + e.getStatusCode());
+            System.err.println("응답 내용: " + e.getResponseBodyAsString());
+            System.err.println("==================================");
+
+            throw e;
+        }
+
+        // 6. DB 결제 상태 변경
         payment.setPaymentStatus(PaymentStatus.CANCELED);
         payment.setPaymentRefundAmount(refundAmount);
         payment.setPaymentCanceledAt(LocalDateTime.now());
     }
+
 
     // ======================================================
     // 내 결제 내역 페이징 / 검색 / 정렬 조회

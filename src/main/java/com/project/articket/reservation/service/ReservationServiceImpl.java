@@ -318,9 +318,31 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Transactional
     @Override
-    public void cancelReservation(Long reservationId, ReservationCancelReason reason, String detail) {
-        // 다른 서비스에서 예약 상태를 취소로 변경
-        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new IllegalArgumentException("해당 예약이 존재하지 않습니다."));
+    public void cancelReservation(
+            Long reservationId,
+            ReservationCancelReason reason,
+            String detail) {
+
+        // 1. 예약 조회
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("해당 예약이 존재하지 않습니다.")
+                );
+
+        // 2. 이미 취소된 예약인지 검증
+        if (reservation.getReservationStatus() == ReservationStatus.CANCELED) {
+            throw new IllegalArgumentException("이미 취소된 예약입니다.");
+        }
+
+        // 3. 결제 완료된 예약이면 전액 환불
+        if (reservation.getReservationStatus() == ReservationStatus.RESERVED) {
+
+            Long refundAmount = reservation.getReservationAmount();
+
+            paymentService.cancelPayment(reservationId, refundAmount);
+        }
+
+        // 4. 예약 취소 처리
         reservation.cancel(reason, detail);
     }
 

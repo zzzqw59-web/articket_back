@@ -26,6 +26,7 @@ public interface ReservationService {
 
     void cancelReservation(Long reservationId, ReservationCancelReason reason, String detail);
 
+
     List<ReviewAvailableExhibitionDTO> getAvailableExhibitionsForReview(Long memberId);
 
     PageResponseDTO<ReservationListDTO> reservationListForAdmin(PageRequestDTO pageRequestDTO);
