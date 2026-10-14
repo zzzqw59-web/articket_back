@@ -52,11 +52,8 @@ public class PaymentServiceImpl implements PaymentService {
         Reservation reservation = reservationRepository
                 .findByReservationOrderId(paymentConfirmRequestDTO.getOrderId()).orElseThrow(() -> new IllegalArgumentException("예약 정보를 찾을 수 없습니다."));
 
-        System.out.println("로그인 회원 ID: " + memberId);
-        System.out.println("예약 소유자 ID: " + reservation.getMember().getMemberId());
 
         if (!reservation.getMember().getMemberId().equals(memberId)) {
-            System.out.println("소유권 검증 실패 - 결제 승인 차단");
             throw new AccessDeniedException("본인의 예약만 결제할 수 있습니다.");
         }
         // 2. 예약 상태 확인
@@ -85,7 +82,6 @@ public class PaymentServiceImpl implements PaymentService {
                 );
 
         // 5. Toss 결제 승인 요청
-        System.out.println("========== Toss API 호출 시작 ==========");
         Map<String, Object> tossResponse = paymentWebClient.post()
                 .uri("/v1/payments/confirm")
                 .header(

@@ -147,6 +147,10 @@ public class ReservationServiceImpl implements ReservationService {
             throw new IllegalArgumentException("예약이 종료된 전시는 예약이 불가능합니다.");
         }
 
+        if (reservationCreateDTO.getReservationDay().isBefore(today)) {
+            throw new IllegalArgumentException("지난 날짜는 예약이 불가능합니다.");
+        }
+
         if (reservationCreateDTO.getReservationDay().isBefore(exhibition.getStartDate())
                 || reservationCreateDTO.getReservationDay().isAfter(exhibition.getEndDate())) {
             throw new IllegalArgumentException("예약은 전시 기간 내에 설정 가능합니다.");
