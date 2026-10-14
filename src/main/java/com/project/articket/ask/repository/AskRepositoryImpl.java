@@ -99,10 +99,16 @@ public class AskRepositoryImpl implements AskRepositoryCustom {
     }
 
     private OrderSpecifier<?> getSortOrder(String sort) {
-        if ("asc".equalsIgnoreCase(sort)) {
-            return ask.askCreatedAt.asc();
+        if (!StringUtils.hasText(sort)) {
+            return ask.askCreatedAt.desc(); // 기본값: 최신순
         }
-        return ask.askCreatedAt.desc();
+
+        return switch (sort.toLowerCase()) {
+            case "oldest" -> ask.askCreatedAt.asc();     // 오래된순
+            case "views" -> ask.askHits.desc();          // 조회수순 (조회수 컬럼인 askHits 기준 내림차순)
+            case "latest" -> ask.askCreatedAt.desc();   // 최신순
+            default -> ask.askCreatedAt.desc();
+        };
     }
 
     private BooleanExpression askTypeEq(Integer askType) {

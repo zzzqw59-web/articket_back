@@ -69,6 +69,18 @@ public class TestAccountCreateTests {
                 Member.TYPE_MEMBER
         );
 
+        String[] userName = {"신창섭", "엄홍길", "황근출", "김정남", "하일권", "성진우", "강백호", "임재범", "차정원", "김호식"};
+        for(int i = 0; i < 10; i++) {
+            createAccount(
+                    "testmember" + i + "@articket.com",
+                    "Test1234!",
+                    userName[i],
+                    userName[i],
+                    "010-9000-001" + i,
+                    Member.TYPE_MEMBER
+            );
+        }
+
         createAccount(
                 "teststaff@articket.com",
                 "Test1234!",

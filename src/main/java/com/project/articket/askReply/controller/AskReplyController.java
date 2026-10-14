@@ -43,12 +43,16 @@ public class AskReplyController {
     @GetMapping("/api/asks/{askId}/replies")
     public ResponseEntity<PageResponseDTO<AskReplyDTO>> getReplyList(
             @PathVariable("askId") Long askId,
-            @ModelAttribute PageRequestDTO pageRequestDTO
+            @ModelAttribute PageRequestDTO pageRequestDTO,
+            Authentication authentication // 💡 인증 정보 추가
     ) {
+        Long memberId = authentication != null ? (Long) authentication.getPrincipal() : null;
+
         PageResponseDTO<AskReplyDTO> response =
                 askReplyService.getReplyList(
                         askId,
-                        pageRequestDTO
+                        pageRequestDTO,
+                        memberId
                 );
 
         return ResponseEntity.ok(response);

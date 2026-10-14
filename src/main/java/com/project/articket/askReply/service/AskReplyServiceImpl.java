@@ -71,7 +71,37 @@ public class AskReplyServiceImpl implements AskReplyService {
     }
 
     @Override
-    public PageResponseDTO<AskReplyDTO> getReplyList(Long askId, PageRequestDTO pageRequestDTO) {
+    public PageResponseDTO<AskReplyDTO> getReplyList(Long askId, PageRequestDTO pageRequestDTO, Long memberId) {
+        Ask ask = askRepository.findById(askId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 문의글입니다. askId=" + askId));
+
+        // 💡 [비밀 문의글 접근 권한 검증]
+        // 문의글이 비밀글(isSecret)인 경우 열람 권한 체크
+        if (ask.getAskSecret()==1) {
+            if (memberId == null) {
+                throw new IllegalStateException("비밀 문의글은 로그인 후 열람할 수 있습니다.");
+            }
+
+            Member member = memberRepository.findById(memberId)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다. memberId=" + memberId));
+
+            boolean isWriter = ask.getMemberId().getMemberId().equals(memberId); // 작성자 본인 여부 (프로젝트 엔티티 구조에 맞춰 조정 필요)
+            boolean isAdmin = MemberRole.ADMIN.equalsKey(member.getMemberType());
+            boolean isExhibitionManager = false;
+
+            if (ask.getExhibitionId() != null) {
+                Long exhibitionId = ask.getExhibitionId().getExhibitionId();
+                isExhibitionManager = staffRepository.existsByMemberMemberIdAndExhibitionExhibitionId(
+                        memberId,
+                        exhibitionId
+                );
+            }
+
+            if (!isWriter && !isAdmin && !isExhibitionManager) {
+                throw new IllegalStateException("비밀 문의글 및 댓글을 조회할 권한이 없습니다.");
+            }
+        }
+
         Pageable pageable = pageRequestDTO.getPageable("askReplyId");
         Page<AskReply> replyPage = askReplyRepository.findByAskId_AskId(askId, pageable);
 

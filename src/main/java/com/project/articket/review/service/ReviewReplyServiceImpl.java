@@ -48,6 +48,7 @@ public class ReviewReplyServiceImpl implements ReviewReplyService {
                             reviewReply.getMember().getMemberName()
                     )
             );
+            dto.setMemberNickname(reviewReply.getMember().getMemberNickname());
             dto.setReviewReplyCreatedAt(reviewReply.getReviewReplyCreatedAt());
             dto.setReviewReplyModifiedAt(reviewReply.getReviewReplyModifiedAt());
 
