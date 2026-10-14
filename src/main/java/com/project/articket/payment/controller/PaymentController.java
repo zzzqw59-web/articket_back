@@ -10,6 +10,7 @@ import com.project.articket.payment.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,10 +25,6 @@ public class PaymentController {
         return paymentService.confirmPayment(paymentConfirmRequestDTO);
     }
 
-    // =========================================================
-    // =========================================================
-
-
     // 내 결제 내역 목록 조회
     @GetMapping("/me")
     public ResponseEntity<PageResponseDTO<PaymentListResponseDTO>> getMyPayments(
@@ -40,8 +37,9 @@ public class PaymentController {
 
     // 특정 결제 ID에 대한 결제 상세 조회
     @GetMapping("/{paymentId}")
-    public ResponseEntity<PaymentDetailResponseDTO> getPaymentDetail(@PathVariable("paymentId") Long paymentId) {
-        PaymentDetailResponseDTO response = paymentService.getPaymentDetail(paymentId);
+    public ResponseEntity<PaymentDetailResponseDTO> getPaymentDetail(@PathVariable("paymentId") Long paymentId, Authentication authentication) {
+        Long memberId = (Long) authentication.getPrincipal();
+        PaymentDetailResponseDTO response = paymentService.getPaymentDetail(memberId, paymentId);
         return ResponseEntity.ok(response);
     }
 }

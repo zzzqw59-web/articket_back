@@ -22,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -90,8 +91,14 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public ReservationDTO reservationDetail(Long reservationId) {
-        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않습니다."));
+    public ReservationDTO reservationDetail(Long memberId, Long reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않습니다."));
+
+        // 예약 소유권 검증
+        if (!reservation.getMember().getMemberId().equals(memberId)) {
+            throw new org.springframework.security.access.AccessDeniedException("본인의 예약만 조회할 수 있습니다.");
+        }
 
         ReservationDTO reservationDTO = new ReservationDTO();
         reservationDTO.setReservationId(reservation.getReservationId());
@@ -257,9 +264,20 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public ReservationDTO reservationDetailByOrderId(String orderId) {
+    public ReservationDTO reservationDetailByOrderId(Long memberId, String orderId) {
         Reservation reservation = reservationRepository.findByReservationOrderId(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않습니다."));
+
+        System.out.println("========== 주문번호 소유권 검증 ==========");
+        System.out.println("로그인 회원 ID: " + memberId);
+        System.out.println("예약 소유자 ID: " + reservation.getMember().getMemberId());
+        System.out.println("요청 주문번호: " + orderId);
+        System.out.println("========================================");
+
+        // 예약 소유권 검증
+        if (!reservation.getMember().getMemberId().equals(memberId)) {
+            throw new AccessDeniedException("본인의 예약만 조회할 수 있습니다.");
+        }
 
         ReservationDTO reservationDTO = new ReservationDTO();
         reservationDTO.setReservationId(reservation.getReservationId());

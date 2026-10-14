@@ -27,14 +27,15 @@ public class ReservationController {
     }
 
     @GetMapping("/{reservationId}")
-    public ReservationDTO reservationDetail(@PathVariable Long reservationId) {
-        ReservationDTO reservationDTO = reservationService.reservationDetail(reservationId);
-        return reservationDTO;
+    public ReservationDTO reservationDetail(@PathVariable Long reservationId, Authentication authentication) {
+        Long memberId = (Long) authentication.getPrincipal();
+        return reservationService.reservationDetail(memberId, reservationId);
     }
 
     @GetMapping("/order/{orderId}")
-    public ReservationDTO reservationDetailByOrderId(@PathVariable String orderId) {
-        return reservationService.reservationDetailByOrderId(orderId);
+    public ReservationDTO reservationDetailByOrderId(@PathVariable String orderId, Authentication authentication) {
+        Long memberId = (Long) authentication.getPrincipal();
+        return reservationService.reservationDetailByOrderId(memberId, orderId);
     }
 
     @PostMapping

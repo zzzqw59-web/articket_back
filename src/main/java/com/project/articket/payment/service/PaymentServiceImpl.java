@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -239,15 +240,21 @@ public class PaymentServiceImpl implements PaymentService {
      * 결제 단건 상세 조회 (paymentId 기반)
      */
     @Override
-    public PaymentDetailResponseDTO getPaymentDetail(Long paymentId) {
-        // 💡 reservationId가 아닌 paymentId(PK)로 조회
+    public PaymentDetailResponseDTO getPaymentDetail(Long memberId, Long paymentId) {
+
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 결제 내역이 존재하지 않습니다. ID: " + paymentId));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "해당 결제 내역이 존재하지 않습니다. ID: " + paymentId));
+
+        // 결제 소유권 검증
+        if (!payment.getReservation().getMember().getMemberId().equals(memberId)) {
+            throw new AccessDeniedException("본인의 결제 내역만 조회할 수 있습니다.");
+        }
 
         return new PaymentDetailResponseDTO(
                 payment.getPaymentId(),
                 payment.getPaymentOrderId(),
-                payment.getReservation().getReservationId(), // 💡 상세 DTO에 reservationId 정상 포함
+                payment.getReservation().getReservationId(),
                 payment.getPaymentAmount(),
                 payment.getPaymentStatus(),
                 payment.getPaymentApprovedAt(),
