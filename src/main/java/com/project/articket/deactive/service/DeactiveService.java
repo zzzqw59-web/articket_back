@@ -300,6 +300,13 @@ public class DeactiveService {
                 }
 
                 deactive.getMember().activate();
+
+                notificationManager.notifyUser(
+                        deactive.getMember(),
+                        NotificationType.MEMBER_ACTIVE.getCode(),
+                        deactive.getDeactiveId(),
+                        null
+                );
             }
         }
     }

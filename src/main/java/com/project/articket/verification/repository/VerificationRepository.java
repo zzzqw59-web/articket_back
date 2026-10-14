@@ -3,6 +3,7 @@ package com.project.articket.verification.repository;
 import com.project.articket.verification.entity.Verification;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface VerificationRepository
@@ -12,5 +13,15 @@ public interface VerificationRepository
     findTopByPhoneNumberAndVerificationTypeOrderByVerificationCreatedAtDescVerificationIdDesc(
             String phoneNumber,
             String verificationType
+    );
+
+    Optional<Verification>
+    findTopByPhoneNumberOrderByVerificationCreatedAtDescVerificationIdDesc(
+            String phoneNumber
+    );
+
+    long countByPhoneNumberAndVerificationCreatedAtAfter(
+            String phoneNumber,
+            LocalDateTime createdAt
     );
 }

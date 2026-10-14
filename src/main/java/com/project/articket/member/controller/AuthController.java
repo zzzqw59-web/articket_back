@@ -15,6 +15,7 @@ import com.project.articket.member.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -65,10 +66,23 @@ public class AuthController {
                         loginDTO.getPassword()
                 );
 
-        Authentication authentication =
-                authenticationManager.authenticate(
-                        authenticationToken
-                );
+        Authentication authentication;
+
+        try {
+            authentication =
+                    authenticationManager.authenticate(
+                            authenticationToken
+                    );
+
+        } catch (BadCredentialsException e) {
+
+            return ResponseEntity
+                    .status(401)
+                    .body(Map.of(
+                            "message",
+                            "이메일 또는 비밀번호가 일치하지 않습니다."
+                    ));
+        }
 
         MemberAuthDTO memberAuthDTO =
                 (MemberAuthDTO) authentication.getPrincipal();

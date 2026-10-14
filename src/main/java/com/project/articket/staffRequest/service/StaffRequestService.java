@@ -12,6 +12,8 @@ import com.project.articket.staffRequest.dto.StaffRequestResponseDTO;
 import com.project.articket.staffRequest.entity.StaffRequest;
 import com.project.articket.staffRequest.enums.StaffRequestStatus;
 import com.project.articket.staffRequest.repository.StaffRequestRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,7 @@ public class StaffRequestService {
     private final StaffRepository staffRepository;
     private final MemberRepository memberRepository;
     private final ExhibitionRepository exhibitionRepository;
+    private final EntityManager entityManager;
 
     @Transactional
     public void requestStaffAuthority(
@@ -35,12 +38,17 @@ public class StaffRequestService {
     ) {
 
         Member member =
-                memberRepository.findById(memberId)
-                        .orElseThrow(
-                                () -> new RuntimeException(
-                                        "회원 정보를 찾을 수 없습니다."
-                                )
-                        );
+                entityManager.find(
+                        Member.class,
+                        memberId,
+                        LockModeType.PESSIMISTIC_WRITE
+                );
+
+        if (member == null) {
+            throw new RuntimeException(
+                    "회원 정보를 찾을 수 없습니다."
+            );
+        }
 
         if (!Member.TYPE_STAFF.equals(member.getMemberType())) {
             throw new RuntimeException(
@@ -276,6 +284,21 @@ public class StaffRequestService {
                                 )
                         );
 
+        Long memberId =
+                staffRequest.getMember().getMemberId();
+
+        Member requestMember =
+                entityManager.find(
+                        Member.class,
+                        memberId,
+                        LockModeType.PESSIMISTIC_WRITE
+                );
+
+        entityManager.refresh(
+                staffRequest,
+                LockModeType.PESSIMISTIC_WRITE
+        );
+
         if (staffRequest.getRequestStatus()
                 != StaffRequestStatus.PENDING) {
 
@@ -284,9 +307,6 @@ public class StaffRequestService {
             );
         }
 
-        Member requestMember =
-                staffRequest.getMember();
-
         if (!Member.TYPE_STAFF.equals(
                 requestMember.getMemberType()
         )) {
@@ -294,9 +314,6 @@ public class StaffRequestService {
                     "전시 관계자 계정의 요청만 승인할 수 있습니다."
             );
         }
-
-        Long memberId =
-                requestMember.getMemberId();
 
         Long exhibitionId =
                 staffRequest
@@ -356,12 +373,17 @@ public class StaffRequestService {
         }
 
         StaffRequest staffRequest =
-                staffRequestRepository.findById(requestId)
-                        .orElseThrow(
-                                () -> new RuntimeException(
-                                        "담당 권한 요청을 찾을 수 없습니다."
-                                )
-                        );
+                entityManager.find(
+                        StaffRequest.class,
+                        requestId,
+                        LockModeType.PESSIMISTIC_WRITE
+                );
+
+        if (staffRequest == null) {
+            throw new RuntimeException(
+                    "담당 권한 요청을 찾을 수 없습니다."
+            );
+        }
 
         if (staffRequest.getRequestStatus()
                 != StaffRequestStatus.PENDING) {
