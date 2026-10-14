@@ -7,7 +7,7 @@ import com.project.articket.common.dto.PageResponseDTO;
 
 public interface AskReplyService {
     Long createReply(Long askId, Long memberId, AskReplyRequestDTO requestDto);
-    PageResponseDTO<AskReplyDTO> getReplyList(Long askId, PageRequestDTO pageRequestDTO);
+    PageResponseDTO<AskReplyDTO> getReplyList(Long askId, PageRequestDTO pageRequestDTO, Long memberId);
     void updateReply(Long askReplyId, Long memberId, AskReplyRequestDTO requestDto);
     void deleteReply(Long replyId, Long memberId);
     PageResponseDTO<AskReplyDTO> getMyReplyList(Long memberId, PageRequestDTO pageRequestDTO);
