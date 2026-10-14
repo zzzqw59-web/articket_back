@@ -15,10 +15,9 @@ import com.project.articket.common.util.CustomFileUtil;
 import com.project.articket.common.util.NotificationManager;
 import com.project.articket.exhibition.entity.Exhibition;
 import com.project.articket.exhibition.repository.ExhibitionRepository;
-
 import com.project.articket.member.entity.Member;
 import com.project.articket.member.repository.MemberRepository;
-import com.project.articket.notification.enums.NotificationType; // 💡 알림 타입 Enum 임포트
+import com.project.articket.notification.enums.NotificationType;
 import com.project.articket.staff.repository.StaffRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -44,8 +43,39 @@ public class AskServiceImpl implements AskService {
     private final CustomFileUtil fileUtil;
     private final NotificationManager notificationManager;
 
+    // 💡 [이미지 검증 공통 헬퍼 메서드] (최대 3장, 5MB, 허용 확장자: JPG, JPEG, PNG, WEBP)
+    private void validateImages(List<MultipartFile> files, int existingCount) {
+        if (files == null) return;
 
-    // 1. 문의글 작성 (파일 업로드, 관리자 & STAFF 알림 발송 포함)
+        List<MultipartFile> validFiles = files.stream()
+                .filter(file -> file != null && !file.isEmpty())
+                .toList();
+
+        if (existingCount + validFiles.size() > 3) {
+            throw new IllegalArgumentException("이미지는 최대 3장까지만 업로드할 수 있습니다.");
+        }
+
+        for (MultipartFile file : validFiles) {
+            // 용량 검증 (5MB = 5 * 1024 * 1024 bytes)
+            if (file.getSize() > 5 * 1024 * 1024) {
+                throw new IllegalArgumentException("파일 크기는 5MB를 초과할 수 없습니다.");
+            }
+
+            // Content-Type 형식 검증
+            String contentType = file.getContentType();
+            if (contentType == null || !(
+                    contentType.equals("image/jpeg") ||
+                            contentType.equals("image/jpg") ||
+                            contentType.equals("image/png") ||
+                            contentType.equals("image/gif") ||
+                            contentType.equals("image/webp")
+            )) {
+                throw new IllegalArgumentException("지원하지 않는 파일 형식입니다. (JPG, JPEG, PNG, GIF, WEBP만 가능합니다.)");
+            }
+        }
+    }
+
+    // 1. 문의글 작성 (파일 업로드 검증 포함)
     @Override
     @Transactional
     public Long createAsk(Long memberId, AskCreateRequestDTO requestDto, List<MultipartFile> files) {
@@ -57,6 +87,9 @@ public class AskServiceImpl implements AskService {
             exhibition = exhibitionRepository.findById(requestDto.getExhibitionId())
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 전시입니다. exhibitionId=" + requestDto.getExhibitionId()));
         }
+
+        // 💡 1. 등록 시 이미지 검증 (기존 이미지 0장 기준)
+        validateImages(files, 0);
 
         Ask ask = requestDto.toEntity(member, exhibition);
         Ask savedAsk = askRepository.save(ask);
@@ -79,11 +112,9 @@ public class AskServiceImpl implements AskService {
             }
         }
 
-        // --- [1. 관리자 대상 새 문의 등록 알림 발송 (10: ASK_NEW)] ---
+        // --- [관리자 및 전시 관계자 알림 발송] ---
         notificationManager.notifyAllAdmins(NotificationType.ASK_NEW.getCode(), savedAsk.getAskId());
 
-
-        // --- [2. 전시 관계자(STAFF) 대상 알림 발송 (10: ASK_NEW)] ---
         if (savedAsk.getExhibitionId() != null) {
             notificationManager.notifyExhibitionStaffs(
                     savedAsk.getExhibitionId().getExhibitionId(),
@@ -156,7 +187,7 @@ public class AskServiceImpl implements AskService {
         return AskResponseDTO.from(ask, images);
     }
 
-    // 4. 문의글 수정 (관리자에 의한 수정 시 작성자에게 알림 발송 포함)
+    // 4. 문의글 수정 (이미지 검증 및 수정 범위 포함)
     @Override
     @Transactional
     public Long updateAsk(Long askId, Long memberId, AskUpdateRequestDTO requestDto, List<MultipartFile> newFiles) {
@@ -173,6 +204,19 @@ public class AskServiceImpl implements AskService {
             throw new IllegalStateException("수정 권한이 없습니다.");
         }
 
+        // 기존 이미지 유지 목록 파악
+        List<AskImage> currentImages = askImageRepository.findByAskId_AskId(askId);
+        List<String> keepFilenames = requestDto.getKeepImageFilenames() != null
+                ? requestDto.getKeepImageFilenames()
+                : List.of();
+
+        int keepCount = (int) currentImages.stream()
+                .filter(img -> keepFilenames.contains(img.getAskImageFilename()))
+                .count();
+
+        // 💡 2. 수정 시 새로 업로드하는 이미지 검증 (기유지 이미지 수 고려)
+        validateImages(newFiles, keepCount);
+
         Exhibition exhibition = null;
         if (requestDto.getExhibitionId() != null) {
             exhibition = exhibitionRepository.findById(requestDto.getExhibitionId())
@@ -186,11 +230,6 @@ public class AskServiceImpl implements AskService {
                 requestDto.getAskSecret(),
                 exhibition
         );
-
-        List<AskImage> currentImages = askImageRepository.findByAskId_AskId(askId);
-        List<String> keepFilenames = requestDto.getKeepImageFilenames() != null
-                ? requestDto.getKeepImageFilenames()
-                : List.of();
 
         for (AskImage currentImage : currentImages) {
             if (!keepFilenames.contains(currentImage.getAskImageFilename())) {
@@ -219,7 +258,7 @@ public class AskServiceImpl implements AskService {
             }
         }
 
-        // 💡 [관리자에 의한 수정인 경우, 작성자에게 알림 발송 (12: ASK_UPDATE)]
+        // 관리자에 의한 수정 알림 발송
         if (isAdmin && !isWriter) {
             notificationManager.notifyUser(
                     ask.getMemberId(),
@@ -232,7 +271,7 @@ public class AskServiceImpl implements AskService {
         return ask.getAskId();
     }
 
-    // 5. 문의글 삭제 (관리자에 의한 삭제 시 작성자에게 알림 발송 포함)
+    // 5. 문의글 삭제
     @Override
     @Transactional
     public void deleteAsk(Long askId, Long memberId) {
@@ -254,7 +293,6 @@ public class AskServiceImpl implements AskService {
             fileUtil.deleteFile(image.getAskImageFilename());
         }
 
-        // 💡 [관리자에 의한 삭제인 경우, 실제 삭제 직전 작성자에게 알림 발송 (13: ASK_DELETE)]
         if (isAdmin && !isWriter) {
             notificationManager.notifyUser(
                     ask.getMemberId(),
@@ -267,7 +305,7 @@ public class AskServiceImpl implements AskService {
         askRepository.delete(ask);
     }
 
-    // 6. 마이페이지 문의글 목록 조회
+    // 6. 마이페이지 문의글 목록 조회 및 기타 메서드들...
     @Override
     public PageResponseDTO<AskListResponseDTO> getMyAskList(Long memberId, Integer askType, PageRequestDTO pageRequestDTO) {
         Pageable pageable = pageRequestDTO.getPageable("askId");
