@@ -17,14 +17,18 @@ import com.project.articket.staffRequest.repository.StaffRequestRepository;
 import com.project.articket.withdraw.entity.Withdraw;
 import com.project.articket.withdraw.enums.WithdrawStatus;
 import com.project.articket.withdraw.repository.WithdrawRepository;
+import com.project.articket.withdraw.service.WithdrawService;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 @SpringBootTest
@@ -57,6 +61,12 @@ public class TestAccountCreateTests {
     @Autowired
     private MemberService memberService;
 
+    @Autowired
+    private WithdrawService withdrawService;
+
+    @Autowired
+    private EntityManager entityManager;
+
     @Test
     void createTestAccounts() {
 
@@ -68,18 +78,6 @@ public class TestAccountCreateTests {
                 "010-9000-0001",
                 Member.TYPE_MEMBER
         );
-
-        String[] userName = {"신창섭", "엄홍길", "황근출", "김정남", "하일권", "성진우", "강백호", "임재범", "차정원", "김호식"};
-        for(int i = 0; i < 10; i++) {
-            createAccount(
-                    "testmember" + i + "@articket.com",
-                    "Test1234!",
-                    userName[i],
-                    userName[i],
-                    "010-9000-001" + i,
-                    Member.TYPE_MEMBER
-            );
-        }
 
         createAccount(
                 "teststaff@articket.com",
@@ -133,7 +131,9 @@ public class TestAccountCreateTests {
                 personalDataCrypto.encryptName(name);
 
         String encryptedPhone =
-                personalDataCrypto.encryptPhone(phone);
+                personalDataCrypto.encryptPhone(
+                        phone.replaceAll("\\D", "")
+                );
 
         Member member =
                 Member.builder()
@@ -160,9 +160,51 @@ public class TestAccountCreateTests {
     @Commit
     void createScenarioAccounts() {
 
+        String[] accountEmails = {
+                "minjun.kim@articket.example",
+                "seoyeon.lee@articket.example",
+                "jihoon.park@articket.example",
+                "yujin.choi@articket.example",
+                "haneul.jung@articket.example",
+                "hyunwoo.oh@articket.example",
+                "seoa.yoon@articket.example",
+                "doyoon.kang@articket.example",
+                "subin.lim@articket.example"
+        };
+
+        int existingCount = 0;
+
+        for (String email : accountEmails) {
+            if (memberRepository.existsByMemberEmail(email)) {
+                existingCount++;
+            }
+        }
+
+        boolean completedOriginalExists =
+                memberRepository.existsByMemberEmail(
+                        "jiwoo.han@articket.example"
+                );
+
+        if (existingCount == accountEmails.length && !completedOriginalExists) {
+            System.out.println(
+                    "시나리오 테스트 계정이 이미 생성되어 있어 중복 생성을 건너뜁니다."
+            );
+            return;
+        }
+
+        if (existingCount > 0 || completedOriginalExists) {
+            throw new IllegalStateException(
+                    "시나리오 계정이 일부 존재합니다. 기존 테스트 데이터를 확인한 후 다시 실행해 주세요."
+            );
+        }
+
         Exhibition exhibition =
                 exhibitionRepository.findAll(
-                                PageRequest.of(0, 1)
+                                PageRequest.of(
+                                        0,
+                                        1,
+                                        Sort.by("exhibitionId").ascending()
+                                )
                         )
                         .getContent()
                         .stream()
@@ -173,7 +215,7 @@ public class TestAccountCreateTests {
                                 )
                         );
 
-        Member memberA = createScenarioAccount(
+        createScenarioAccount(
                 "minjun.kim@articket.example",
                 "Minjun!2026",
                 "달빛산책",
@@ -263,83 +305,42 @@ public class TestAccountCreateTests {
                 Member.TYPE_ADMIN
         );
 
-        if (memberB != null) {
-            createDeactivation(
-                    memberB,
-                    30,
-                    "커뮤니티 이용 규정 위반"
-            );
-        }
+        createDeactivation(
+                memberB,
+                30,
+                "커뮤니티 이용 규정 위반"
+        );
 
-        if (memberC != null) {
-            createDeactivation(
-                    memberC,
-                    0,
-                    "반복적인 서비스 이용 규정 위반"
-            );
-        }
+        createDeactivation(
+                memberC,
+                0,
+                "반복적인 서비스 이용 규정 위반"
+        );
 
-        if (memberD != null) {
-            createWithdrawal(
-                    memberD,
-                    WithdrawStatus.IN_PROGRESS
-            );
-        }
+        createWithdrawal(memberD, WithdrawStatus.IN_PROGRESS);
+        createWithdrawal(memberE, WithdrawStatus.CANCELED);
+        createWithdrawal(memberF, WithdrawStatus.COMPLETED);
 
-        if (memberE != null) {
-            createWithdrawal(
-                    memberE,
-                    WithdrawStatus.CANCELED
-            );
-        }
+        createStaffRequest(
+                staffA,
+                exhibition,
+                admin,
+                StaffRequestStatus.APPROVED
+        );
 
-        if (memberF != null) {
-            createWithdrawal(
-                    memberF,
-                    WithdrawStatus.COMPLETED
-            );
+        createStaffRequest(
+                staffB,
+                exhibition,
+                admin,
+                StaffRequestStatus.PENDING
+        );
 
-            memberService.anonymizeWithdrawnMember(
-                    memberF.getMemberId()
-            );
-        }
-
-        if (admin == null) {
-            admin = memberRepository.findByMemberEmail(
-                    "subin.lim@articket.example"
-            ).orElseThrow(
-                    () -> new RuntimeException(
-                            "관리자 테스트 계정을 찾을 수 없습니다."
-                    )
-            );
-        }
-
-        if (staffA != null) {
-            createStaffRequest(
-                    staffA,
-                    exhibition,
-                    admin,
-                    StaffRequestStatus.APPROVED
-            );
-        }
-
-        if (staffB != null) {
-            createStaffRequest(
-                    staffB,
-                    exhibition,
-                    admin,
-                    StaffRequestStatus.PENDING
-            );
-        }
-
-        if (staffC != null) {
-            createStaffRequest(
-                    staffC,
-                    exhibition,
-                    admin,
-                    StaffRequestStatus.REJECTED
-            );
-        }
+        createStaffRequest(
+                staffC,
+                exhibition,
+                admin,
+                StaffRequestStatus.REJECTED
+        );
 
         System.out.println(
                 "회원 상태별 및 STAFF 담당 권한 테스트 데이터 생성 완료"
@@ -356,49 +357,39 @@ public class TestAccountCreateTests {
     ) {
 
         if (memberRepository.existsByMemberEmail(email)) {
-            System.out.println(
+            throw new IllegalStateException(
                     "이미 존재하는 시나리오 계정: " + email
             );
-
-            return null;
         }
 
         String encryptedPhone =
-                personalDataCrypto.encryptPhone(phone);
+                personalDataCrypto.encryptPhone(
+                        phone.replaceAll("\\D", "")
+                );
 
         if (memberRepository.existsByMemberPhone(encryptedPhone)) {
-            throw new RuntimeException(
+            throw new IllegalStateException(
                     "이미 사용 중인 전화번호입니다: " + phone
             );
         }
 
-        String encodedPassword =
-                passwordEncoder.encode(password);
-
-        String encryptedName =
-                personalDataCrypto.encryptName(name);
-
-        Member member =
-                Member.builder()
-                        .memberEmail(email)
-                        .memberPassword(encodedPassword)
-                        .memberNickname(nickname)
-                        .memberName(encryptedName)
-                        .memberPhone(encryptedPhone)
-                        .memberType(memberType)
-                        .build();
-
-        Member savedMember =
-                memberRepository.saveAndFlush(member);
-
-        System.out.println(
-                "시나리오 계정 생성 완료: "
-                        + email
-                        + " / "
-                        + memberType
+        createAccount(
+                email,
+                password,
+                nickname,
+                name,
+                phone,
+                memberType
         );
 
-        return savedMember;
+        memberRepository.flush();
+
+        return memberRepository.findByMemberEmail(email)
+                .orElseThrow(
+                        () -> new RuntimeException(
+                                "생성한 시나리오 계정을 조회할 수 없습니다."
+                        )
+                );
     }
 
     private void createDeactivation(
@@ -415,7 +406,6 @@ public class TestAccountCreateTests {
                         .build();
 
         deactiveRepository.save(deactive);
-
         member.deactivate();
     }
 
@@ -434,14 +424,47 @@ public class TestAccountCreateTests {
                         .withdrawDue(now.plusDays(30))
                         .build();
 
-        withdrawRepository.save(withdraw);
+        withdrawRepository.saveAndFlush(withdraw);
 
         if (status == WithdrawStatus.CANCELED) {
             withdraw.cancel();
         }
 
         if (status == WithdrawStatus.COMPLETED) {
+
+            LocalDateTime withdrawCreatedAt =
+                    now.minusDays(31);
+
+            LocalDateTime withdrawDue =
+                    withdrawCreatedAt.plusDays(30);
+
+            entityManager.createNativeQuery(
+                            "UPDATE MEMBER SET MEMBER_JOIN_CREATED_AT = :joinDate WHERE MEMBER_ID = :memberId"
+                    )
+                    .setParameter("joinDate", Timestamp.valueOf(now.minusDays(35)))
+                    .setParameter("memberId", member.getMemberId())
+                    .executeUpdate();
+
+            entityManager.createNativeQuery(
+                            "UPDATE WITHDRAW SET WITHDRAW_CREATED_AT = :createdAt, WITHDRAW_DUE = :dueDate WHERE WITHDRAW_ID = :withdrawId"
+                    )
+                    .setParameter("createdAt", Timestamp.valueOf(withdrawCreatedAt))
+                    .setParameter("dueDate", Timestamp.valueOf(withdrawDue))
+                    .setParameter("withdrawId", withdraw.getWithdrawId())
+                    .executeUpdate();
+
+            entityManager.refresh(member);
+            entityManager.refresh(withdraw);
+
+            withdrawService.deleteWithdrawnMemberRelatedData(
+                    member.getMemberId()
+            );
+
             withdraw.complete();
+
+            memberService.anonymizeWithdrawnMember(
+                    member.getMemberId()
+            );
         }
     }
 
@@ -451,15 +474,6 @@ public class TestAccountCreateTests {
             Member admin,
             StaffRequestStatus status
     ) {
-
-        if (staffRequestRepository
-                .existsByMemberMemberIdAndExhibitionExhibitionIdAndRequestStatus(
-                        member.getMemberId(),
-                        exhibition.getExhibitionId(),
-                        status
-                )) {
-            return;
-        }
 
         StaffRequest staffRequest =
                 StaffRequest.builder()
@@ -485,19 +499,13 @@ public class TestAccountCreateTests {
         staffRequestRepository.save(staffRequest);
 
         if (status == StaffRequestStatus.APPROVED) {
-            if (!staffRepository
-                    .existsByMemberMemberIdAndExhibitionExhibitionId(
-                            member.getMemberId(),
-                            exhibition.getExhibitionId()
-                    )) {
-                Staff staff =
-                        Staff.builder()
-                                .member(member)
-                                .exhibition(exhibition)
-                                .build();
+            Staff staff =
+                    Staff.builder()
+                            .member(member)
+                            .exhibition(exhibition)
+                            .build();
 
-                staffRepository.save(staff);
-            }
+            staffRepository.save(staff);
         }
     }
 }
