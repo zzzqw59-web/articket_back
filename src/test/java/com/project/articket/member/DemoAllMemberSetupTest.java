@@ -534,17 +534,69 @@ public class DemoAllMemberSetupTest {
 
     private static final int DEMO_COUNT = 80;
     private static final String DEMO_PASSWORD = "DemoOnly!2026";
-    private static final String[] DEMO_FIRST = {
-            "푸른", "고요한", "따스한", "은은한", "작은", "맑은", "포근한", "느린", "반짝이는", "싱그러운"
-    };
-    private static final String[] DEMO_SECOND = {
-            "달빛", "노을", "산책", "바람", "정원", "계절", "오후", "새벽"
+    private static final String[] DEMO_NICKNAMES = {
+            "모네의오후", "퇴근후미술관", "식빵굽는고양이", "물감묻은손", "오후세시반",
+            "전시보는토끼", "낡은필름", "레몬소다", "별헤는밤", "도슨트꿈나무",
+            "새벽의연필", "초록색우산", "미술관단골", "마감5분전", "코코아한잔",
+            "느긋한펭귄", "달걀프라이", "그림속산책자", "서랍속엽서", "수채화연습생",
+            "바닐라라떼", "아직월요일", "오늘의팔레트", "종이비행기", "빈티지카메라",
+            "우주먼지", "전시탐험대", "말차케이크", "작은도자기", "구름수집가",
+            "라면은진리", "빨간운동화", "유리컵의여름", "고양이발자국", "무지개끝",
+            "백색소음", "여백의미", "아침형올빼미", "다섯번째계절", "호두과자",
+            "파도소리", "행복한감자", "전시회초보", "잉크한방울", "치즈냥이",
+            "낮잠의기술", "푸딩연구소", "흑백사진첩", "어쩌다큐레이터", "자전거탄곰",
+            "노란책갈피", "수요일의낭만", "연필깎는밤", "귤까먹는중", "모서리의빛",
+            "초코칩쿠키", "보통의하루", "라일락우체통", "소금빵중독", "수상한캔버스",
+            "느린걸음", "도자기덕후", "배낭속지도", "오렌지달", "비오는전시장",
+            "파란머그컵", "스케치북한장", "월급날기다림", "필름카메라맨", "자몽에이드",
+            "공룡좋아함", "감성은품절", "미드나잇블루", "마지막버스", "자유로운붓끝",
+            "토요일의서점", "캔버스밖세상", "한입만요", "은하수티켓", "오늘도관람중"
     };
     private static final String[] DEMO_SURNAMES = {"김", "이", "박", "최", "정", "강", "조", "윤"};
     private static final String[] DEMO_NAMES = {"서윤", "지우", "도현", "하린", "민서", "서준", "유나", "지민", "시우", "예린"};
 
     private String demoEmail(int i) {
         return String.format("demo.member.%03d@articket.example", i);
+    }
+
+    // 이미 생성된 시연용 일반 회원 80명의 닉네임만 변경한다.
+    // 다른 회원, 이메일, 비밀번호, 회원 번호 및 상태는 변경하지 않는다.
+    @Test
+    void update80DemoMemberNicknames() {
+        verifyLocalDatabase();
+        assertEquals(DEMO_COUNT, DEMO_NICKNAMES.length, "닉네임이 80개가 아닙니다.");
+        assertEquals(DEMO_COUNT, java.util.Set.of(DEMO_NICKNAMES).size(), "닉네임이 중복됩니다.");
+
+        // 변경 전 모든 계정과 닉네임 충돌 여부를 먼저 검사한다.
+        for (int i = 1; i <= DEMO_COUNT; i++) {
+            String email = demoEmail(i);
+            Member member = memberRepository.findByMemberEmail(email)
+                    .orElseThrow(() -> new IllegalStateException("시연용 회원 누락: " + email));
+            if (!Member.TYPE_MEMBER.equals(member.getMemberType())) {
+                throw new IllegalStateException("일반 회원이 아님: " + email);
+            }
+            Long active = jdbc.queryForObject("""
+                    SELECT COUNT(*) FROM MEMBER
+                    WHERE MEMBER_EMAIL = ? AND MEMBER_TYPE = 'MEMBER' AND MEMBER_STATUS = 1
+                    """, Long.class, email);
+            assertEquals(1L, active, "활성 회원이 아님: " + email);
+            Long duplicates = jdbc.queryForObject("""
+                    SELECT COUNT(*) FROM MEMBER
+                    WHERE MEMBER_NICKNAME = ? AND MEMBER_EMAIL <> ?
+                    """, Long.class, DEMO_NICKNAMES[i - 1], email);
+            if (duplicates != null && duplicates > 0) {
+                throw new IllegalStateException("다른 회원과 닉네임 중복: " + DEMO_NICKNAMES[i - 1]);
+            }
+        }
+
+        for (int i = 1; i <= DEMO_COUNT; i++) {
+            int changed = jdbc.update("""
+                    UPDATE MEMBER SET MEMBER_NICKNAME = ?
+                    WHERE MEMBER_EMAIL = ? AND MEMBER_TYPE = 'MEMBER' AND MEMBER_STATUS = 1
+                    """, DEMO_NICKNAMES[i - 1], demoEmail(i));
+            assertEquals(1, changed, "변경 실패: " + demoEmail(i));
+        }
+        System.out.println("시연용 정상 일반 회원 80명의 닉네임 변경 완료");
     }
 
     private void create80ActiveRegularMembers() {
@@ -561,7 +613,7 @@ public class DemoAllMemberSetupTest {
                 Member member = Member.builder()
                         .memberEmail(demoEmail(i))
                         .memberPassword(passwordEncoder.encode(DEMO_PASSWORD))
-                        .memberNickname(DEMO_FIRST[z / DEMO_SECOND.length] + DEMO_SECOND[z % DEMO_SECOND.length])
+                        .memberNickname(DEMO_NICKNAMES[z])
                         .memberName(personalDataCrypto.encryptName(DEMO_SURNAMES[z % DEMO_SURNAMES.length]
                                 + DEMO_NAMES[z % DEMO_NAMES.length]))
                         .memberPhone(personalDataCrypto.encryptPhone(String.format("0108000%04d", i)))
