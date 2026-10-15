@@ -1,5 +1,4 @@
-
-package com.project.articket.member;
+package com.project.articket.demo;
 
 import com.project.articket.common.crypto.PersonalDataCrypto;
 import com.project.articket.deactive.entity.Deactive;
@@ -20,6 +19,11 @@ import com.project.articket.withdraw.repository.WithdrawRepository;
 import com.project.articket.withdraw.service.WithdrawService;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
+import org.springframework.jdbc.core.JdbcTemplate;
+import java.util.ArrayList;
+import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
@@ -32,7 +36,10 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 @SpringBootTest
-public class TestAccountCreateTests {
+@Transactional
+@Commit
+@Disabled("필요할 때만 @Disabled를 제거하고 단독 실행: 회원 생성 및 시나리오 테스트")
+public class DemoAllMemberSetupTest {
 
     @Autowired
     private MemberRepository memberRepository;
@@ -67,7 +74,9 @@ public class TestAccountCreateTests {
     @Autowired
     private EntityManager entityManager;
 
-    @Test
+    @Autowired
+    private JdbcTemplate jdbc;
+
     void createTestAccounts() {
 
         createAccount(
@@ -155,9 +164,6 @@ public class TestAccountCreateTests {
         );
     }
 
-    @Test
-    @Transactional
-    @Commit
     void createScenarioAccounts() {
 
         String[] accountEmails = {
@@ -508,4 +514,78 @@ public class TestAccountCreateTests {
             staffRepository.save(staff);
         }
     }
+    // 기존 계정 / 시나리오 계정 / 신규 일반 회원을 하나의 트랜잭션으로 확인한다.
+    // 현재 DB에는 모두 들어 있으므로 재생성하지 않고 검증만 수행한다.
+    @Test
+    void setupExistingAndDemoMembers() {
+        verifyLocalDatabase();
+        createTestAccounts();
+        createScenarioAccounts();
+        create80ActiveRegularMembers();
+        System.out.println("기존 테스트 계정 + 회원 상태 시나리오 + 시연용 일반 회원 80명 확인 완료");
+    }
+
+    private void verifyLocalDatabase() {
+        String con = jdbc.queryForObject("SELECT SYS_CONTEXT('USERENV','CON_NAME') FROM DUAL", String.class);
+        String schema = jdbc.queryForObject("SELECT SYS_CONTEXT('USERENV','CURRENT_SCHEMA') FROM DUAL", String.class);
+        assertEquals("XEPDB1", con == null ? null : con.toUpperCase(), "개발 DB가 아닙니다");
+        assertEquals("ARTICKET", schema == null ? null : schema.toUpperCase(), "ARTICKET 스키마가 아닙니다");
+    }
+
+    private static final int DEMO_COUNT = 80;
+    private static final String DEMO_PASSWORD = "DemoOnly!2026";
+    private static final String[] DEMO_FIRST = {
+            "푸른", "고요한", "따스한", "은은한", "작은", "맑은", "포근한", "느린", "반짝이는", "싱그러운"
+    };
+    private static final String[] DEMO_SECOND = {
+            "달빛", "노을", "산책", "바람", "정원", "계절", "오후", "새벽"
+    };
+    private static final String[] DEMO_SURNAMES = {"김", "이", "박", "최", "정", "강", "조", "윤"};
+    private static final String[] DEMO_NAMES = {"서윤", "지우", "도현", "하린", "민서", "서준", "유나", "지민", "시우", "예린"};
+
+    private String demoEmail(int i) {
+        return String.format("demo.member.%03d@articket.example", i);
+    }
+
+    private void create80ActiveRegularMembers() {
+        int existing = 0;
+        for (int i = 1; i <= DEMO_COUNT; i++) {
+            if (memberRepository.existsByMemberEmail(demoEmail(i))) existing++;
+        }
+        if (existing != 0 && existing != DEMO_COUNT) {
+            throw new IllegalStateException("시연용 회원이 일부(" + existing + ")만 존재합니다. 작업 중단");
+        }
+        if (existing == 0) {
+            for (int i = 1; i <= DEMO_COUNT; i++) {
+                int z = i - 1;
+                Member member = Member.builder()
+                        .memberEmail(demoEmail(i))
+                        .memberPassword(passwordEncoder.encode(DEMO_PASSWORD))
+                        .memberNickname(DEMO_FIRST[z / DEMO_SECOND.length] + DEMO_SECOND[z % DEMO_SECOND.length])
+                        .memberName(personalDataCrypto.encryptName(DEMO_SURNAMES[z % DEMO_SURNAMES.length]
+                                + DEMO_NAMES[z % DEMO_NAMES.length]))
+                        .memberPhone(personalDataCrypto.encryptPhone(String.format("0108000%04d", i)))
+                        .memberType(Member.TYPE_MEMBER)
+                        .build();
+                memberRepository.save(member);
+            }
+            memberRepository.flush();
+        }
+        Long count = jdbc.queryForObject("""
+                SELECT COUNT(*) FROM MEMBER
+                WHERE MEMBER_EMAIL LIKE 'demo.member.%@articket.example'
+                  AND MEMBER_TYPE = 'MEMBER' AND MEMBER_STATUS = 1
+                """, Long.class);
+        assertEquals(80L, count, "활성 일반 회원 80명 확인 실패");
+        for (int i = 1; i <= DEMO_COUNT; i++) {
+            String email = demoEmail(i);
+            Member found = memberRepository.findByMemberEmail(email)
+                    .orElseThrow(() -> new IllegalStateException("회원 누락: " + email));
+            if (!Member.TYPE_MEMBER.equals(found.getMemberType())) {
+                throw new IllegalStateException("일반 회원이 아님: " + email);
+            }
+        }
+        System.out.println("시연용 정상 일반 회원 80명 검증 완료");
+    }
+
 }
