@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @Transactional
 @Commit
-//@Disabled("로컬 DB 전체 초기화 전용 - 백업 후 해제")
+@Disabled("로컬 DB 전체 초기화 전용 - 백업 후 해제")
 class DemoReservationDeleteTest {
 
     @Autowired
