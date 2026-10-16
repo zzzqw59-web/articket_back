@@ -9,7 +9,6 @@ import com.project.articket.exhibition.util.ExhibitionPriceUtil;
 import com.project.articket.venue.dto.VenueSummaryDTO;
 import com.project.articket.venue.entity.Venue;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;

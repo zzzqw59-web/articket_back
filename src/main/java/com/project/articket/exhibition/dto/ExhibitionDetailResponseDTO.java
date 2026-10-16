@@ -3,7 +3,6 @@ package com.project.articket.exhibition.dto;
 import com.project.articket.venue.dto.VenueSummaryDTO;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDate;
 

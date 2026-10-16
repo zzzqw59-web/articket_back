@@ -21,8 +21,6 @@ import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Disabled;
 import org.springframework.jdbc.core.JdbcTemplate;
-import java.util.ArrayList;
-import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -126,10 +124,6 @@ public class DemoAllMemberSetupTest {
     ) {
 
         if (memberRepository.existsByMemberEmail(email)) {
-            System.out.println(
-                    "이미 존재하는 테스트 계정: " + email
-            );
-
             return;
         }
 
@@ -155,13 +149,6 @@ public class DemoAllMemberSetupTest {
                         .build();
 
         memberRepository.save(member);
-
-        System.out.println(
-                "테스트 계정 생성 완료: "
-                        + email
-                        + " / "
-                        + memberType
-        );
     }
 
     void createScenarioAccounts() {
@@ -192,9 +179,6 @@ public class DemoAllMemberSetupTest {
                 );
 
         if (existingCount == accountEmails.length && !completedOriginalExists) {
-            System.out.println(
-                    "시나리오 테스트 계정이 이미 생성되어 있어 중복 생성을 건너뜁니다."
-            );
             return;
         }
 
@@ -346,10 +330,6 @@ public class DemoAllMemberSetupTest {
                 exhibition,
                 admin,
                 StaffRequestStatus.REJECTED
-        );
-
-        System.out.println(
-                "회원 상태별 및 STAFF 담당 권한 테스트 데이터 생성 완료"
         );
     }
 
@@ -522,7 +502,6 @@ public class DemoAllMemberSetupTest {
         createTestAccounts();
         createScenarioAccounts();
         create80ActiveRegularMembers();
-        System.out.println("기존 테스트 계정 + 회원 상태 시나리오 + 시연용 일반 회원 80명 확인 완료");
     }
 
     private void verifyLocalDatabase() {
@@ -596,7 +575,6 @@ public class DemoAllMemberSetupTest {
                     """, DEMO_NICKNAMES[i - 1], demoEmail(i));
             assertEquals(1, changed, "변경 실패: " + demoEmail(i));
         }
-        System.out.println("시연용 정상 일반 회원 80명의 닉네임 변경 완료");
     }
 
     private void create80ActiveRegularMembers() {
@@ -637,7 +615,6 @@ public class DemoAllMemberSetupTest {
                 throw new IllegalStateException("일반 회원이 아님: " + email);
             }
         }
-        System.out.println("시연용 정상 일반 회원 80명 검증 완료");
     }
 
 }

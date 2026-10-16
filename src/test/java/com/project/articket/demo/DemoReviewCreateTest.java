@@ -91,7 +91,6 @@ class DemoReviewCreateTest {
                 demoReservationCount,
                 "시연용 예약 500건이 필요합니다."
         );
-        System.out.println("전체 예약: " + reservationCountBefore + "건 / 시연 예약: " + demoReservationCount + "건");
         assertEquals(80L, count("""
             SELECT COUNT(*) FROM MEMBER
             WHERE MEMBER_EMAIL LIKE 'demo.member.%@articket.example'
@@ -216,8 +215,6 @@ class DemoReviewCreateTest {
             assertEquals(paymentCountBefore, count("SELECT COUNT(*) FROM PAYMENT"),
                     "리뷰 생성 중 결제 건수가 변경됐습니다");
             success = true;
-            System.out.println("시연 리뷰 50 / 이미지 39 / 댓글 35 생성 검증 완료");
-            System.out.println("이미지 폴더: " + dir);
         } finally {
             if (!success) for (Path path : created) Files.deleteIfExists(path);
         }

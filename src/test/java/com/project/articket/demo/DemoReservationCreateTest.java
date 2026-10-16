@@ -261,12 +261,9 @@ class DemoReservationCreateTest {
         for (Object[] row : showcaseStats) {
             assertEquals(1L, ((Number) row[3]).longValue(), "날짜/전시/상태별 1건이어야 합니다.");
         }
-        System.out.println("시연용 전시 231, 229, 226: 9/23~9/29 매일 RESERVED 1건 + CANCELED 1건 검증 완료");
         assertEquals(500L, count("SELECT COUNT(*) FROM RESERVATION"));
         assertEquals(500L, count("SELECT COUNT(*) FROM PAYMENT"));
         assertEquals(80L, count("SELECT COUNT(DISTINCT MEMBER_ID) FROM RESERVATION"));
-        System.out.println("DEMO 검증 통과: 회원 80 / 예약 500 / 결제 500 / 예약완료 400 / 취소 100");
-        System.out.println("검증 통과. 테스트가 정상 종료되면 DB에 커밋됩니다.");
     }
 
     private long count(String sql) {
@@ -289,8 +286,6 @@ class DemoReservationCreateTest {
             assertTrue(jdbcUrl != null && (
                             jdbcUrl.contains("localhost") || jdbcUrl.contains("127.0.0.1")),
                     "로컬 Oracle 접속이 아닙니다. 작업 중단: " + jdbcUrl);
-            System.out.println("저장 대상 JDBC URL: " + jdbcUrl);
         }
-        System.out.println("저장 대상 DB: " + dbName + " / " + schemaName);
     }
 }
