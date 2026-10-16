@@ -351,12 +351,6 @@ public class ReservationServiceImpl implements ReservationService {
         Reservation reservation = reservationRepository.findByReservationOrderId(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("예약이 존재하지 않습니다."));
 
-        System.out.println("========== 주문번호 소유권 검증 ==========");
-        System.out.println("로그인 회원 ID: " + memberId);
-        System.out.println("예약 소유자 ID: " + reservation.getMember().getMemberId());
-        System.out.println("요청 주문번호: " + orderId);
-        System.out.println("========================================");
-
         // 예약 소유권 검증
         if (!reservation.getMember().getMemberId().equals(memberId)) {
             throw new AccessDeniedException("본인의 예약만 조회할 수 있습니다.");

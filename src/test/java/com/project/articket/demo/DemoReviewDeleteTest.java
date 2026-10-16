@@ -30,9 +30,6 @@ class DemoReviewDeleteTest {
         long paymentsBefore = count("PAYMENT");
         long membersBefore = count("MEMBER");
 
-        System.out.printf("삭제 전: 리뷰 %d / 이미지 %d / 댓글 %d%n",
-                reviewsBefore, imagesBefore, repliesBefore);
-
         int deletedReplies = jdbc.update("DELETE FROM REVIEW_REPLY");
         int deletedImages = jdbc.update("DELETE FROM REVIEW_IMAGE");
         int deletedReviews = jdbc.update("DELETE FROM REVIEW");
@@ -48,9 +45,6 @@ class DemoReviewDeleteTest {
         assertEquals(reservationsBefore, count("RESERVATION"), "예약 건수가 변경되었습니다.");
         assertEquals(paymentsBefore, count("PAYMENT"), "결제 건수가 변경되었습니다.");
         assertEquals(membersBefore, count("MEMBER"), "회원 건수가 변경되었습니다.");
-
-        System.out.printf("삭제 검증 완료: 리뷰 %d / 이미지 %d / 댓글 %d%n",
-                deletedReviews, deletedImages, deletedReplies);
     }
 
     private void verifyDatabase() {

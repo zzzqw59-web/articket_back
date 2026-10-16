@@ -233,7 +233,6 @@ final class DemoReviewPhotoSupport {
                 deleted++;
             }
         }
-        System.out.println("시연용 이미지 삭제 완료: " + deleted + "개");
         return deleted;
     }
 }

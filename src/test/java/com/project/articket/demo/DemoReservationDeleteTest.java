@@ -40,8 +40,6 @@ class DemoReservationDeleteTest {
         assertEquals(39, count("REVIEW_IMAGE"));
         assertEquals(35, count("REVIEW_REPLY"));
 
-        System.out.println("===== 삭제 전 데이터 =====");
-        printCounts();
 
         // 3. 리뷰 관련 데이터 삭제
         int replies = jdbcTemplate.update(
@@ -79,12 +77,6 @@ class DemoReservationDeleteTest {
         assertEquals(0, count("PAYMENT"));
         assertEquals(0, count("RESERVATION"));
 
-        System.out.println("===== 삭제 후 데이터 =====");
-        printCounts();
-
-        System.out.println(
-                "초기화 검증 완료. 테스트 정상 종료 시 커밋됩니다."
-        );
     }
 
     private long count(String table) {
@@ -92,14 +84,6 @@ class DemoReservationDeleteTest {
                 "SELECT COUNT(*) FROM " + table,
                 Long.class
         );
-    }
-
-    private void printCounts() {
-        System.out.println("RESERVATION: " + count("RESERVATION"));
-        System.out.println("PAYMENT: " + count("PAYMENT"));
-        System.out.println("REVIEW: " + count("REVIEW"));
-        System.out.println("REVIEW_IMAGE: " + count("REVIEW_IMAGE"));
-        System.out.println("REVIEW_REPLY: " + count("REVIEW_REPLY"));
     }
 
     private void verifyDatabase() throws SQLException {
@@ -126,6 +110,5 @@ class DemoReservationDeleteTest {
                 "ARTICKET 스키마가 아닙니다."
         );
 
-        System.out.println("DB 연결 및 스키마 검증 완료");
     }
 }

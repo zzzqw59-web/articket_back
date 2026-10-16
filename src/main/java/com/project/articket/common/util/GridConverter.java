@@ -128,10 +128,8 @@ public class GridConverter {
     // 간단 검증용 (실제 서비스 코드에는 포함하지 않아도 됩니다)
     public static void main(String[] args) {
         Grid grid = toGrid(37.579871128849334, 126.98935225645432);
-        System.out.println("expected nx=60, ny=127 -> actual: " + grid);
 
         // 앞서 확인한 백남준아트센터 좌표로도 확인
         Grid njp = toGrid(37.26927634736376, 127.11037318643987);
-        System.out.println("백남준아트센터 격자좌표: " + njp);
     }
 }
