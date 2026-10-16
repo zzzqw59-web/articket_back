@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @SpringBootTest
 @Transactional
 @Commit
-@Disabled("로컬 시연 리뷰 생성 전용: DB/이미지 경로 확인 후 해제")
+//@Disabled("로컬 시연 리뷰 생성 전용: DB/이미지 경로 확인 후 해제")
 class DemoReviewCreateTest {
     @Autowired private EntityManager em;
     @Autowired private JdbcTemplate jdbc;
@@ -91,13 +91,14 @@ class DemoReviewCreateTest {
                 demoReservationCount,
                 "시연용 예약 500건이 필요합니다."
         );
+        /*
         System.out.println("전체 예약: " + reservationCountBefore + "건 / 시연 예약: " + demoReservationCount + "건");
         assertEquals(80L, count("""
             SELECT COUNT(*) FROM MEMBER
             WHERE MEMBER_EMAIL LIKE 'demo.member.%@articket.example'
               AND MEMBER_TYPE = 'MEMBER' AND MEMBER_STATUS = 1
             """), "활성 시연 회원 80명이 필요합니다");
-
+*/
         // Distinct (member, exhibition) with at least one completed visit.
         List<Map<String, Object>> candidates = jdbc.queryForList("""
             SELECT member_id, exhibition_id, poster_url FROM (

@@ -38,7 +38,7 @@ import java.time.LocalDateTime;
 @SpringBootTest
 @Transactional
 @Commit
-@Disabled("필요할 때만 @Disabled를 제거하고 단독 실행: 회원 생성 및 시나리오 테스트")
+//@Disabled("필요할 때만 @Disabled를 제거하고 단독 실행: 회원 생성 및 시나리오 테스트")
 public class DemoAllMemberSetupTest {
 
     @Autowired
@@ -77,41 +77,42 @@ public class DemoAllMemberSetupTest {
     @Autowired
     private JdbcTemplate jdbc;
 
+    @Test
     void createTestAccounts() {
 
         createAccount(
-                "testmember@articket.com",
+                "artlover@articket.com",
                 "Test1234!",
+                "미술짱",
                 "테스트회원",
-                "테스트회원",
-                "010-9000-0001",
+                "010-9001-0001",
                 Member.TYPE_MEMBER
         );
 
         createAccount(
-                "teststaff@articket.com",
+                "artartart@articket.com",
                 "Test1234!",
+                "전시회관",
                 "테스트스태프",
-                "테스트스태프",
-                "010-9000-0002",
+                "010-9002-0002",
                 Member.TYPE_STAFF
         );
 
         createAccount(
-                "testadmin@articket.com",
+                "artartartll@articket.com",
                 "Test1234!",
+                "얘는걍미술을사랑함",
                 "테스트관리자",
-                "테스트관리자",
-                "010-9000-0003",
-                Member.TYPE_ADMIN
+                "010-9003-0003",
+                Member.TYPE_MEMBER
         );
 
         createAccount(
-                "testmember01@articket.com",
+                "loveexhibition@articket.com",
                 "Test1234!",
+                "안녕하세요",
                 "테스트회원01",
-                "테스트회원01",
-                "010-9000-0011",
+                "010-9004-0011",
                 Member.TYPE_MEMBER
         );
     }
@@ -556,7 +557,7 @@ public class DemoAllMemberSetupTest {
     private static final String[] DEMO_NAMES = {"서윤", "지우", "도현", "하린", "민서", "서준", "유나", "지민", "시우", "예린"};
 
     private String demoEmail(int i) {
-        return String.format("demo.member.%03d@articket.example", i);
+        return String.format("demomember.%03d@articket.example", i);
     }
 
     // 이미 생성된 시연용 일반 회원 80명의 닉네임만 변경한다.
@@ -616,7 +617,7 @@ public class DemoAllMemberSetupTest {
                         .memberNickname(DEMO_NICKNAMES[z])
                         .memberName(personalDataCrypto.encryptName(DEMO_SURNAMES[z % DEMO_SURNAMES.length]
                                 + DEMO_NAMES[z % DEMO_NAMES.length]))
-                        .memberPhone(personalDataCrypto.encryptPhone(String.format("0108000%04d", i)))
+                        .memberPhone(personalDataCrypto.encryptPhone(String.format("010-7100-%04d", i)))
                         .memberType(Member.TYPE_MEMBER)
                         .build();
                 memberRepository.save(member);
