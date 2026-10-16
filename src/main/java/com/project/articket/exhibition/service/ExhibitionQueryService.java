@@ -7,7 +7,6 @@ import com.project.articket.exhibition.repository.ExhibitionRepository;
 import com.project.articket.venue.dto.VenueSummaryDTO;
 import com.project.articket.venue.entity.Venue;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.data.autoconfigure.web.DataWebProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

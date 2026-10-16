@@ -68,12 +68,6 @@ class ReservationConcurrencyTest {
             ReservationDTO result2 =
                     futures.get(1).get(15, TimeUnit.SECONDS);
 
-            System.out.println("요청 A 예약번호: "
-                    + result1.getReservationId());
-
-            System.out.println("요청 B 예약번호: "
-                    + result2.getReservationId());
-
             assertEquals(
                     result1.getReservationId(),
                     result2.getReservationId()

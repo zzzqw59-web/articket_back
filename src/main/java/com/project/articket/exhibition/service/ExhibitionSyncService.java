@@ -37,25 +37,15 @@ public class ExhibitionSyncService {
     private String serviceKey;
 
     public void syncExhibitions() {
-        System.out.println("===== 전시 동기화 시작 =====");
         List<ExhibitionApiListItem> basicItems = fetchAllPages();
-        System.out.println("===== 전시 목록 개수: " + basicItems.size() + " =====");
 
         for (ExhibitionApiListItem basic : basicItems) {
-            System.out.println(
-                    "제목 = " + basic.getTitle()
-                            + " / realmName = " + basic.getRealmName()
-                            + " / seq = " + basic.getSeq()
-            );
             if (!"전시".equals(basic.getRealmName())) {
-                System.out.println("→ 전시 아님, SKIP");
                 continue;
             }
             if (exhibitionRepository.existsByExhibitionSeq(basic.getSeq())) {
-                System.out.println("→ 이미 존재, SKIP");
                 continue;
             }
-            System.out.println("→ 저장 진행");
 
             ExhibitionApiDetailItem detail = fetchDetail(basic.getSeq());
             insert(basic, detail);
@@ -87,18 +77,9 @@ public class ExhibitionSyncService {
             List<ExhibitionApiListItem> items =
                     response.getBody().getItems().getItem();
 
-            System.out.println(
-                    "페이지 = " + page
-                            + " / 전체 데이터 = " + totalCount
-                            + " / 현재 페이지 데이터 = " + items.size()
-                            + " / 첫 seq = " + items.get(0).getSeq()
-                            + " / 마지막 seq = " + items.get(items.size() - 1).getSeq()
-            );
-
             result.addAll(response.getBody().getItems().getItem());
             page++;
         }
-        System.out.println("최종 가져온 데이터 = " + result.size());
         return result;
     }
 
@@ -155,11 +136,7 @@ public class ExhibitionSyncService {
             exhibition.setExhibitionTicketPrice(ExhibitionPriceUtil.resolveTicketPrice(free));
 
             Long placeSeq = parseLongOrNull(detail.getPlaceSeq());
-            System.out.println(
-                    "전시명 = " + basic.getTitle()
-                            + " / placeSeq = " + detail.getPlaceSeq()
-                            + " / 변환값 = " + placeSeq
-            );
+
             if (placeSeq != null) {
                 venueRepository.findByVenueSeq(placeSeq)
                         .ifPresent(exhibition::setVenue);

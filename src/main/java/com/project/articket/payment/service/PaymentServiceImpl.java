@@ -75,10 +75,6 @@ public class PaymentServiceImpl implements PaymentService {
 
             if (tossApproved.get()) {
 
-                System.err.println(
-                        "Toss 승인 이후 결제 처리 오류 발생"
-                );
-
                 try {
                     PaymentConsistencyStatus consistencyStatus =
                             checkPaymentConsistency(
@@ -88,29 +84,16 @@ public class PaymentServiceImpl implements PaymentService {
                     switch (consistencyStatus) {
 
                         case CONSISTENT:
-                            System.out.println(
-                                    "결제 데이터가 정상적으로 저장되어 있습니다."
-                            );
                             break;
 
-                        case MISMATCH:
-                            System.err.println(
-                                    "결제 불일치 감지 - 복구 처리 필요"
-                            );
-                            break;
+
 
                         case REVIEW_REQUIRED:
-                            System.err.println(
-                                    "결제 상태 확인이 필요합니다."
-                            );
                             break;
                     }
 
                 } catch (Exception checkError) {
-                    System.err.println(
-                            "결제 정합성 검사 중 오류 발생: "
-                                    + checkError.getMessage()
-                    );
+
                 }
             }
 
@@ -212,12 +195,6 @@ public class PaymentServiceImpl implements PaymentService {
                     .block();
 
         } catch (WebClientResponseException e) {
-
-            System.out.println("========== Toss 승인 오류 ==========");
-            System.out.println("HTTP 상태: " + e.getStatusCode());
-            System.out.println("오류 응답: " + e.getResponseBodyAsString());
-            System.out.println("==================================");
-
             throw e;
         }
 
@@ -361,7 +338,6 @@ public class PaymentServiceImpl implements PaymentService {
                 .orElse(null);
 
         if (reservation == null) {
-            System.err.println("예약 정보를 찾을 수 없습니다. orderId: " + orderId);
 
             return PaymentConsistencyStatus.REVIEW_REQUIRED;
         }
@@ -385,30 +361,13 @@ public class PaymentServiceImpl implements PaymentService {
                     reservation.getReservationStatus() == ReservationStatus.RESERVED;
 
             if (paymentCompleted && reservationCompleted) {
-                System.out.println("결제 데이터 정상 일치: " + orderId);
-
                 return PaymentConsistencyStatus.CONSISTENT;
             }
-
-            System.err.println("결제 데이터 불일치 발생: " + orderId);
-            System.err.println("Toss 상태: " + tossStatus);
-            System.err.println(
-                    "DB 결제 상태: " +
-                            (payment == null ? "결제 기록 없음" : payment.getPaymentStatus())
-            );
-            System.err.println("예약 상태: " + reservation.getReservationStatus());
 
             return PaymentConsistencyStatus.MISMATCH;
         }
 
         // 5. Toss에서 취소되었거나 기타 상태인 경우
-        System.err.println(
-                "Toss 결제 상태 추가 확인 필요: "
-                        + tossStatus
-                        + ", orderId: "
-                        + orderId
-        );
-
         return PaymentConsistencyStatus.REVIEW_REQUIRED;
     }
 
@@ -474,19 +433,7 @@ public class PaymentServiceImpl implements PaymentService {
                     .retrieve()
                     .bodyToMono(Map.class)
                     .block();
-
-            System.out.println("========== Toss 환불 성공 ==========");
-            System.out.println("예약 번호: " + reservationId);
-            System.out.println("환불 금액: " + refundAmount);
-            System.out.println("==================================");
-
         } catch (WebClientResponseException e) {
-
-            System.err.println("========== Toss 환불 오류 ==========");
-            System.err.println("HTTP 상태: " + e.getStatusCode());
-            System.err.println("응답 내용: " + e.getResponseBodyAsString());
-            System.err.println("==================================");
-
             throw e;
         }
 

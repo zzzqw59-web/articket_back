@@ -58,12 +58,6 @@ public class VenueSyncService {
                     .block();
 
             totalCount = response.getBody().getTotalCount();
-
-            System.out.println(
-                    category + " / page=" + page +
-                            " / totalCount=" + totalCount +
-                            " / 현재 조회=" + result.size()
-            );
             result.addAll(response.getBody().getItems().getItem());
             page++;
 

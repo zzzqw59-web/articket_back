@@ -2,7 +2,6 @@ package com.project.articket.review.service;
 import com.project.articket.common.dto.PageRequestDTO;
 import com.project.articket.common.dto.PageResponseDTO;
 import com.project.articket.review.dto.*;
-import com.project.articket.review.entity.Review;
 
 import java.util.List;
 
