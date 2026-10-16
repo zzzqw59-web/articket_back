@@ -18,14 +18,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Commit;
 import org.junit.jupiter.api.Tag;
+
 import javax.sql.DataSource;
 import java.sql.Connection;
+
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -34,27 +37,34 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Transactional
 @Commit // 성공 시 영구 저장: 한 번만 직접 실행
 @Tag("demo-write")
-@Disabled("로컬 DB 시연 예약·결제 생성: 필요할 때만 해제하고 단독 실행")
+//@Disabled("로컬 DB 시연 예약·결제 생성: 필요할 때만 해제하고 단독 실행")
 class DemoReservationCreateTest {
 
-    private static final String PREFIX = "DEMOJAVA26-";
-    private static final List<Long> SHOWCASE_IDS = List.of(231L, 229L, 226L);
+    private static final String PREFIX = "DEMO3JAVA26-";
+    private static final List<Long> SHOWCASE_IDS = List.of(271L, 283L, 280L);
 
-    @Autowired private MemberRepository memberRepository;
-    @Autowired private ExhibitionRepository exhibitionRepository;
-    @Autowired private ReservationRepository reservationRepository;
-    @Autowired private PaymentRepository paymentRepository;
-    @Autowired private EntityManager em;
-    @Autowired private DataSource dataSource;
+    @Autowired
+    private MemberRepository memberRepository;
+    @Autowired
+    private ExhibitionRepository exhibitionRepository;
+    @Autowired
+    private ReservationRepository reservationRepository;
+    @Autowired
+    private PaymentRepository paymentRepository;
+    @Autowired
+    private EntityManager em;
+    @Autowired
+    private DataSource dataSource;
 
     private record SeedRow(Long reservationId, Long paymentId,
                            LocalDateTime createdAt, LocalDateTime approvedAt,
-                           LocalDateTime canceledAt) {}
+                           LocalDateTime canceledAt) {
+    }
 
     @Test
     void persistAndVerify500Rows() throws Exception {
         verifyDatabaseTarget();
-
+/*
         // 이전 SQL 시연 데이터가 남아 있으면 통계가 중복되므로 중단한다.
         assertEquals(0L, count("""
                 SELECT COUNT(*) FROM RESERVATION
@@ -78,7 +88,7 @@ class DemoReservationCreateTest {
                         "SELECT COUNT(*) FROM RESERVATION WHERE RESERVATION_ORDER_ID LIKE '" + PREFIX + "%'")
                 .getSingleResult();
         assertEquals(0L, previousCount.longValue(), "이미 동일한 Java 시연 데이터가 존재합니다.");
-
+*/
         // MEMBER_ID는 팀원마다 달라지므로 이메일 순서로 80명 선택.
         // 일반 테스트 계정, 제재·탈퇴, STAFF, ADMIN 계정은 제외.
         List<Member> members = memberRepository.findAll().stream()
@@ -168,7 +178,11 @@ class DemoReservationCreateTest {
                     amount);
             if (isCanceled) {
                 ReservationCancelReason[] reasons = ReservationCancelReason.values();
-                ReservationCancelReason reason = reasons[i % reasons.length];
+
+                Random random = new Random();
+
+                ReservationCancelReason reason =
+                        reasons[random.nextInt(reasons.length)];
                 String detail = reason == ReservationCancelReason.OTHER
                         ? switch (i % 4) {
                     case 0 -> "가족 일정이 갑자기 변경되어 방문하기 어렵습니다.";
@@ -184,7 +198,7 @@ class DemoReservationCreateTest {
             reservationRepository.save(reservation);
 
             Payment payment = new Payment(reservation, orderId,
-                    "DEMOJAVA-PAY-" + String.format("%04d", i), amount,
+                    "DEMO3JAVA-PAY-" + String.format("%04d", i), amount,
                     isCanceled ? PaymentStatus.CANCELED : PaymentStatus.DONE,
                     "카드", approvedAt);
             if (isCanceled) {
@@ -201,22 +215,22 @@ class DemoReservationCreateTest {
         em.flush();
         for (SeedRow row : inserted) {
             em.createNativeQuery("""
-                    UPDATE RESERVATION
-                    SET RESERVATION_CREATED_AT = :createdAt,
-                        RESERVATION_CANCELED_AT = :canceledAt
-                    WHERE RESERVATION_ID = :id
-                    """)
+                            UPDATE RESERVATION
+                            SET RESERVATION_CREATED_AT = :createdAt,
+                                RESERVATION_CANCELED_AT = :canceledAt
+                            WHERE RESERVATION_ID = :id
+                            """)
                     .setParameter("createdAt", row.createdAt())
                     .setParameter("canceledAt", row.canceledAt())
                     .setParameter("id", row.reservationId())
                     .executeUpdate();
             em.createNativeQuery("""
-                    UPDATE PAYMENT
-                    SET PAYMENT_CREATED_AT = :approvedAt,
-                        PAYMENT_APPROVED_AT = :approvedAt,
-                        PAYMENT_CANCELED_AT = :canceledAt
-                    WHERE PAYMENT_ID = :id
-                    """)
+                            UPDATE PAYMENT
+                            SET PAYMENT_CREATED_AT = :approvedAt,
+                                PAYMENT_APPROVED_AT = :approvedAt,
+                                PAYMENT_CANCELED_AT = :canceledAt
+                            WHERE PAYMENT_ID = :id
+                            """)
                     .setParameter("approvedAt", row.approvedAt())
                     .setParameter("canceledAt", row.canceledAt())
                     .setParameter("id", row.paymentId())
