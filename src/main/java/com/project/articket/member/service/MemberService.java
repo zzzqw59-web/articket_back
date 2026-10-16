@@ -213,7 +213,7 @@ public class MemberService {
         Page<Member> memberPage =
                 memberRepository.findAll(
                         pageRequestDTO.getPageable(
-                                "memberJoinCreatedAt"
+                                "memberId"
                         )
                 );
 
