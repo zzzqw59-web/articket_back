@@ -191,7 +191,7 @@ public class DeactiveService {
         Long targetId = latestDeactive != null ? latestDeactive.getDeactiveId() : 0L;
 
         // 예시: 만약 활성화 알림 타입이 별도로 존재한다면 아래와 같이 발송 가능
-        // notificationManager.notifyUser(member, NotificationType.MEMBER_ACTIVE.getCode(), targetId, adminMemberId);
+        notificationManager.notifyUser(member, NotificationType.MEMBER_ACTIVE.getCode(), targetId, adminMemberId);
     }
 
     @Transactional(readOnly = true)
@@ -300,6 +300,13 @@ public class DeactiveService {
                 }
 
                 deactive.getMember().activate();
+
+                notificationManager.notifyUser(
+                        deactive.getMember(),
+                        NotificationType.MEMBER_ACTIVE.getCode(),
+                        deactive.getDeactiveId(),
+                        null
+                );
             }
         }
     }

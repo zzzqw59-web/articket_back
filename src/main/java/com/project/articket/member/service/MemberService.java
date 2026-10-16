@@ -14,9 +14,11 @@ import com.project.articket.staff.dto.StaffCreateRequestDTO;
 import com.project.articket.verification.service.VerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -211,7 +213,7 @@ public class MemberService {
         Page<Member> memberPage =
                 memberRepository.findAll(
                         pageRequestDTO.getPageable(
-                                "memberJoinCreatedAt"
+                                "memberId"
                         )
                 );
 
@@ -372,6 +374,17 @@ public class MemberService {
                                         "회원 정보를 찾을 수 없습니다."
                                 )
                         );
+
+        if (requestDTO.getCurrentPassword() == null
+                || !passwordEncoder.matches(
+                requestDTO.getCurrentPassword(),
+                member.getMemberPassword()
+        )) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "현재 비밀번호가 일치하지 않습니다."
+            );
+        }
 
         String encryptedPhone =
                 personalDataCrypto.encryptPhone(

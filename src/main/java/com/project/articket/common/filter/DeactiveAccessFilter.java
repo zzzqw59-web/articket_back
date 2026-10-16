@@ -143,6 +143,25 @@ public class DeactiveAccessFilter extends OncePerRequestFilter {
         }
 
         if ("GET".equalsIgnoreCase(method)
+                && (path.equals("/api/notifications")
+                || path.equals("/api/notifications/unread")
+                || path.equals("/api/notifications/unread/count"))) {
+            return true;
+        }
+
+        if ("PATCH".equalsIgnoreCase(method)
+                && (path.equals("/api/notifications/read-all")
+                || path.matches("/api/notifications/[0-9]+/read"))) {
+            return true;
+        }
+
+        if ("DELETE".equalsIgnoreCase(method)
+                && (path.equals("/api/notifications")
+                || path.matches("/api/notifications/[0-9]+"))) {
+            return true;
+        }
+
+        if ("GET".equalsIgnoreCase(method)
                 && path.equals("/api/my/replies")) {
             return true;
         }

@@ -1,8 +1,6 @@
 package com.project.articket.reservation.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.project.articket.exhibition.entity.Exhibition;
-import com.project.articket.reservation.entity.Reservation;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -43,17 +43,12 @@ public class SolapiService {
             messageService.send(message);
 
         } catch (SolapiMessageNotReceivedException exception) {
-            System.out.println(exception.getFailedMessageList());
-            System.out.println(exception.getMessage());
-
             throw new RuntimeException(
                     "인증번호 문자 발송에 실패했습니다.",
                     exception
             );
 
         } catch (Exception exception) {
-            System.out.println(exception.getMessage());
-
             throw new RuntimeException(
                     "SOLAPI 문자 발송 중 오류가 발생했습니다.",
                     exception

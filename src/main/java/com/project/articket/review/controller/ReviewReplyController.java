@@ -8,8 +8,10 @@ import com.project.articket.review.dto.ReviewReplyUpdateDTO;
 import com.project.articket.review.service.ReviewReplyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequiredArgsConstructor
@@ -17,8 +19,26 @@ import org.springframework.web.bind.annotation.*;
 public class ReviewReplyController {
     private final ReviewReplyService reviewReplyService;
 
+    private void validatePageRequest(PageRequestDTO pageRequestDTO) {
+
+        if (pageRequestDTO.getPage() < 1) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "페이지 번호는 1 이상이어야 합니다."
+            );
+        }
+
+        if (pageRequestDTO.getSize() < 1 || pageRequestDTO.getSize() > 100) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "페이지 크기는 1 이상 100 이하여야 합니다."
+            );
+        }
+    }
+
     @GetMapping("/reviews/{reviewId}/replies")
     public PageResponseDTO<ReviewReplyDTO> reviewReplyList(@PathVariable Long reviewId, PageRequestDTO pageRequestDTO) {
+        validatePageRequest(pageRequestDTO);
         PageResponseDTO<ReviewReplyDTO> dto = reviewReplyService.reviewReplyPage(reviewId, pageRequestDTO);
         return dto;
     }

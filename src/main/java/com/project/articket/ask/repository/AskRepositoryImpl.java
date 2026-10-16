@@ -4,6 +4,7 @@ import com.project.articket.ask.entity.Ask;
 import com.project.articket.common.enums.MemberRole;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.List;
 import static com.project.articket.ask.entity.QAsk.ask;
 import static com.project.articket.exhibition.entity.QExhibition.exhibition;
 import static com.project.articket.member.entity.QMember.member;
+import static com.project.articket.staff.entity.QStaff.staff;
 
 @RequiredArgsConstructor
 public class AskRepositoryImpl implements AskRepositoryCustom {
@@ -99,10 +101,16 @@ public class AskRepositoryImpl implements AskRepositoryCustom {
     }
 
     private OrderSpecifier<?> getSortOrder(String sort) {
-        if ("asc".equalsIgnoreCase(sort)) {
-            return ask.askCreatedAt.asc();
+        if (!StringUtils.hasText(sort)) {
+            return ask.askCreatedAt.desc(); // 기본값: 최신순
         }
-        return ask.askCreatedAt.desc();
+
+        return switch (sort.toLowerCase()) {
+            case "oldest" -> ask.askCreatedAt.asc();     // 오래된순
+            case "views" -> ask.askHits.desc();          // 조회수순 (조회수 컬럼인 askHits 기준 내림차순)
+            case "latest" -> ask.askCreatedAt.desc();   // 최신순
+            default -> ask.askCreatedAt.desc();
+        };
     }
 
     private BooleanExpression askTypeEq(Integer askType) {
@@ -147,13 +155,26 @@ public class AskRepositoryImpl implements AskRepositoryCustom {
 
     private BooleanExpression canAccessAsk(Long loginMemberId, String loginMemberType) {
         if (MemberRole.ADMIN.equalsKey(loginMemberType)) {
-            return null;
+            return null; // 관리자는 모든 글 조회 가능
         }
 
-        BooleanExpression isPublic = ask.askSecret.eq(0);
+        BooleanExpression isPublic = ask.askSecret.eq(0); // 공개글은 누구나 조회 가능
 
         if (loginMemberId != null) {
+            // 1. 내가 작성한 비밀글
             BooleanExpression isMySecret = ask.askSecret.eq(1).and(ask.memberId.memberId.eq(loginMemberId));
+
+            // 2. [추가] 전시 관계자(STAFF)이면서, 내가 담당하는 전시와 연관된 문의글인 경우
+            if (MemberRole.STAFF.equalsKey(loginMemberType)) {
+                BooleanExpression isStaffExhibitionAsk = ask.exhibitionId.in(
+                        JPAExpressions.select(staff.exhibition)
+                                .from(staff)
+                                .where(staff.member.memberId.eq(loginMemberId))
+                );
+                // 공개글 OR 내가 쓴 글 OR 내가 담당하는 전시의 문의글
+                return isPublic.or(isMySecret).or(isStaffExhibitionAsk);
+            }
+
             return isPublic.or(isMySecret);
         }
 

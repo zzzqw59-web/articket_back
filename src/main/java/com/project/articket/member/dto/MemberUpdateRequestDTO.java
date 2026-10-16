@@ -9,5 +9,6 @@ public class MemberUpdateRequestDTO {
 
     private String nickname;
     private String password;
+    private String currentPassword;
     private String phone;
 }
