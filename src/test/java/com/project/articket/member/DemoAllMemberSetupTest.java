@@ -79,42 +79,6 @@ public class DemoAllMemberSetupTest {
 
     @Test
     void createTestAccounts() {
-
-        createAccount(
-                "artlover@articket.com",
-                "Test1234!",
-                "미술짱",
-                "테스트회원",
-                "010-9001-0001",
-                Member.TYPE_MEMBER
-        );
-
-        createAccount(
-                "artartart@articket.com",
-                "Test1234!",
-                "전시회관",
-                "테스트스태프",
-                "010-9002-0002",
-                Member.TYPE_STAFF
-        );
-
-        createAccount(
-                "artartartll@articket.com",
-                "Test1234!",
-                "얘는걍미술을사랑함",
-                "테스트관리자",
-                "010-9003-0003",
-                Member.TYPE_MEMBER
-        );
-
-        createAccount(
-                "loveexhibition@articket.com",
-                "Test1234!",
-                "안녕하세요",
-                "테스트회원01",
-                "010-9004-0011",
-                Member.TYPE_MEMBER
-        );
     }
 
     private void createAccount(
@@ -227,7 +191,7 @@ public class DemoAllMemberSetupTest {
                 "Minjun!2026",
                 "달빛산책",
                 "김민준",
-                "010-9000-0101",
+                "01090000101",
                 Member.TYPE_MEMBER
         );
 
@@ -245,7 +209,7 @@ public class DemoAllMemberSetupTest {
                 "Jihoon!2026",
                 "별빛여행자",
                 "박지훈",
-                "010-9000-0103",
+                "01090000103",
                 Member.TYPE_MEMBER
         );
 
@@ -254,7 +218,7 @@ public class DemoAllMemberSetupTest {
                 "Yujin!2026",
                 "라일락향기",
                 "최유진",
-                "010-9000-0104",
+                "01090000104",
                 Member.TYPE_MEMBER
         );
 
@@ -263,7 +227,7 @@ public class DemoAllMemberSetupTest {
                 "Haneul!2026",
                 "구름산책",
                 "정하늘",
-                "010-9000-0105",
+                "01090000105",
                 Member.TYPE_MEMBER
         );
 
@@ -281,7 +245,7 @@ public class DemoAllMemberSetupTest {
                 "Hyunwoo!2026",
                 "아트큐레이터",
                 "오현우",
-                "010-9000-0201",
+                "01090000201",
                 Member.TYPE_STAFF
         );
 
@@ -290,7 +254,7 @@ public class DemoAllMemberSetupTest {
                 "Seoa!2026",
                 "전시산책",
                 "윤서아",
-                "010-9000-0202",
+                "01090000202",
                 Member.TYPE_STAFF
         );
 
@@ -299,7 +263,7 @@ public class DemoAllMemberSetupTest {
                 "Doyoon!2026",
                 "갤러리노트",
                 "강도윤",
-                "010-9000-0203",
+                "01090000203",
                 Member.TYPE_STAFF
         );
 
@@ -308,7 +272,7 @@ public class DemoAllMemberSetupTest {
                 "Subin!2026",
                 "아트매니저",
                 "임수빈",
-                "010-9000-0301",
+                "01090000301",
                 Member.TYPE_ADMIN
         );
 
