@@ -33,6 +33,7 @@ import java.util.Random;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@org.junit.jupiter.api.Disabled("시연 데이터 생성 테스트 - 자동 실행 금지")
 @SpringBootTest
 @Transactional
 @Commit // 성공 시 영구 저장: 한 번만 직접 실행
