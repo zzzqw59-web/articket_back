@@ -14,8 +14,10 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import lombok.extern.slf4j.Slf4j;
 import java.util.stream.IntStream;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class VerificationService {
@@ -107,6 +109,17 @@ public class VerificationService {
                     );
 
                 } catch (RuntimeException exception) {
+log.error(
+        "SOLAPI 문자 발송 실패 - 예외 타입: {}, 원인 타입: {}, 원인 메시지: {}",
+        exception.getClass().getName(),
+        exception.getCause() == null
+                ? "없음"
+                : exception.getCause().getClass().getName(),
+        exception.getCause() == null
+                ? "없음"
+                : exception.getCause().getMessage()
+);
+
                     throw new ResponseStatusException(
                             HttpStatus.BAD_GATEWAY,
                             "인증번호 문자 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.",

@@ -101,4 +101,24 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                         "message", "서버에서 요청을 처리하지 못했습니다."
                 ));
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+public ResponseEntity<Map<String, String>> handleIllegalArgumentException(
+        IllegalArgumentException e,
+        jakarta.servlet.http.HttpServletRequest request) {
+
+    if (!"POST".equals(request.getMethod())
+            || !"/api/reservations".equals(request.getServletPath())) {
+        return handleUnexpectedException(e);
+    }
+
+    return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(Map.of(
+                    "error", "INVALID_RESERVATION",
+                    "message", e.getMessage() == null
+                            ? "예약 정보를 확인해 주세요."
+                            : e.getMessage()
+            ));
+}
 }
